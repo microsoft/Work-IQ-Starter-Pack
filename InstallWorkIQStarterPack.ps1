@@ -107,7 +107,7 @@ try {
         # application permissions (Teamwork.Migrate.All) - need a seprate connection specifically for migration using a cert.
         $migrationCertificatePath = Join-Path -Path $PSScriptRoot -ChildPath "Installation/.certs/teams-chat-migration.pfx"
         if (-not (Test-Path $migrationCertificatePath)) {
-            throw "Teams chat migration certificate not found at $migrationCertificatePath. Run ConfigureAppRegistration.ps1 first."
+            throw "Teams chat migration certificate not found at $migrationCertificatePath. Run InstallWorkIQStarterPack.ps1 again once admin consent has been granted."
         }
         $migrationToken = Get-TeamsChatMigrationAccessToken -ClientId $config.Settings.ClientId `
             -TenantPrefix $config.Settings.TenantPrefix -CertificatePath $migrationCertificatePath

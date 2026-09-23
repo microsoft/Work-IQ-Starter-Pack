@@ -11,7 +11,7 @@ This repo contains demo sites. The sites are built using PnP Provisioning templa
 ## Requirements
 You need PowerShell 7.4.0 or later to use PnP PowerShell. It is available for Windows, Linux and Mac and can be [installed through here](https://learn.microsoft.com/powershell/scripting/install/installing-powershell).
 The PnPPowerShell module is required to run this sample
-You will need an application registration to install this sample. It will require the following permissions. You can either use the COnfigureAppRegistration.ps1 file or enter the ApplcationID in the InstallWorkIQStarterPack.ps1.
+You will need an application registration to install this sample. It will require the following permissions. InstallWorkIQStarterPack.ps1 can create one for you, or you can enter the client ID of an existing one when prompted.
 You Must be a XXX admin in order to create the application registration and approve the api permissions.
 
 ## Configuration
@@ -52,7 +52,7 @@ This solution requires the user installing the solution to be a Global Administr
 ## Instructions
 - Ensure you meet the critera for enabling Work IQ in your tenant (Azure Subscription, )
 - [Enable Work IQ in your tenant](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq/enable-work-iq?tabs=entra-admin).
-- If you do not already have an application registration with XXX permissions create one using ConfigureAppRegistration.ps1
+- Run InstallWorkIQStarterPack.ps1. If you do not already have an application registration with XXX permissions, answer "no" when asked and the installer will create one.
 - You will be asked to authenticate.
 
 
