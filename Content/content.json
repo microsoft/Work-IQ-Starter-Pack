@@ -1,0 +1,409 @@
+{
+    "Title": "Product X Launch",
+    "URL": "ProductXLaunch",
+    "Description": "Product X launch collaboration site",
+    "EnableMicrosoftTeams": true,
+    "IsPublic": false,
+    "Owners": [
+        "serena.ribeiro@sympdcp.onmicrosoft.com",
+        "babak.shammas@sympdcp.onmicrosoft.com"
+    ],
+    "Members": [
+        "charlotte.waltson@sympdcp.onmicrosoft.com",
+        "cassandra.dunn@sympdcp.onmicrosoft.com",
+        "david.power@sympdcp.onmicrosoft.com"
+    ],
+    "Content": {
+        "Documents": [
+            {
+                "Title": "Clinical Formulation Overview",
+                "Path": "Documents/Demo1/SharePoint_Documents/Clinical Formulation Overview.docx",
+                "CreatedOffset": -62,
+                "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -62,
+                "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Commercialization Timeline",
+                "Path": "Documents/Demo1/SharePoint_Documents/Commercialization Timeline.docx",
+                "CreatedOffset": -64,
+                "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -36,
+                "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Competitor Intelligence Report",
+                "Path": "Documents/Demo1/SharePoint_Documents/Competitor Intelligence Report.docx",
+                "CreatedOffset": -71,
+                "CreatedBy": "serena.ribeiro@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -57,
+                "ModifiedBy": "serena.ribeiro@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Launch Steering Committee Meeting Notes",
+                "Path": "Documents/Demo1/SharePoint_Documents/Launch Steering Committee Meeting Notes.docx",
+                "CreatedOffset": -31,
+                "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -31,
+                "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Market Access Strategy",
+                "Path": "Documents/Demo1/SharePoint_Documents/Market Access Strategy.docx",
+                "CreatedOffset": -80,
+                "CreatedBy": "serena.ribeiro@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -44,
+                "ModifiedBy": "serena.ribeiro@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Next-Generation Product Launch Strategy",
+                "Path": "Documents/Demo1/SharePoint_Documents/Next-Generation Product Launch Strategy.docx",
+                "CreatedOffset": -87,
+                "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -52,
+                "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Product Forecasting Report",
+                "Path": "Documents/Demo1/SharePoint_Documents/Product Forecasting Report.docx",
+                "CreatedOffset": -47,
+                "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -29,
+                "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Product Launch Readiness Assessment",
+                "Path": "Documents/Demo1/SharePoint_Documents/Product Launch Readiness Assessment.docx",
+                "CreatedOffset": -23,
+                "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -8,
+                "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Product Risk Register",
+                "Path": "Documents/Demo1/SharePoint_Documents/Product Risk Register.docx",
+                "CreatedOffset": -40,
+                "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -21,
+                "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+            },
+            {
+                "Title": "Regulatory Submission Briefing",
+                "Path": "Documents/Demo1/SharePoint_Documents/Regulatory Submission Briefing.docx",
+                "CreatedOffset": -16,
+                "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
+                "ModifiedOffset": -5,
+                "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+            }
+        ],
+        "Chats": [
+            {
+                "Title": "Launch War Room",
+                "Members": [
+                    "Serena Ribeiro",
+                    "Charlotte Waltson",
+                    "Babak Shammas",
+                    "David Power"
+                ],
+                "Messages": [
+                    {
+                        "Offset": -37,
+                        "Time": "08:12:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Morning all — using this chat as our running war room for ProductABC launch coordination. Ping here for anything time-sensitive."
+                    },
+                    {
+                        "Offset": -37,
+                        "Time": "08:14:00",
+                        "Sender": "Charlotte Waltson",
+                        "Message": "Sounds good. I'll post supplier updates here as they come in."
+                    },
+                    {
+                        "Offset": -30,
+                        "Time": "14:31:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Heads up — agency accepted our revised labeling language this morning. Formal confirmation to follow."
+                    },
+                    {
+                        "Offset": -30,
+                        "Time": "14:33:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "That's fantastic news, Marcus! Huge unblock for us."
+                    },
+                    {
+                        "Offset": -30,
+                        "Time": "14:34:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Great timing, I was just about to finalize the pricing package."
+                    },
+                    {
+                        "Offset": -21,
+                        "Time": "11:02:00",
+                        "Sender": "Charlotte Waltson",
+                        "Message": "Secondary site validation batch passed. We're fully qualified on both manufacturing sources now."
+                    },
+                    {
+                        "Offset": -21,
+                        "Time": "11:05:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Excellent. That closes out our last major open risk item ahead of the executive checkpoint."
+                    },
+                    {
+                        "Offset": -21,
+                        "Time": "11:06:00",
+                        "Sender": "David Power",
+                        "Message": "Field team is going to be thrilled to hear supply is secured. Momentum with accounts has been building."
+                    },
+                    {
+                        "Offset": -16,
+                        "Time": "09:15:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Pricing and forecast package is finalized and ready for the executive checkpoint deck."
+                    },
+                    {
+                        "Offset": -16,
+                        "Time": "09:20:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Perfect, I'll pull everything together this week."
+                    }
+                ]
+            },
+            {
+                "Title": "Marketing & Product Alignment",
+                "Members": [
+                    "Serena Ribeiro",
+                    "David Power",
+                    "Babak Shammas"
+                ],
+                "Messages": [
+                    {
+                        "Offset": -35,
+                        "Time": "10:00:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Starting this thread to keep marketing and sales aligned on ProductABC messaging as things evolve."
+                    },
+                    {
+                        "Offset": -35,
+                        "Time": "10:02:00",
+                        "Sender": "David Power",
+                        "Message": "Appreciate it — the field is eager for updated collateral once labeling settles."
+                    },
+                    {
+                        "Offset": -26,
+                        "Time": "16:10:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Circulated the pricing options doc for your review — parity vs. modest premium over Product 358."
+                    },
+                    {
+                        "Offset": -26,
+                        "Time": "16:22:00",
+                        "Sender": "David Power",
+                        "Message": "My vote is parity, especially for accounts like Meridian Health Alliance that are price-sensitive on formulary decisions."
+                    },
+                    {
+                        "Offset": -25,
+                        "Time": "09:05:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Agreed, market research supports that too. Babak is finalizing at parity with Product 358."
+                    },
+                    {
+                        "Offset": -19,
+                        "Time": "13:30:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Updated launch collateral is in review now that labeling is final. Should be ready by end of week."
+                    },
+                    {
+                        "Offset": -19,
+                        "Time": "13:32:00",
+                        "Sender": "David Power",
+                        "Message": "Perfect timing — several accounts are asking for updated materials."
+                    }
+                ]
+            },
+            {
+                "Title": "Regulatory Team",
+                "Members": [
+                    "Babak Shammas",
+                    "Cassandra Dunn"
+                ],
+                "Messages": [
+                    {
+                        "Offset": -37,
+                        "Time": "09:00:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Cassandra — setting up this chat so we can keep the risk register in sync with regulatory status in real time."
+                    },
+                    {
+                        "Offset": -37,
+                        "Time": "09:02:00",
+                        "Sender": "Cassandra Dunn",
+                        "Message": "Perfect, that'll save us a lot of back and forth."
+                    },
+                    {
+                        "Offset": -32,
+                        "Time": "15:45:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "FDA pushed back on our dosing claim language. Submitting revised copy today."
+                    },
+                    {
+                        "Offset": -32,
+                        "Time": "15:47:00",
+                        "Sender": "Cassandra Dunn",
+                        "Message": "Logging that as a high-priority item on the risk register now, with you as owner."
+                    },
+                    {
+                        "Offset": -31,
+                        "Time": "10:20:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Estimate two to three weeks for a response. Will keep you posted."
+                    },
+                    {
+                        "Offset": -30,
+                        "Time": "13:15:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Update: agency accepted the revised language. We're finalizing the package insert now."
+                    },
+                    {
+                        "Offset": -30,
+                        "Time": "13:17:00",
+                        "Sender": "Cassandra Dunn",
+                        "Message": "Great — closing out that risk register item today."
+                    },
+                    {
+                        "Offset": -20,
+                        "Time": "08:40:00",
+                        "Sender": "Babak Shammas",
+                        "Message": "Approved package insert is final and incorporated into all commercial materials."
+                    },
+                    {
+                        "Offset": -20,
+                        "Time": "08:42:00",
+                        "Sender": "Cassandra Dunn",
+                        "Message": "Noted for the steering committee update. Nice work getting this across the line."
+                    }
+                ]
+            },
+            {
+                "Title": "Executive Launch Coordination",
+                "Members": [
+                    "Charlotte Waltson",
+                    "Serena Ribeiro"
+                ],
+                "Messages": [
+                    {
+                        "Offset": -36,
+                        "Time": "07:45:00",
+                        "Sender": "Charlotte Waltson",
+                        "Message": "Serena, appreciate the steady updates. Let me know if anything needs my attention before the checkpoint."
+                    },
+                    {
+                        "Offset": -36,
+                        "Time": "07:50:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Will do. Right now the two big items are regulatory labeling and secondary site qualification — both tracking to close within a few weeks."
+                    },
+                    {
+                        "Offset": -20,
+                        "Time": "08:50:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Both of those items are now resolved. We're in strong shape heading into the checkpoint."
+                    },
+                    {
+                        "Offset": -20,
+                        "Time": "08:55:00",
+                        "Sender": "Charlotte Waltson",
+                        "Message": "Excellent. Please make sure Finance and Compliance have their materials ready as well."
+                    },
+                    {
+                        "Offset": -18,
+                        "Time": "17:10:00",
+                        "Sender": "Charlotte Waltson",
+                        "Message": "David raised the idea of pulling the launch date forward — what's your read?"
+                    },
+                    {
+                        "Offset": -18,
+                        "Time": "17:20:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "I'd rather hold the current date to protect field training and payer outreach timing. Flagged the same to David."
+                    },
+                    {
+                        "Offset": -18,
+                        "Time": "17:22:00",
+                        "Sender": "Charlotte Waltson",
+                        "Message": "Agreed, let's keep the current date. We can revisit if field readiness clearly allows it."
+                    },
+                    {
+                        "Offset": -14,
+                        "Time": "09:00:00",
+                        "Sender": "Serena Ribeiro",
+                        "Message": "Final readiness materials are ready for tomorrow's executive checkpoint."
+                    },
+                    {
+                        "Offset": -14,
+                        "Time": "09:05:00",
+                        "Sender": "Charlotte Waltson",
+                        "Message": "Looking forward to it. Great work getting us here."
+                    }
+                ]
+            }
+        ],
+        "Meetings": [
+            {
+                "Name": "Launch Tasks",
+                "Description": "Task list for Product X launch activities",
+                "Columns": [
+                    {
+                        "Name": "Task Name",
+                        "Type": "Text"
+                    },
+                    {
+                        "Name": "Assigned To",
+                        "Type": "Person"
+                    },
+                    {
+                        "Name": "Due Date",
+                        "Type": "DateTime"
+                    },
+                    {
+                        "Name": "Status",
+                        "Type": "Choice",
+                        "Choices": [
+                            "Not Started",
+                            "In Progress",
+                            "Completed"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "Emails": [
+            {
+                "Name": "Launch Tasks",
+                "Description": "Task list for Product X launch activities",
+                "Columns": [
+                    {
+                        "Name": "Task Name",
+                        "Type": "Text"
+                    },
+                    {
+                        "Name": "Assigned To",
+                        "Type": "Person"
+                    },
+                    {
+                        "Name": "Due Date",
+                        "Type": "DateTime"
+                    },
+                    {
+                        "Name": "Status",
+                        "Type": "Choice",
+                        "Choices": [
+                            "Not Started",
+                            "In Progress",
+                            "Completed"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -1,0 +1,57 @@
+{
+  "Settings": {
+    "SkipPreReqCheck": true,
+    "SkipCopilotLicense": true,
+    "InstallM365Content": true,
+    "InstallDynamicsContent": true,
+    "TenantPrefix": "sympdcp",
+    "ClientId": "0095e253-fcbf-4edf-beaf-42653dd9c972"
+  },
+  "Users": [
+    {
+      "FirstName": "Serena",
+      "LastName": "Ribeiro",
+      "JobTitle": "Market Research Analyst",
+      "UserPrincipalName": "serena.ribeiro",
+      "Email": "serena.ribeiro@sympdcp.onmicrosoft.com",
+      "Department": "Marketing",
+      "DynamicsLicenses": false
+    },
+    {
+      "FirstName": "Babak",
+      "LastName": "Shammas",
+      "JobTitle": "Financial Reconciliation Lead",
+      "UserPrincipalName": "babak.shammas",
+      "Email": "babak.shammas@sympdcp.onmicrosoft.com",
+      "Department": "Finance",
+      "DynamicsLicenses": true
+    },
+    {
+      "FirstName": "Cassandra",
+      "LastName": "Dunn",
+      "JobTitle": "Compliance Manager",
+      "UserPrincipalName": "cassandra.dunn",
+      "Email": "cassandra.dunn@sympdcp.onmicrosoft.com",
+      "Department": "Compliance",
+      "DynamicsLicenses": false
+    },
+    {
+      "FirstName": "Charlotte",
+      "LastName": "Waltson",
+      "JobTitle": "VP of Procurement",
+      "UserPrincipalName": "charlotte.waltson",
+      "Email": "charlotte.waltson@sympdcp.onmicrosoft.com",
+      "Department": "Procurement",
+      "DynamicsLicenses": true
+    },
+    {
+      "FirstName": "David",
+      "LastName": "Power",
+      "JobTitle": "Sales Director",
+      "UserPrincipalName": "david.power",
+      "Email": "david.power@sympdcp.onmicrosoft.com",
+      "Department": "Sales",
+      "DynamicsLicenses": true
+    }
+  ]
+}
