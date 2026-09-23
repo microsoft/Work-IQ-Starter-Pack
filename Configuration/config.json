@@ -1,9 +1,8 @@
 {
   "Settings": {
     "SkipPreReqCheck": true,
-    "SkipCopilotLicense": true,
     "InstallM365Content": true,
-    "InstallDynamicsContent": true,
+    "InstallDynamicsContent": false,
     "TenantPrefix": "sympdcp",
     "ClientId": "0095e253-fcbf-4edf-beaf-42653dd9c972"
   },
@@ -15,7 +14,8 @@
       "UserPrincipalName": "serena.ribeiro",
       "Email": "serena.ribeiro@sympdcp.onmicrosoft.com",
       "Department": "Marketing",
-      "DynamicsLicenses": false
+      "DynamicsLicenses": false,
+      "UsageLocation": "US"
     },
     {
       "FirstName": "Babak",
@@ -24,7 +24,8 @@
       "UserPrincipalName": "babak.shammas",
       "Email": "babak.shammas@sympdcp.onmicrosoft.com",
       "Department": "Finance",
-      "DynamicsLicenses": true
+      "DynamicsLicenses": true,
+      "UsageLocation": "US"
     },
     {
       "FirstName": "Cassandra",
@@ -33,7 +34,8 @@
       "UserPrincipalName": "cassandra.dunn",
       "Email": "cassandra.dunn@sympdcp.onmicrosoft.com",
       "Department": "Compliance",
-      "DynamicsLicenses": false
+      "DynamicsLicenses": false,
+      "UsageLocation": "US"
     },
     {
       "FirstName": "Charlotte",
@@ -42,7 +44,8 @@
       "UserPrincipalName": "charlotte.waltson",
       "Email": "charlotte.waltson@sympdcp.onmicrosoft.com",
       "Department": "Procurement",
-      "DynamicsLicenses": true
+      "DynamicsLicenses": true,
+      "UsageLocation": "US"
     },
     {
       "FirstName": "David",
@@ -51,7 +54,8 @@
       "UserPrincipalName": "david.power",
       "Email": "david.power@sympdcp.onmicrosoft.com",
       "Department": "Sales",
-      "DynamicsLicenses": true
+      "DynamicsLicenses": true,
+      "UsageLocation": "US"
     }
   ]
 }

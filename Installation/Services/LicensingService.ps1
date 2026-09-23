@@ -12,7 +12,11 @@ function Get-AvailableSkusCount{
         $freeSeatsCount = $sku.prepaidUnits.enabled - $sku.consumedUnits
     }
     catch {
-        Write-Host "Failed to get SKUs: $($_.Exception.Message)" -ForegroundColor Red
+        $message = "Failed to get SKUs: $($_.Exception.Message)"
+        if ($_.ErrorDetails.Message) {
+            $message += " Graph response: $($_.ErrorDetails.Message)"
+        }
+        Write-Host $message -ForegroundColor Red
         exit 1
     }
     return $freeSeatsCount
@@ -46,7 +50,11 @@ function Test-License-PreRequisites {
         }
     }
     catch {
-        Write-Host "Not Enough Licenses Available: $($_.Exception.Message)" -ForegroundColor Red
+        $message = "Not Enough Licenses Available: $($_.Exception.Message)"
+        if ($_.ErrorDetails.Message) {
+            $message += " Graph response: $($_.ErrorDetails.Message)"
+        }
+        Write-Host $message -ForegroundColor Red
         exit 1
     }
     return $retVal
@@ -61,6 +69,7 @@ function Set-LicenseForUser {
         $currentLicenses = (Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId`?`$select=assignedLicenses" -Headers $headers -Method Get).assignedLicenses
 
         $licensesToAssign = @()
+        #Install the M365 Licenses
         foreach ($skuPartNumber in $settings.Licenses.Office) {
             $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
             if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
@@ -74,6 +83,7 @@ function Set-LicenseForUser {
             }
         }
 
+        #Install Copilot license
         foreach ($skuPartNumber in $settings.Licenses.Copilot) {
             $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
             if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
@@ -82,9 +92,25 @@ function Set-LicenseForUser {
             }
             if($sku.prepaidUnits.enabled - $sku.consumedUnits -gt 0) {
                 Write-Host "Assigning Copilot license $SkuPartNumber to user with ID: $UserId"
-                #$licensesToAssign += @{ skuId = $sku.skuId }
+                $licensesToAssign += @{ skuId = $sku.skuId }
                 break
             }
+        }
+
+        #If we are installing Dynamics demo add Dynamics licenses
+        if($Config.Settings.InstallDynamicsContent -eq $true){
+            foreach ($skuPartNumber in $settings.Licenses.Dynamics) {
+            $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
+            if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
+                Write-Host "User with ID: $UserId already has the $SkuPartNumber license, skipping."
+                break
+            }
+            if($sku.prepaidUnits.enabled - $sku.consumedUnits -gt 0) {
+                Write-Host "Assigning Copilot license $SkuPartNumber to user with ID: $UserId"
+                $licensesToAssign += @{ skuId = $sku.skuId }
+                break
+            }
+        }
         }
 
         if ($licensesToAssign.Count -gt 0) {
@@ -92,11 +118,15 @@ function Set-LicenseForUser {
             Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody
         }
         else {
-            Write-Host "No licenses found to assign for user with ID: $UserId" -ForegroundColor Red
+            Write-Host "No licenses needed to be assigned to this UserId: $UserId" -ForegroundColor Red
         }
     }
     catch {
-        Write-Host "Failed to assign license: $($_.Exception.Message)" -ForegroundColor Red
+        $message = "Failed to assign license: $($_.Exception.Message)"
+        if ($_.ErrorDetails.Message) {
+            $message += " Graph response: $($_.ErrorDetails.Message)"
+        }
+        Write-Host $message -ForegroundColor Red
         throw
     }
 }

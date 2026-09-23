@@ -96,8 +96,10 @@ function Connect-WorkIQPnP {
     )
 
     # Update-AppRegistrationPermissions signs in before Connect-WorkIQGraph does - reuse that sign-in
-    # rather than prompting the user a second time.
-    if ($global:workIQPnPClientId -eq $ClientId) {
+    # rather than prompting the user a second time. Only reuse it if the PnP connection is still live -
+    # a prior run's Disconnect-PnPOnline (e.g. CleanUp.ps1) leaves the client ID global set but the
+    # connection gone, which would otherwise make the next Get-PnPAccessToken call fail.
+    if ($global:workIQPnPClientId -eq $ClientId -and (Get-PnPConnection -ErrorAction SilentlyContinue)) {
         return
     }
 
@@ -238,16 +240,14 @@ function Connect-WorkIQGraph {
         [string]$ClientId
     )
 
-    if ($global:graphBaseUrl -and $global:headers -and $global:workIQConnectedClientId -eq $ClientId) {
-        Write-Host "Reusing existing Graph connection for ClientId $ClientId."
-        return
-    }
-
+    # Always rebuild the header from a fresh token rather than reusing a cached one - the header is a
+    # frozen string, so a cached one from an earlier run in this session can be an expired token even
+    # though PnP's own underlying connection would have refreshed it. Get-PnPAccessToken serves from
+    # PnP/MSAL's token cache and refreshes silently, so this doesn't add an extra sign-in prompt.
     Connect-WorkIQPnP -SharePointUrl $SharePointUrl -ClientId $ClientId
 
     $global:graphBaseUrl = "https://graph.microsoft.com/v1.0"
     $global:headers = @{ Authorization = "Bearer $(Get-WorkIQGraphAccessToken)" }
-    $global:workIQConnectedClientId = $ClientId
 }
 
 function Get-WorkIQGraphAccessToken {

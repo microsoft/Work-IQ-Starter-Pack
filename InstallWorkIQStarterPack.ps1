@@ -119,7 +119,7 @@ try {
         $preRequisitesMet = $true
         if (($preRequisitesMet -eq $true -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
             Write-Host "All license pre-requisites are met. Proceeding with user provisioning."
-            #Add-Users -Config $config
+            Add-Users -Config $config
             #Add-Sites -Config $config
             #Import-SiteDocuments -Config $config
             #Add-TeamsChatMessages -Config $config -MigrationHeaders $migrationHeaders

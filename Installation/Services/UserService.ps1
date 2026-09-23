@@ -6,7 +6,7 @@ function Add-Users {
 
     foreach ($user in $Config.Users) {
         try {
-            $existingUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'" -Headers $headers -Method Get).value | Select-Object -First 1
+            $existingUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'&`$select=id,userPrincipalName,usageLocation" -Headers $headers -Method Get).value | Select-Object -First 1
 
             if (-not $existingUser) {
                 $tempPassword = "Wiq!" + [System.Guid]::NewGuid().ToString("N").Substring(0, 10) + "9"
@@ -17,7 +17,7 @@ function Add-Users {
                     userPrincipalName = $user.Email
                     jobTitle          = $user.JobTitle
                     department        = $user.Department
-                    usageLocation     = $Config.UsageLocation
+                    usageLocation     = $user.UsageLocation
                     givenName        = $user.FirstName
                     surname          = $user.LastName
                     passwordProfile   = @{
@@ -27,10 +27,13 @@ function Add-Users {
                 }
 
                 $existingUser = Invoke-RestMethod -Uri "$graphBaseUrl/users" -Headers $headers -Method Post -ContentType "application/json" -Body ($newUser | ConvertTo-Json -Depth 5)
-                Write-Host "Created $upn with temporary password: $tempPassword"
+                Write-Host "Created $($user.Email) with temporary password: $tempPassword"
             }
             else {
-                Write-Host "$upn already exists, skipping creation."
+                Write-Host "$($user.Email) already exists, skipping creation."
+                if ($existingUser.usageLocation -ne $user.UsageLocation) {
+                    Invoke-RestMethod -Uri "$graphBaseUrl/users/$($existingUser.id)" -Headers $headers -Method Patch -ContentType "application/json" -Body (@{ usageLocation = $user.UsageLocation } | ConvertTo-Json)
+                }
             }
 
             Set-LicenseForUser -UserId $existingUser.id
