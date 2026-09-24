@@ -73,11 +73,11 @@ function Set-LicenseForUser {
         foreach ($skuPartNumber in $settings.Licenses.Office) {
             $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
             if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
-                Write-Host "User with ID: $UserId already has the $SkuPartNumber license, skipping."
+                Write-InstallLogAction -Message "User with ID: $UserId already has the $SkuPartNumber license, skipping."
                 break
             }
             if($sku.prepaidUnits.enabled - $sku.consumedUnits -gt 0) {
-                Write-Host "Assigning Office license $SkuPartNumber to user with ID: $UserId"
+                Write-InstallLogAction -Message "Assigning Office license $SkuPartNumber to user with ID: $UserId"
                 $licensesToAssign += @{ skuId = $sku.skuId }
                 break
             }
@@ -87,11 +87,11 @@ function Set-LicenseForUser {
         foreach ($skuPartNumber in $settings.Licenses.Copilot) {
             $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
             if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
-                Write-Host "User with ID: $UserId already has the $SkuPartNumber license, skipping."
+                Write-InstallLogAction -Message "User with ID: $UserId already has the $SkuPartNumber license, skipping."
                 break
             }
             if($sku.prepaidUnits.enabled - $sku.consumedUnits -gt 0) {
-                Write-Host "Assigning Copilot license $SkuPartNumber to user with ID: $UserId"
+                Write-InstallLogAction -Message "Assigning Copilot license $SkuPartNumber to user with ID: $UserId"
                 $licensesToAssign += @{ skuId = $sku.skuId }
                 break
             }
@@ -102,11 +102,11 @@ function Set-LicenseForUser {
             foreach ($skuPartNumber in $settings.Licenses.Dynamics) {
             $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
             if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
-                Write-Host "User with ID: $UserId already has the $SkuPartNumber license, skipping."
+                Write-InstallLogAction -Message "User with ID: $UserId already has the $SkuPartNumber license, skipping."
                 break
             }
             if($sku.prepaidUnits.enabled - $sku.consumedUnits -gt 0) {
-                Write-Host "Assigning Copilot license $SkuPartNumber to user with ID: $UserId"
+                Write-InstallLogAction -Message "Assigning Copilot license $SkuPartNumber to user with ID: $UserId"
                 $licensesToAssign += @{ skuId = $sku.skuId }
                 break
             }
@@ -118,7 +118,7 @@ function Set-LicenseForUser {
             Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody
         }
         else {
-            Write-Host "No licenses needed to be assigned to this UserId: $UserId" -ForegroundColor Red
+            Write-InstallLogAction -Message "No licenses needed to be assigned to this UserId: $UserId" -Level Error
         }
     }
     catch {

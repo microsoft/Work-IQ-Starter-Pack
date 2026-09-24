@@ -77,7 +77,7 @@ function Set-AppRegistrationConfig {
         $config.Settings.ClientId = $ClientId
         $config.Settings.TenantPrefix = $TenantPrefix
         $config | ConvertTo-Json -Depth 20 | Set-Content -Path $ConfigPath
-        Write-Host "Updated config.json with ClientId: $ClientId and TenantPrefix: $TenantPrefix"
+        Write-InstallLogAction -Message "Updated config.json with ClientId: $ClientId and TenantPrefix: $TenantPrefix"
         return $true
     }
     catch {
@@ -194,11 +194,11 @@ function Update-AppRegistrationPermissions {
             $step = "update the app registration's API permissions"
             Invoke-RestMethod -Uri "$graphUrl/applications/$($application.id)" -Headers $graphHeaders -Method Patch -ContentType "application/json" -Body $body | Out-Null
 
-            Write-Host "Added missing permissions to the app registration:" -ForegroundColor Yellow
-            $added | ForEach-Object { Write-Host "  - $_" -ForegroundColor Yellow }
+            Write-InstallLogAction -Message "Added missing permissions to the app registration:" -Level Warning
+            $added | ForEach-Object { Write-InstallLogAction -Message "  - $_" -Level Warning }
         }
         else {
-            Write-Host "The app registration has all required permissions."
+            Write-InstallLogAction -Message "The app registration has all required permissions."
         }
 
         # Permissions that are configured but not yet consented also need the admin consent step.

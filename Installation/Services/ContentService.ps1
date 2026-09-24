@@ -1,3 +1,54 @@
+function Update-ContentPersonas {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SourcePath,
+        [Parameter(Mandatory = $true)]
+        [string]$OutputPath,
+        [Parameter(Mandatory = $true)]
+        $DemoUsers,
+        [Parameter(Mandatory = $true)]
+        $RealUsers,
+        [Parameter(Mandatory = $true)]
+        [hashtable]$RealUserUpns
+    )
+
+    # content.json (SourcePath) is always the pristine demo content - it's never modified. This
+    # always re-derives content.custom.json (OutputPath) from it fresh, so re-running the
+    # installer with different real users never leaves stale swapped names behind.
+    $contentText = Get-Content -Path $SourcePath -Raw
+
+    # Emails and full names first - full name before first name, since "Serena Ribeiro" contains
+    # "Serena" and swapping the first name first would break the full-name match.
+    foreach ($index in $RealUserUpns.Keys) {
+        $demoEmail = $DemoUsers[$index].Email
+        $realEmail = $RealUsers[$index].Email
+        if (-not [string]::IsNullOrWhiteSpace($demoEmail) -and -not [string]::IsNullOrWhiteSpace($realEmail)) {
+            $contentText = $contentText.Replace($demoEmail, $realEmail)
+        }
+
+        $demoFullName = "$($DemoUsers[$index].FirstName) $($DemoUsers[$index].LastName)"
+        $realFullName = "$($RealUsers[$index].FirstName) $($RealUsers[$index].LastName)"
+        if (-not [string]::IsNullOrWhiteSpace($DemoUsers[$index].FirstName) -and -not [string]::IsNullOrWhiteSpace($RealUsers[$index].FirstName)) {
+            $contentText = $contentText.Replace($demoFullName, $realFullName)
+        }
+    }
+
+    # Bare first-name mentions in chat message text (e.g. "Serena, appreciate...") - word-bounded
+    # so this doesn't match inside unrelated longer words.
+    foreach ($index in $RealUserUpns.Keys) {
+        $demoFirstName = $DemoUsers[$index].FirstName
+        $realFirstName = $RealUsers[$index].FirstName
+        if (-not [string]::IsNullOrWhiteSpace($demoFirstName) -and -not [string]::IsNullOrWhiteSpace($realFirstName)) {
+            $contentText = $contentText -replace "\b$([regex]::Escape($demoFirstName))\b", $realFirstName
+        }
+    }
+
+    # Validate the result is still well-formed JSON before writing it out.
+    $null = $contentText | ConvertFrom-Json
+
+    Set-Content -Path $OutputPath -Value $contentText
+}
+
 function Import-SiteDocuments {
     param(
         [Parameter(Mandatory = $true)]
@@ -5,17 +56,25 @@ function Import-SiteDocuments {
     )
 
     foreach ($site in $Config.Sites) {
-        if (-not $site.Content -or -not $site.Content.Documents -or $site.Content.Documents.Count -eq 0) {
+        # Documents, MeetingTranscripts, and EmailThreads are all just files uploaded into the
+        # site's document library - same shape (Title/Path/Created*/Modified*), same upload path.
+        $files = @()
+        foreach ($group in @("Documents", "MeetingTranscripts", "EmailThreads")) {
+            if ($site.Content -and $site.Content.$group) {
+                $files += $site.Content.$group
+            }
+        }
+        if ($files.Count -eq 0) {
             continue
         }
 
         $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
         $siteConnection = Connect-PnPOnline -Url $siteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
 
-        foreach ($file in $site.Content.Documents) {
+        foreach ($file in $files) {
             try {
                 Import-SiteDocument -SiteUrl $siteUrl -File $file -Connection $siteConnection
-                Write-Host "Imported '$($file.Title)' into site '$($site.URL)'."
+                Write-InstallLogAction -Message "Imported '$($file.Title)' into site '$($site.URL)'."
             }
             catch {
                 Write-Host "Failed to import '$($file.Title)' into site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
@@ -123,7 +182,7 @@ function Add-TeamsChatMessages {
             $messages = $messages | Sort-Object -Property Timestamp
 
             Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Config $Config -MigrationHeaders $MigrationHeaders
-            Write-Host "Imported $($messages.Count) chat messages into the General channel of site '$($site.URL)'."
+            Write-InstallLogAction -Message "Imported $($messages.Count) chat messages into the General channel of site '$($site.URL)'."
         }
         catch {
             Write-Host "Failed to import chat messages into site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red

@@ -11,10 +11,10 @@ function Add-Sites {
 
             if (-not $existingSite) {
                 $groupId = New-TeamsSite -Site $site -Config $Config -SiteUrl $siteUrl
-                Write-Host "Created site '$($site.Title)' at $siteUrl"
+                Write-InstallLogAction -Message "Created site '$($site.Title)' at $siteUrl"
             }
             else {
-                Write-Host "Site with URL '$($site.URL)' already exists, skipping creation."
+                Write-InstallLogAction -Message "Site with URL '$($site.URL)' already exists, skipping creation."
                 $groupId = Get-SiteGroupId -Site $site
                 Set-SiteTeamsConnection -Site $site -Config $Config -SiteUrl $siteUrl -GroupId $groupId
             }
@@ -176,11 +176,11 @@ function Add-GroupRoleMember {
         $user = Invoke-RestMethod -Uri "$graphBaseUrl/users/$Email" -Headers $headers -Method Get
         $body = @{ "@odata.id" = "$graphBaseUrl/$refSegment/$($user.id)" } | ConvertTo-Json
         Invoke-RestMethod -Uri "$graphBaseUrl/groups/$GroupId/$refCollection/`$ref" -Headers $headers -Method Post -ContentType "application/json" -Body $body
-        Write-Host "Added $Email as a $roleLower of site '$($Site.URL)'."
+        Write-InstallLogAction -Message "Added $Email as a $roleLower of site '$($Site.URL)'."
     }
     catch {
         if ($_.ErrorDetails.Message -match "already exist") {
-            Write-Host "$Email is already a $roleLower of site '$($Site.URL)'."
+            Write-InstallLogAction -Message "$Email is already a $roleLower of site '$($Site.URL)'."
         }
         else {
             Write-Host "Failed to add $roleLower $($Email): $($_.Exception.Message)" -ForegroundColor Red

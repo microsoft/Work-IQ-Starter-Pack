@@ -1,0 +1,52 @@
+[
+  {
+    "FirstName": "Derek",
+    "LastName": "Cash-Peterson",
+    "JobTitle": null,
+    "UserPrincipalName": "derekcp",
+    "Email": "derekcp@sympdcp.onmicrosoft.com",
+    "Department": null,
+    "DynamicsLicenses": false,
+    "UsageLocation": "IS"
+  },
+  {
+    "FirstName": "Jane",
+    "LastName": "Smith",
+    "JobTitle": null,
+    "UserPrincipalName": "jsmith",
+    "Email": "jsmith@sympdcp.onmicrosoft.com",
+    "Department": null,
+    "DynamicsLicenses": true,
+    "UsageLocation": "IS"
+  },
+  {
+    "FirstName": "Lars",
+    "LastName": "Egner",
+    "JobTitle": null,
+    "UserPrincipalName": "lars",
+    "Email": "lars@sympdcp.onmicrosoft.com",
+    "Department": null,
+    "DynamicsLicenses": false,
+    "UsageLocation": "IS"
+  },
+  {
+    "FirstName": "Finance",
+    "LastName": "User 2",
+    "JobTitle": null,
+    "UserPrincipalName": "financeuser2",
+    "Email": "financeuser2@sympdcp.onmicrosoft.com",
+    "Department": null,
+    "DynamicsLicenses": true,
+    "UsageLocation": "US"
+  },
+  {
+    "FirstName": "Patrick",
+    "LastName": "Cash-Peterson",
+    "JobTitle": null,
+    "UserPrincipalName": "patrick",
+    "Email": "patrick@sympdcp.onmicrosoft.com",
+    "Department": null,
+    "DynamicsLicenses": true,
+    "UsageLocation": "US"
+  }
+]
