@@ -170,12 +170,21 @@ function Import-SiteDocument {
 function Add-TeamsChatMessages {
     param(
         [Parameter(Mandatory = $true)]
+        $ContentConfig,
+        [Parameter(Mandatory = $true)]
         $Config,
         [Parameter(Mandatory = $true)]
         $MigrationHeaders
     )
 
-    foreach ($site in $Config.Sites) {
+    # Graph rejects a migrated message if its createdDateTime (down to the millisecond) was already
+    # used in that channel, so re-running the installer against a site whose channel already absorbed
+    # messages from a previous (even failed/partial) attempt must not recompute identical timestamps.
+    # Folding in a run-specific jitter, derived from the actual moment this run executes, keeps each
+    # run's values unique without perceptibly changing the configured time-of-day in the Teams client.
+    $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
+
+    foreach ($site in $ContentConfig.Sites) {
         if (-not $site.Content -or -not $site.Content.Chats -or $site.Content.Chats.Count -eq 0) {
             continue
         }
@@ -186,7 +195,7 @@ function Add-TeamsChatMessages {
 
             $messages = foreach ($chat in $site.Content.Chats) {
                 foreach ($message in $chat.Messages) {
-                    $timestamp = (Get-Date).Date.AddDays($message.Offset).Add([TimeSpan]::Parse($message.Time))
+                    $timestamp = (Get-Date).Date.AddDays($message.Offset).Add([TimeSpan]::Parse($message.Time)).Add($runJitter)
                     [PSCustomObject]@{
                         Timestamp = $timestamp
                         Sender    = $message.Sender
@@ -197,8 +206,10 @@ function Add-TeamsChatMessages {
             }
             $messages = $messages | Sort-Object -Property Timestamp
 
-            Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Config $Config -MigrationHeaders $MigrationHeaders
-            Write-InstallLogAction -Message "Imported $($messages.Count) chat messages into the General channel of site '$($site.URL)'."
+            $imported = Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Config $Config -MigrationHeaders $MigrationHeaders
+            if ($imported) {
+                Write-InstallLogAction -Message "Imported $($messages.Count) chat messages into the General channel of site '$($site.URL)'."
+            }
         }
         catch {
             Write-Host "Failed to import chat messages into site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
@@ -268,14 +279,38 @@ function Import-TeamsChatMessages {
     )
 
     if ($Messages.Count -eq 0) {
-        return
+        return $false
     }
 
     $migrationBaseUrl = "$graphBaseUrl/teams/$TeamId/channels/$ChannelId"
-    $earliestTimestamp = $Messages[0].Timestamp.AddSeconds(-60).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
 
-    Invoke-RestMethod -Uri "$migrationBaseUrl/startMigration" -Headers $MigrationHeaders -Method Post `
-        -ContentType "application/json" -Body (@{ conversationCreationDateTime = $earliestTimestamp } | ConvertTo-Json)
+    # Check the channel's actual migration state instead of guessing. "completed" means an earlier run
+    # already fully imported and sealed this channel - Graph *does* allow reopening it via startMigration,
+    # but doing so unconditionally would just re-post every message a second time (with no record of what
+    # was already sent), so treat "completed" as done and skip. A channel left "inProgress" by an earlier
+    # failed attempt (which we now deliberately don't complete on failure - see below) must not have
+    # startMigration called on it again (that 400s) - just resume posting into it. Only $null (never
+    # entered migration mode) needs a fresh startMigration call.
+    $channel = Invoke-RestMethod -Uri "$migrationBaseUrl`?`$select=migrationMode,createdDateTime" -Headers $headers -Method Get
+
+    if ($channel.migrationMode -eq "completed") {
+        Write-Host "Channel '$ChannelId' on team '$TeamId' was already fully migrated in a previous run - skipping." -ForegroundColor Yellow
+        return $false
+    }
+
+    if ($channel.migrationMode -ne "inProgress") {
+        # conversationCreationDateTime must be older than the channel's *current* createdDateTime, which
+        # an earlier migration attempt may have already pushed back. Anchor off whichever of the channel's
+        # current createdDateTime or our own earliest message is older, then step back further still, so
+        # this succeeds no matter how many times this channel has already been retried.
+        $channelCreatedDateTime = ([DateTimeOffset]$channel.createdDateTime).UtcDateTime
+        $earliestMessageTimestamp = $Messages[0].Timestamp.ToUniversalTime()
+        $anchor = if ($channelCreatedDateTime -lt $earliestMessageTimestamp) { $channelCreatedDateTime } else { $earliestMessageTimestamp }
+        $conversationCreationDateTime = $anchor.AddSeconds(-60).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+
+        $null = Invoke-RestMethod -Uri "$migrationBaseUrl/startMigration" -Headers $MigrationHeaders -Method Post `
+            -ContentType "application/json" -Body (@{ conversationCreationDateTime = $conversationCreationDateTime } | ConvertTo-Json)
+    }
 
     $senderCache = @{}
 
@@ -300,10 +335,17 @@ function Import-TeamsChatMessages {
                 }
             } | ConvertTo-Json -Depth 5
 
-            Invoke-RestMethod -Uri "$migrationBaseUrl/messages" -Headers $MigrationHeaders -Method Post -ContentType "application/json" -Body $body
+            $null = Invoke-RestMethod -Uri "$migrationBaseUrl/messages" -Headers $MigrationHeaders -Method Post -ContentType "application/json" -Body $body
         }
+
+        # Only seal the migration once every message has actually been sent - completing it after a
+        # partial failure would permanently lock in a half-imported channel.
+        $null = Invoke-RestMethod -Uri "$migrationBaseUrl/completeMigration" -Headers $MigrationHeaders -Method Post
+        return $true
     }
-    finally {
-        Invoke-RestMethod -Uri "$migrationBaseUrl/completeMigration" -Headers $MigrationHeaders -Method Post
+    catch {
+        Write-Host "Import-TeamsChatMessages failed for team '$TeamId', channel '$ChannelId': $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "Response: $($_.ErrorDetails.Message)" -ForegroundColor Yellow
+        throw
     }
 }

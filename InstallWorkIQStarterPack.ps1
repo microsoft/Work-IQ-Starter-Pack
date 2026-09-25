@@ -263,7 +263,7 @@ try {
             
             Add-Sites -ContentConfig $contentConfig -Config $provisioningConfig
             Import-SiteDocuments -ContentConfig $contentConfig -Config $provisioningConfig
-            #Add-TeamsChatMessages -Config $provisioningConfig -MigrationHeaders $migrationHeaders
+            Add-TeamsChatMessages -ContentConfig $contentConfig -Config $provisioningConfig -MigrationHeaders $migrationHeaders
 
         }
         else {
