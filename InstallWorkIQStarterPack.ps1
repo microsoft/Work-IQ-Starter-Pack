@@ -248,12 +248,21 @@ try {
 
         if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
+            # Load content configuration from file system
+            $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.json"
+            
             Add-Users -Config $provisioningConfig
             if ($config.Settings.InstallDemoUsers) {
                 Add-UserPhotos -Config $provisioningConfig
+            }else{
+                $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
             }
-            #Add-Sites -Config $provisioningConfig
-            #Import-SiteDocuments -Config $provisioningConfig
+
+            $contentConfig = Get-Content -Path $contentPath -Raw | ConvertFrom-Json
+
+            
+            Add-Sites -ContentConfig $contentConfig -Config $provisioningConfig
+            Import-SiteDocuments -ContentConfig $contentConfig -Config $provisioningConfig
             #Add-TeamsChatMessages -Config $provisioningConfig -MigrationHeaders $migrationHeaders
 
         }

@@ -1,10 +1,12 @@
 function Add-Sites {
     param(
         [Parameter(Mandatory = $true)]
+        $ContentConfig,
+        [Parameter(Mandatory = $true)]
         $Config
     )
 
-    foreach ($site in $Config.Sites) {
+    foreach ($site in $ContentConfig.Sites) {
         try {
             $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
             $existingSite = Get-PnPTenantSite -Url $siteUrl -ErrorAction SilentlyContinue
@@ -17,6 +19,7 @@ function Add-Sites {
                 Write-InstallLogAction -Message "Site with URL '$($site.URL)' already exists, skipping creation."
                 $groupId = Get-SiteGroupId -Site $site
                 Set-SiteTeamsConnection -Site $site -Config $Config -SiteUrl $siteUrl -GroupId $groupId
+                Remove-SiteAccess -GroupId $groupId -Site $site
             }
 
             Add-SiteAccess -GroupId $groupId -Site $site
@@ -150,6 +153,42 @@ function Add-SiteAccess {
 
     foreach ($memberEmail in $Site.Members) {
         Add-GroupRoleMember -GroupId $GroupId -Site $Site -Email $memberEmail -Role Member
+    }
+}
+
+function Remove-SiteAccess {
+    param(
+        [Parameter(Mandatory = $true)]
+        $GroupId,
+        [Parameter(Mandatory = $true)]
+        $Site
+    )
+
+    # Exclude the currently signed-in admin so a reset never revokes the access of whoever is
+    # running the install - they may be a group owner from having created/administered the site
+    # without being listed in the site's config Owners.
+    $currentUserId = (Invoke-RestMethod -Uri "$graphBaseUrl/me?`$select=id" -Headers $headers -Method Get).id
+
+    foreach ($refCollection in @("owners", "members")) {
+        $roleLower = if ($refCollection -eq "owners") { "owner" } else { "member" }
+
+        try {
+            $existingRefs = (Invoke-RestMethod -Uri "$graphBaseUrl/groups/$GroupId/$refCollection`?`$select=id,userPrincipalName" -Headers $headers -Method Get).value
+
+            foreach ($ref in ($existingRefs | Where-Object { $_.id -ne $currentUserId })) {
+                $identifier = if ($ref.userPrincipalName) { $ref.userPrincipalName } else { $ref.id }
+                try {
+                    Invoke-RestMethod -Uri "$graphBaseUrl/groups/$GroupId/$refCollection/$($ref.id)/`$ref" -Headers $headers -Method Delete
+                    Write-InstallLogAction -Message "Removed $identifier as a $roleLower of site '$($Site.URL)'."
+                }
+                catch {
+                    Write-Host "Failed to remove $roleLower $($identifier): $($_.Exception.Message)" -ForegroundColor Red
+                }
+            }
+        }
+        catch {
+            Write-Host "Failed to list ${roleLower}s for site '$($Site.URL)': $($_.Exception.Message)" -ForegroundColor Red
+        }
     }
 }
 

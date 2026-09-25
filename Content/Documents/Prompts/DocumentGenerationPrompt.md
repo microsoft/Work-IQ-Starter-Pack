@@ -21,6 +21,9 @@ Author the storyline on a consistent internal calendar (documents, meetings, ema
 ## Content Configuration
 Running this prompt should produce two things: the content files themselves under `Content/Documents/<DemoName>/`, and a matching entry in [content.json](Content/content.json) so the installer can actually provision them. `content.json` has one top-level `Sites` array, with one object per demo:
 
+#### Clean up before generating
+Before generating content for a demo, check whether `Content/Documents/<DemoName>/` already contains files from a previous run. If it does, delete the existing content in that folder first, so the newly generated documents aren't mixed with stale ones.
+
 ```json
 {
   "Sites": [

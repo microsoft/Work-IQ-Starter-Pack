@@ -52,32 +52,46 @@ function Update-ContentPersonas {
 function Import-SiteDocuments {
     param(
         [Parameter(Mandatory = $true)]
+        $ContentConfig,
+        [Parameter(Mandatory = $true)]
         $Config
     )
 
-    foreach ($site in $Config.Sites) {
-        # Documents, MeetingTranscripts, and EmailThreads are all just files uploaded into the
-        # site's document library - same shape (Title/Path/Created*/Modified*), same upload path.
-        $files = @()
-        foreach ($group in @("Documents", "MeetingTranscripts", "EmailThreads")) {
-            if ($site.Content -and $site.Content.$group) {
-                $files += $site.Content.$group
-            }
-        }
-        if ($files.Count -eq 0) {
+    foreach ($site in $ContentConfig.Sites) {
+        # Documents and MeetingTranscripts are both just files uploaded into the site's document
+        # library - same shape (Title/Path/Created*/Modified*), same upload path - but each group
+        # has its own target folder within the library.
+        $groups = @("Documents", "MeetingTranscripts")
+        $hasFiles = $groups | Where-Object { $site.Content -and $site.Content.$_ } | Select-Object -First 1
+        if (-not $hasFiles) {
             continue
         }
 
         $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
         $siteConnection = Connect-PnPOnline -Url $siteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
 
-        foreach ($file in $files) {
-            try {
-                Import-SiteDocument -SiteUrl $siteUrl -File $file -Connection $siteConnection
-                Write-InstallLogAction -Message "Imported '$($file.Title)' into site '$($site.URL)'."
+        foreach ($group in $groups) {
+            if (-not ($site.Content -and $site.Content.$group)) {
+                continue
             }
-            catch {
-                Write-Host "Failed to import '$($file.Title)' into site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
+
+            # MeetingTranscripts get their own folder - nested under General on Teams-enabled
+            # sites (alongside the rest of the library content), or at the library root otherwise.
+            $targetFolder = if ($group -eq "MeetingTranscripts") {
+                if ($site.EnableMicrosoftTeams) { "General/Meeting Transcripts" } else { "Meeting Transcripts" }
+            }
+            else {
+                "General"
+            }
+
+            foreach ($file in $site.Content.$group) {
+                try {
+                    Import-SiteDocument -SiteUrl $siteUrl -File $file -Connection $siteConnection -TargetFolder $targetFolder
+                    Write-InstallLogAction -Message "Imported '$($file.Title)' into site '$($site.URL)'."
+                }
+                catch {
+                    Write-Host "Failed to import '$($file.Title)' into site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
+                }
             }
         }
     }
@@ -90,7 +104,9 @@ function Import-SiteDocument {
         [Parameter(Mandatory = $true)]
         $File,
         [Parameter(Mandatory = $true)]
-        $Connection
+        $Connection,
+        [Parameter(Mandatory = $true)]
+        [string]$TargetFolder
     )
 
     $localPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../$($File.Path)"))
@@ -99,11 +115,11 @@ function Import-SiteDocument {
     $documentsLibrary = Get-PnPList -Identity "Documents" -Connection $Connection
     $rootFolder = Get-PnPProperty -ClientObject $documentsLibrary -Property RootFolder
 
-    # This is going into a Teams General channel so get the folder
-    $generalFolder = Resolve-PnPFolder -SiteRelativePath "$($rootFolder.Name)/General" -Connection $Connection
+    # Resolve-PnPFolder creates any missing folders along the path, e.g. "General/Meeting Transcripts".
+    $destinationFolder = Resolve-PnPFolder -SiteRelativePath "$($rootFolder.Name)/$TargetFolder" -Connection $Connection
 
     #Upload the file save the object so we can update metadata later
-    $uploadedFile = Add-PnPFile -Path $localPath -Folder $generalFolder.ServerRelativeUrl -Connection $Connection
+    $uploadedFile = Add-PnPFile -Path $localPath -Folder $destinationFolder.ServerRelativeUrl -Connection $Connection
     $null = Get-PnPProperty -ClientObject $uploadedFile -Property ListItemAllFields -Connection $Connection
     $itemId = $uploadedFile.ListItemAllFields.Id
 
