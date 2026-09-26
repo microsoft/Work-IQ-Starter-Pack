@@ -221,8 +221,6 @@ try {
         # Demo users provisioned -> use config.json's own Users and Content/content.json as-is.
         # Existing users instead -> swap in the resolved identities from users.custom.json and
         # the persona-swapped content.custom.json, without ever touching the demo definitions.
-        # $activeContentPath isn't consumed yet since Add-Sites/Import-SiteDocuments below are
-        # still commented out - wire site/content provisioning to it once that's enabled.
         $provisioningConfig = $config
         $activeContentPath = $contentPath
         if (-not $config.Settings.InstallDemoUsers) {
@@ -248,23 +246,18 @@ try {
 
         if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
-            # Load content configuration from file system
-            $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.json"
-            
+
             Add-Users -Config $provisioningConfig
             if ($config.Settings.InstallDemoUsers) {
                 Add-UserPhotos -Config $provisioningConfig
-            }else{
-                $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
             }
 
-            $contentConfig = Get-Content -Path $contentPath -Raw | ConvertFrom-Json
-
-            
-            Add-Sites -ContentConfig $contentConfig -Config $provisioningConfig
-            Import-SiteDocuments -ContentConfig $contentConfig -Config $provisioningConfig
-            Add-TeamsChatMessages -ContentConfig $contentConfig -Config $provisioningConfig -MigrationHeaders $migrationHeaders
-
+            # TODO: each of these re-reads and re-parses $activeContentPath from disk independently.
+            # Fine for this small one-time install script, but if the content file grows or these
+            # calls move into a hotter path, parse it once here and pass the object through instead.
+            Add-TeamSite -ContentPath $activeContentPath -Config $provisioningConfig
+            Import-SiteDocuments -ContentPath $activeContentPath -Config $provisioningConfig
+            Add-TeamsChatMessages -ContentPath $activeContentPath -Config $provisioningConfig -MigrationHeaders $migrationHeaders
         }
         else {
             Write-InstallLogAction -Message "One or more prerequisites were not met. Please review the messages above." -Level Error

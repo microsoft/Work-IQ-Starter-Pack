@@ -52,12 +52,14 @@ function Update-ContentPersonas {
 function Import-SiteDocuments {
     param(
         [Parameter(Mandatory = $true)]
-        $ContentConfig,
+        [string]$ContentPath,
         [Parameter(Mandatory = $true)]
         $Config
     )
 
-    foreach ($site in $ContentConfig.Sites) {
+    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+
+    foreach ($site in $contentConfig.Sites) {
         # Documents and MeetingTranscripts are both just files uploaded into the site's document
         # library - same shape (Title/Path/Created*/Modified*), same upload path - but each group
         # has its own target folder within the library.
@@ -170,12 +172,14 @@ function Import-SiteDocument {
 function Add-TeamsChatMessages {
     param(
         [Parameter(Mandatory = $true)]
-        $ContentConfig,
+        [string]$ContentPath,
         [Parameter(Mandatory = $true)]
         $Config,
         [Parameter(Mandatory = $true)]
         $MigrationHeaders
     )
+
+    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
 
     # Graph rejects a migrated message if its createdDateTime (down to the millisecond) was already
     # used in that channel, so re-running the installer against a site whose channel already absorbed
@@ -184,7 +188,7 @@ function Add-TeamsChatMessages {
     # run's values unique without perceptibly changing the configured time-of-day in the Teams client.
     $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
 
-    foreach ($site in $ContentConfig.Sites) {
+    foreach ($site in $contentConfig.Sites) {
         if (-not $site.Content -or -not $site.Content.Chats -or $site.Content.Chats.Count -eq 0) {
             continue
         }

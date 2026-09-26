@@ -1,28 +1,56 @@
-function Add-Sites {
+function Add-TeamSite {
     param(
         [Parameter(Mandatory = $true)]
-        $ContentConfig,
+        [string]$ContentPath,
         [Parameter(Mandatory = $true)]
         $Config
     )
 
-    foreach ($site in $ContentConfig.Sites) {
+    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+
+    foreach ($site in $contentConfig.Sites) {
         try {
             $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
-            $existingSite = Get-PnPTenantSite -Url $siteUrl -ErrorAction SilentlyContinue
+            $existingTeam = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
 
-            if (-not $existingSite) {
-                $groupId = New-TeamsSite -Site $site -Config $Config -SiteUrl $siteUrl
+            $siteOwners = @()
+            foreach ($owner in $site.Owners) {
+                $siteOwners += $owner
+            }
+            $currentUserUpn = Get-CurrentUserUpn
+            if ($currentUserUpn -and ($siteOwners -notcontains $currentUserUpn)) {
+                $siteOwners += $currentUserUpn
+            }
+
+            $siteMembers = @()
+            foreach ($member in $site.Members) {
+                $siteMembers += $member
+            }
+            
+            if (-not $existingTeam) {
+                $visibility = if ($site.IsPublic) { "Public" } else { "Private" }
+                $teamParams = @{
+                    DisplayName  = $site.Title
+                    MailNickName = $site.URL
+                    Description  = $site.Description
+                    Visibility   = $visibility
+                }
+                
+                $teamParams.Owners = $siteOwners
+                $teamParams.Members = $siteMembers
+
+                New-PnPTeamsTeam @teamParams | Out-Null
+                Wait-ForSiteProvisioned -SiteUrl $siteUrl
                 Write-InstallLogAction -Message "Created site '$($site.Title)' at $siteUrl"
             }
             else {
-                Write-InstallLogAction -Message "Site with URL '$($site.URL)' already exists, skipping creation."
-                $groupId = Get-SiteGroupId -Site $site
-                Set-SiteTeamsConnection -Site $site -Config $Config -SiteUrl $siteUrl -GroupId $groupId
+                Write-InstallLogAction -Message "Team for site '$($site.URL)' already exists, skipping creation."
+                $existingTeam = Get-PnPTeamsTeam -Identity $siteUrl
+                $groupId = $existingTeam.GroupId
+                Wait-ForSiteProvisioned -SiteUrl $siteUrl
                 Remove-SiteAccess -GroupId $groupId -Site $site
+                Add-SiteAccess -GroupId $groupId -Site $site
             }
-
-            Add-SiteAccess -GroupId $groupId -Site $site
         }
         catch {
             Write-Host "Failed to process site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
@@ -64,79 +92,32 @@ function Remove-Sites {
     }
 }
 
-function New-TeamsSite {
+function Wait-ForSiteProvisioned {
     param(
-        [Parameter(Mandatory = $true)]
-        $Site,
-        [Parameter(Mandatory = $true)]
-        $Config,
         [Parameter(Mandatory = $true)]
         [string]$SiteUrl
     )
 
-    New-PnPSite -Type TeamSite -Title $Site.Title -Alias $Site.URL -Description $Site.Description `
-        -IsPublic:([bool]$Site.IsPublic) -Wait
-
-    $groupId = Get-SiteGroupId -Site $Site
-    Set-SiteTeamsConnection -Site $Site -Config $Config -SiteUrl $SiteUrl -GroupId $groupId
-
-    return $groupId
-}
-
-function Get-SiteGroupId {
-    param(
-        [Parameter(Mandatory = $true)]
-        $Site
-    )
-
-    # The backing M365 group can take a little while to become queryable via Graph after site creation, so poll for it.
+    # New-PnPTeamsTeam returns as soon as the group/Team is created, but the backing SharePoint
+    # site is provisioned asynchronously afterward - poll for it before callers (e.g.
+    # Import-SiteDocuments) try to connect directly to $SiteUrl.
     $pollIntervalSeconds = 5
     $timeoutSeconds = 120
     $elapsedSeconds = 0
-    $group = $null
+    $site = $null
 
     do {
-        $group = (Invoke-RestMethod -Uri "$graphBaseUrl/groups?`$filter=mailNickname eq '$($Site.URL)'" -Headers $headers -Method Get).value | Select-Object -First 1
+        $site = Get-PnPTenantSite -Url $SiteUrl -ErrorAction SilentlyContinue
 
-        if (-not $group) {
+        if (-not $site) {
             Start-Sleep -Seconds $pollIntervalSeconds
             $elapsedSeconds += $pollIntervalSeconds
         }
-    } while (-not $group -and $elapsedSeconds -lt $timeoutSeconds)
+    } while (-not $site -and $elapsedSeconds -lt $timeoutSeconds)
 
-    if (-not $group) {
-        throw "The Microsoft 365 group backing site '$($Site.URL)' could not be found after waiting $timeoutSeconds seconds."
+    if (-not $site) {
+        throw "The SharePoint site at '$SiteUrl' was not provisioned after waiting $timeoutSeconds seconds."
     }
-
-    return $group.id
-}
-
-function Set-SiteTeamsConnection {
-    param(
-        [Parameter(Mandatory = $true)]
-        $Site,
-        [Parameter(Mandatory = $true)]
-        $Config,
-        [Parameter(Mandatory = $true)]
-        [string]$SiteUrl,
-        [Parameter(Mandatory = $true)]
-        $GroupId
-    )
-
-    if (-not $Site.EnableMicrosoftTeams) {
-        return
-    }
-
-    $group = Invoke-RestMethod -Uri "$graphBaseUrl/groups/$GroupId`?`$select=resourceProvisioningOptions" -Headers $headers -Method Get
-
-    if ($group.resourceProvisioningOptions -contains "Team") {
-        Write-Host "Microsoft Teams is already connected to site '$($Site.URL)'."
-        return
-    }
-
-    $siteConnection = Connect-PnPOnline -Url $SiteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
-    Add-PnPTeamsTeam -Connection $siteConnection
-    Write-Host "Enabled Microsoft Teams on site '$($Site.URL)'."
 }
 
 function Add-SiteAccess {
@@ -164,21 +145,23 @@ function Remove-SiteAccess {
         $Site
     )
 
-    # Exclude the currently signed-in admin so a reset never revokes the access of whoever is
-    # running the install - they may be a group owner from having created/administered the site
-    # without being listed in the site's config Owners.
-    $currentUserId = (Invoke-RestMethod -Uri "$graphBaseUrl/me?`$select=id" -Headers $headers -Method Get).id
+    $currentUserUpn = Get-CurrentUserUpn
 
-    foreach ($refCollection in @("owners", "members")) {
-        $roleLower = if ($refCollection -eq "owners") { "owner" } else { "member" }
+    foreach ($role in @("Owner", "Member")) {
+        $roleLower = $role.ToLower()
 
         try {
-            $existingRefs = (Invoke-RestMethod -Uri "$graphBaseUrl/groups/$GroupId/$refCollection`?`$select=id,userPrincipalName" -Headers $headers -Method Get).value
+            $existingUsers = & "Get-PnPAzureADGroup$role" -Identity $GroupId
 
-            foreach ($ref in ($existingRefs | Where-Object { $_.id -ne $currentUserId })) {
-                $identifier = if ($ref.userPrincipalName) { $ref.userPrincipalName } else { $ref.id }
+            foreach ($user in ($existingUsers | Where-Object { $_.UserPrincipalName -ne $currentUserUpn })) {
+                $identifier = if ($user.UserPrincipalName) { $user.UserPrincipalName } else { $user.Id }
                 try {
-                    Invoke-RestMethod -Uri "$graphBaseUrl/groups/$GroupId/$refCollection/$($ref.id)/`$ref" -Headers $headers -Method Delete
+                    if ($user.UserPrincipalName) {
+                        & "Remove-PnPAzureADGroup$role" -Identity $GroupId -Users $user.UserPrincipalName
+                    }
+                    else {
+                        & "Remove-PnPAzureADGroup$role" -Identity $GroupId -MemberObjectId $user.Id
+                    }
                     Write-InstallLogAction -Message "Removed $identifier as a $roleLower of site '$($Site.URL)'."
                 }
                 catch {
@@ -190,6 +173,10 @@ function Remove-SiteAccess {
             Write-Host "Failed to list ${roleLower}s for site '$($Site.URL)': $($_.Exception.Message)" -ForegroundColor Red
         }
     }
+}
+
+function Get-CurrentUserUpn {
+    (Invoke-RestMethod -Uri "$graphBaseUrl/me?`$select=userPrincipalName" -Headers $headers -Method Get).userPrincipalName
 }
 
 function Add-GroupRoleMember {
@@ -205,20 +192,14 @@ function Add-GroupRoleMember {
         [string]$Role
     )
 
-    # The owners endpoint only accepts users/servicePrincipals, so it must be referenced via /users/{id};
-    # the members endpoint accepts multiple object types and is referenced via the generic /directoryObjects/{id}.
-    $refCollection = if ($Role -eq "Owner") { "owners" } else { "members" }
-    $refSegment = if ($Role -eq "Owner") { "users" } else { "directoryObjects" }
     $roleLower = $Role.ToLower()
 
     try {
-        $user = Invoke-RestMethod -Uri "$graphBaseUrl/users/$Email" -Headers $headers -Method Get
-        $body = @{ "@odata.id" = "$graphBaseUrl/$refSegment/$($user.id)" } | ConvertTo-Json
-        Invoke-RestMethod -Uri "$graphBaseUrl/groups/$GroupId/$refCollection/`$ref" -Headers $headers -Method Post -ContentType "application/json" -Body $body
+        & "Add-PnPAzureADGroup$Role" -Identity $GroupId -Users $Email
         Write-InstallLogAction -Message "Added $Email as a $roleLower of site '$($Site.URL)'."
     }
     catch {
-        if ($_.ErrorDetails.Message -match "already exist") {
+        if ($_.Exception.Message -match "already exist") {
             Write-InstallLogAction -Message "$Email is already a $roleLower of site '$($Site.URL)'."
         }
         else {
