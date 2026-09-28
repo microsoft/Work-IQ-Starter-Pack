@@ -11,7 +11,7 @@ Morning all — using this chat as our running war room for the ALLER launch thr
 Sounds good. I'll post supplier updates here as they come in — LumaSterile and HelioPack are the two I'm watching most closely this week.
 
 **Babak Shammas** — 2026-09-19 09:40
-Heads up — Signal Ridge confirmed the regulatory authority has formally accepted the revised ALLER dosing claim language. Written confirmation should land by end of day.
+Heads up @Serena Ribeiro — Signal Ridge confirmed the regulatory authority has formally accepted the revised ALLER dosing claim language. Written confirmation should land by end of day.
 
 **Serena Ribeiro** — 2026-09-19 09:42
 That's fantastic news! Huge unblock for the Regulatory Submission Briefing.
@@ -38,4 +38,4 @@ Perfect, I'll pull everything together with the Product Launch Readiness Assessm
 One outstanding item: Valence Cold Chain's commercial shipment qualification run completes Thursday. I'll confirm here the moment I have results.
 
 **David Power** — 2026-09-23 15:10
-Also worth flagging for the checkpoint — three of our top accounts have already asked about the November 3rd availability date. Good sign field readiness is landing well.
+Also worth flagging for the checkpoint, @Serena Ribeiro — three of our top accounts have already asked about the November 3rd availability date. Good sign field readiness is landing well.

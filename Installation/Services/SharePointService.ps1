@@ -45,7 +45,6 @@ function Add-TeamSite {
             }
             else {
                 Write-InstallLogAction -Message "Team for site '$($site.URL)' already exists, skipping creation."
-                $existingTeam = Get-PnPTeamsTeam -Identity $siteUrl
                 $groupId = $existingTeam.GroupId
                 Wait-ForSiteProvisioned -SiteUrl $siteUrl
                 Remove-SiteAccess -GroupId $groupId -Site $site

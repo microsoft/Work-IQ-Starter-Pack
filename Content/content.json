@@ -1,8 +1,8 @@
 {
     "Sites": [
         {
-            "Title": "Market Research Team-new",
-            "URL": "MarketResearch-TeamNew",
+            "Title": "Market Research Team",
+            "URL": "MarketResearch-Team",
             "Description": "Navigating Organisational Intelligence — Caldova ALLER launch collaboration site",
             "EnableMicrosoftTeams": true,
             "IsPublic": false,
@@ -200,7 +200,7 @@
                                 "Offset": -11,
                                 "Time": "09:40:00",
                                 "Sender": "Babak Shammas",
-                                "Message": "Heads up — Signal Ridge confirmed the regulatory authority has formally accepted the revised ALLER dosing claim language. Written confirmation should land by end of day."
+                                "Message": "Heads up @Serena Ribeiro — Signal Ridge confirmed the regulatory authority has formally accepted the revised ALLER dosing claim language. Written confirmation should land by end of day."
                             },
                             {
                                 "Offset": -11,
@@ -254,7 +254,7 @@
                                 "Offset": -7,
                                 "Time": "15:10:00",
                                 "Sender": "David Power",
-                                "Message": "Also worth flagging for the checkpoint — three of our top accounts have already asked about the November 3rd availability date. Good sign field readiness is landing well."
+                                "Message": "Also worth flagging for the checkpoint, @Serena Ribeiro — three of our top accounts have already asked about the November 3rd availability date. Good sign field readiness is landing well."
                             }
                         ]
                     },
@@ -269,7 +269,7 @@
                                 "Offset": -84,
                                 "Time": "09:00:00",
                                 "Sender": "Babak Shammas",
-                                "Message": "Cassandra — setting up this chat so we can keep the Product Risk Register in sync with ALLER's regulatory submission status in real time."
+                                "Message": "@Cassandra Dunn — setting up this chat so we can keep the Product Risk Register in sync with ALLER's regulatory submission status in real time."
                             },
                             {
                                 "Offset": -84,
@@ -369,7 +369,7 @@
                                 "Offset": -56,
                                 "Time": "16:10:00",
                                 "Sender": "Babak Shammas",
-                                "Message": "Circulated the pricing options doc for your review — parity vs. a modest premium for ALLER-20 relative to the current standard of care."
+                                "Message": "Circulated the pricing options doc for your review, @David Power — parity vs. a modest premium for ALLER-20 relative to the current standard of care."
                             },
                             {
                                 "Offset": -56,
@@ -381,7 +381,7 @@
                                 "Offset": -49,
                                 "Time": "09:05:00",
                                 "Sender": "Serena Ribeiro",
-                                "Message": "Agreed, market research supports that too. Babak's finalizing at parity for ALLER-20 with a modest premium reserved for the ALLER-10 starter dose."
+                                "Message": "Agreed, market research supports that too — @Babak Shammas is finalizing at parity for ALLER-20 with a modest premium reserved for the ALLER-10 starter dose."
                             },
                             {
                                 "Offset": -11,
@@ -420,7 +420,7 @@
                                 "Offset": -37,
                                 "Time": "07:45:00",
                                 "Sender": "Charlotte Waltson",
-                                "Message": "Serena, appreciate the steady updates. Let me know if anything needs my attention before the checkpoint."
+                                "Message": "@Serena Ribeiro, appreciate the steady updates. Let me know if anything needs my attention before the checkpoint."
                             },
                             {
                                 "Offset": -37,

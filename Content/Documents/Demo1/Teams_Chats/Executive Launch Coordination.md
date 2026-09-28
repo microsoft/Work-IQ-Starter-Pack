@@ -5,7 +5,7 @@
 ---
 
 **Charlotte Waltson** — 2026-08-24 07:45
-Serena, appreciate the steady updates. Let me know if anything needs my attention before the checkpoint.
+@Serena Ribeiro, appreciate the steady updates. Let me know if anything needs my attention before the checkpoint.
 
 **Serena Ribeiro** — 2026-08-24 07:50
 Will do. Right now the two big items are the LumaSterile sterilization re-run for ALLER-20 and finalizing pricing — both tracking to close within a few weeks.

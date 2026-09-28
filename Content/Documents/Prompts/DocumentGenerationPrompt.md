@@ -65,6 +65,9 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
 
 `Chats` keeps its existing shape — `Title`, `Members` (full names), and `Messages` (`Offset`, `Time`, `Sender`, `Message`) — derived directly from the corresponding Teams chat markdown file, so the JSON and the file stay in sync.
 
+##### @mentions in chat messages
+A message may @mention another member of that same chat by writing `@FirstName LastName` inline (must exactly match one of that chat's `Members` entries) — this renders as a real, notifying Teams mention when installed. Use it naturally, only where a real person would actually tag someone (looping someone in, a direct question, flagging urgency) — not in every message. A chat that's all mentions reads unnaturally.
+
 #### No metadata duplication in file bodies
 `content.json` is the only place `Title`/`Created*`/`Modified*` lives. Don't also restate it inside the file itself:
 - **SharePoint documents**: no "Prepared by" / "Date prepared" / "Last updated" header line, and no "Update Log" section restating those dates. Start straight into the content after the title (a short "Product:" / "Classification:" line is fine — that's not tracked in `content.json`).

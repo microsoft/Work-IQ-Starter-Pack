@@ -194,7 +194,11 @@ function Add-TeamsChatMessages {
         }
 
         try {
-            $teamId = Get-SiteGroupId -Site $site
+            $team = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
+            if (-not $team) {
+                throw "No Teams team found for site '$($site.URL)'. Run Add-TeamSite first."
+            }
+            $teamId = $team.GroupId
             $channelId = Get-GeneralChannelId -TeamId $teamId
 
             $messages = foreach ($chat in $site.Content.Chats) {
@@ -205,6 +209,7 @@ function Add-TeamsChatMessages {
                         Sender    = $message.Sender
                         Message   = $message.Message
                         ChatTitle = $chat.Title
+                        Members   = $chat.Members
                     }
                 }
             }
@@ -236,24 +241,28 @@ function Get-GeneralChannelId {
     return $channel.id
 }
 
-function Resolve-TeamsChatSender {
+function Resolve-TeamsChatUserIdentity {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$SenderName,
+        [string]$Name,
         [Parameter(Mandatory = $true)]
         $Config,
         [Parameter(Mandatory = $true)]
         $SenderCache
     )
 
-    if ($SenderCache.ContainsKey($SenderName)) {
-        return $SenderCache[$SenderName]
+    # $null is cached alongside real identities (not just omitted) so a name that doesn't match
+    # anyone isn't re-queried against Config.Users/Graph every time it's seen again - callers must
+    # check ContainsKey rather than truthiness to tell "unresolved" apart from "not looked up yet".
+    if ($SenderCache.ContainsKey($Name)) {
+        return $SenderCache[$Name]
     }
 
-    $matchedUser = $Config.Users | Where-Object { "$($_.FirstName) $($_.LastName)" -eq $SenderName } | Select-Object -First 1
+    $matchedUser = $Config.Users | Where-Object { "$($_.FirstName) $($_.LastName)" -eq $Name } | Select-Object -First 1
 
     if (-not $matchedUser) {
-        throw "No user in config.json's Users list matches chat sender '$SenderName'."
+        $SenderCache[$Name] = $null
+        return $null
     }
 
     $graphUser = Invoke-RestMethod -Uri "$graphBaseUrl/users/$($matchedUser.Email)?`$select=id,displayName" -Headers $headers -Method Get
@@ -264,8 +273,91 @@ function Resolve-TeamsChatSender {
         userIdentityType  = "aadUser"
     }
 
-    $SenderCache[$SenderName] = $identity
+    $SenderCache[$Name] = $identity
     return $identity
+}
+
+function Resolve-TeamsChatSender {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$SenderName,
+        [Parameter(Mandatory = $true)]
+        $Config,
+        [Parameter(Mandatory = $true)]
+        $SenderCache
+    )
+
+    $identity = Resolve-TeamsChatUserIdentity -Name $SenderName -Config $Config -SenderCache $SenderCache
+
+    if (-not $identity) {
+        throw "No user in config.json's Users list matches chat sender '$SenderName'."
+    }
+
+    return $identity
+}
+
+function ConvertTo-TeamsChatMessageBody {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Text,
+        [Parameter(Mandatory = $false)]
+        [string[]]$MentionCandidates,
+        [Parameter(Mandatory = $true)]
+        $Config,
+        [Parameter(Mandatory = $true)]
+        $SenderCache
+    )
+
+    if (-not $MentionCandidates -or $MentionCandidates.Count -eq 0) {
+        return @{ contentType = "text"; content = $Text; mentions = @() }
+    }
+
+    # Longest name first - regex alternation matches the first alternative that fits at a given
+    # position, not the longest one, so without this a shorter candidate that prefixes a longer one
+    # (e.g. "David" vs "David Power") could steal the match and strand the rest as literal text.
+    $escapedNames = $MentionCandidates | Sort-Object -Property Length -Descending | ForEach-Object { [regex]::Escape($_) }
+    $pattern = "(?<![\w@])@(?:$($escapedNames -join '|'))\b"
+    $regex = [regex]::new($pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+
+    $regexMatches = $regex.Matches($Text)
+    if ($regexMatches.Count -eq 0) {
+        return @{ contentType = "text"; content = $Text; mentions = @() }
+    }
+
+    $mentions = @()
+    $mentionIndex = 0
+    $html = New-Object System.Text.StringBuilder
+    $lastPos = 0
+
+    foreach ($match in $regexMatches) {
+        $name = $match.Value.Substring(1)
+        $identity = Resolve-TeamsChatUserIdentity -Name $name -Config $Config -SenderCache $SenderCache
+
+        if (-not $identity) {
+            Write-Host "Chat mention '@$name' has no matching entry in config.json's Users list - leaving it as literal text." -ForegroundColor Yellow
+            continue
+        }
+
+        $null = $html.Append([System.Net.WebUtility]::HtmlEncode($Text.Substring($lastPos, $match.Index - $lastPos)))
+        $null = $html.Append("<at id=`"$mentionIndex`">$([System.Net.WebUtility]::HtmlEncode($identity.displayName))</at>")
+
+        $mentions += @{
+            id          = $mentionIndex
+            mentionText = $identity.displayName
+            mentioned   = @{ user = $identity }
+        }
+
+        $mentionIndex++
+        $lastPos = $match.Index + $match.Length
+    }
+
+    if ($mentions.Count -eq 0) {
+        return @{ contentType = "text"; content = $Text; mentions = @() }
+    }
+
+    $null = $html.Append([System.Net.WebUtility]::HtmlEncode($Text.Substring($lastPos)))
+
+    return @{ contentType = "html"; content = $html.ToString(); mentions = $mentions }
 }
 
 function Import-TeamsChatMessages {
@@ -317,6 +409,10 @@ function Import-TeamsChatMessages {
     }
 
     $senderCache = @{}
+    # Each chat's Title is treated as a topic: the first message posted for a given title starts the
+    # conversation, and its Graph-assigned id is captured here so later messages with the same title
+    # can be posted as replies underneath it instead of as separate flat posts.
+    $topicStarterIds = @{}
 
     try {
         $lastUsedTimestamp = [DateTime]::MinValue
@@ -330,16 +426,45 @@ function Import-TeamsChatMessages {
 
             $senderIdentity = Resolve-TeamsChatSender -SenderName $message.Sender -Config $Config -SenderCache $senderCache
 
-            $body = @{
+            $isTopicStarter = -not $topicStarterIds.ContainsKey($message.ChatTitle)
+
+            $renderedBody = ConvertTo-TeamsChatMessageBody -Text $message.Message -MentionCandidates $message.Members -Config $Config -SenderCache $senderCache
+
+            $bodyProperties = @{
                 createdDateTime = $messageTimestamp.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                 from            = @{ user = $senderIdentity }
                 body            = @{
-                    contentType = "text"
-                    content     = $message.Message
+                    contentType = $renderedBody.contentType
+                    content     = $renderedBody.content
                 }
-            } | ConvertTo-Json -Depth 5
+            }
 
-            $null = Invoke-RestMethod -Uri "$migrationBaseUrl/messages" -Headers $MigrationHeaders -Method Post -ContentType "application/json" -Body $body
+            if ($renderedBody.mentions.Count -gt 0) {
+                $bodyProperties.mentions = $renderedBody.mentions
+            }
+
+            # replyToId is a read-only property on chatMessage - Graph ignores it if set in the request
+            # body, so a reply can only be created by posting to the parent message's own /replies
+            # sub-resource (this also works under migrationMode, same as posting to /messages directly).
+            if ($isTopicStarter) {
+                $bodyProperties.subject = $message.ChatTitle
+                $postUrl = "$migrationBaseUrl/messages"
+            }
+            else {
+                $postUrl = "$migrationBaseUrl/messages/$($topicStarterIds[$message.ChatTitle])/replies"
+            }
+
+            # -Depth 8: the mentions array adds a level of nesting beyond bodyProperties.from.user
+            # (bodyProperties -> mentions -> item -> mentioned -> user -> {id, displayName, ...}) -
+            # PowerShell silently flattens anything past the configured depth to its .ToString()
+            # rather than erroring, so under-depth here would corrupt mentions without warning.
+            $body = $bodyProperties | ConvertTo-Json -Depth 8
+
+            $createdMessage = Invoke-RestMethod -Uri $postUrl -Headers $MigrationHeaders -Method Post -ContentType "application/json" -Body $body
+
+            if ($isTopicStarter) {
+                $topicStarterIds[$message.ChatTitle] = $createdMessage.id
+            }
         }
 
         # Only seal the migration once every message has actually been sent - completing it after a

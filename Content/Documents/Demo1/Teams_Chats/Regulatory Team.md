@@ -5,7 +5,7 @@
 ---
 
 **Babak Shammas** — 2026-07-08 09:00
-Cassandra — setting up this chat so we can keep the Product Risk Register in sync with ALLER's regulatory submission status in real time.
+@Cassandra Dunn — setting up this chat so we can keep the Product Risk Register in sync with ALLER's regulatory submission status in real time.
 
 **Cassandra Dunn** — 2026-07-08 09:02
 Perfect, that'll save us a lot of back-and-forth in email.
