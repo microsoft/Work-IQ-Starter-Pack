@@ -29,7 +29,7 @@ The configuration file contains all the user editable settings. You can edit the
 }
 ```
 ### Users
-This demo requires 5 users. The installation will create these users in your tenant. If you would like to use your own users edit the [config.json file](./Configuration/config.json) and replace the user information with your existing users. If the users already exist they will not be recreated or edited. If the installation creates new users the passwords for the users will be output in the console. 
+This demo requires 5 users. The installation will create these users in your tenant. If you would like to use your own users edit the [settings.json file](./Configuration/settings.json) (the `Users` list) and replace the user information with your existing users. If the users already exist they will not be recreated or edited. If the installation creates new users the passwords for the users will be output in the console. 
 
 ### Licenses
 Put somethign in here about what licenses are supported

@@ -174,7 +174,7 @@ function Add-TeamsChatMessages {
         [Parameter(Mandatory = $true)]
         [string]$ContentPath,
         [Parameter(Mandatory = $true)]
-        $Config,
+        $Settings,
         [Parameter(Mandatory = $true)]
         $MigrationHeaders
     )
@@ -215,7 +215,7 @@ function Add-TeamsChatMessages {
             }
             $messages = $messages | Sort-Object -Property Timestamp
 
-            $imported = Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Config $Config -MigrationHeaders $MigrationHeaders
+            $imported = Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Settings $Settings -MigrationHeaders $MigrationHeaders
             if ($imported) {
                 Write-InstallLogAction -Message "Imported $($messages.Count) chat messages into the General channel of site '$($site.URL)'."
             }
@@ -246,19 +246,19 @@ function Resolve-TeamsChatUserIdentity {
         [Parameter(Mandatory = $true)]
         [string]$Name,
         [Parameter(Mandatory = $true)]
-        $Config,
+        $Settings,
         [Parameter(Mandatory = $true)]
         $SenderCache
     )
 
     # $null is cached alongside real identities (not just omitted) so a name that doesn't match
-    # anyone isn't re-queried against Config.Users/Graph every time it's seen again - callers must
+    # anyone isn't re-queried against Settings.Users/Graph every time it's seen again - callers must
     # check ContainsKey rather than truthiness to tell "unresolved" apart from "not looked up yet".
     if ($SenderCache.ContainsKey($Name)) {
         return $SenderCache[$Name]
     }
 
-    $matchedUser = $Config.Users | Where-Object { "$($_.FirstName) $($_.LastName)" -eq $Name } | Select-Object -First 1
+    $matchedUser = $Settings.Users | Where-Object { "$($_.FirstName) $($_.LastName)" -eq $Name } | Select-Object -First 1
 
     if (-not $matchedUser) {
         $SenderCache[$Name] = $null
@@ -282,15 +282,15 @@ function Resolve-TeamsChatSender {
         [Parameter(Mandatory = $true)]
         [string]$SenderName,
         [Parameter(Mandatory = $true)]
-        $Config,
+        $Settings,
         [Parameter(Mandatory = $true)]
         $SenderCache
     )
 
-    $identity = Resolve-TeamsChatUserIdentity -Name $SenderName -Config $Config -SenderCache $SenderCache
+    $identity = Resolve-TeamsChatUserIdentity -Name $SenderName -Settings $Settings -SenderCache $SenderCache
 
     if (-not $identity) {
-        throw "No user in config.json's Users list matches chat sender '$SenderName'."
+        throw "No user in settings.json's Users list matches chat sender '$SenderName'."
     }
 
     return $identity
@@ -303,7 +303,7 @@ function ConvertTo-TeamsChatMessageBody {
         [Parameter(Mandatory = $false)]
         [string[]]$MentionCandidates,
         [Parameter(Mandatory = $true)]
-        $Config,
+        $Settings,
         [Parameter(Mandatory = $true)]
         $SenderCache
     )
@@ -331,10 +331,10 @@ function ConvertTo-TeamsChatMessageBody {
 
     foreach ($match in $regexMatches) {
         $name = $match.Value.Substring(1)
-        $identity = Resolve-TeamsChatUserIdentity -Name $name -Config $Config -SenderCache $SenderCache
+        $identity = Resolve-TeamsChatUserIdentity -Name $name -Settings $Settings -SenderCache $SenderCache
 
         if (-not $identity) {
-            Write-Host "Chat mention '@$name' has no matching entry in config.json's Users list - leaving it as literal text." -ForegroundColor Yellow
+            Write-Host "Chat mention '@$name' has no matching entry in settings.json's Users list - leaving it as literal text." -ForegroundColor Yellow
             continue
         }
 
@@ -369,7 +369,7 @@ function Import-TeamsChatMessages {
         [Parameter(Mandatory = $true)]
         $Messages,
         [Parameter(Mandatory = $true)]
-        $Config,
+        $Settings,
         [Parameter(Mandatory = $true)]
         $MigrationHeaders
     )
@@ -424,11 +424,11 @@ function Import-TeamsChatMessages {
             }
             $lastUsedTimestamp = $messageTimestamp
 
-            $senderIdentity = Resolve-TeamsChatSender -SenderName $message.Sender -Config $Config -SenderCache $senderCache
+            $senderIdentity = Resolve-TeamsChatSender -SenderName $message.Sender -Settings $Settings -SenderCache $senderCache
 
             $isTopicStarter = -not $topicStarterIds.ContainsKey($message.ChatTitle)
 
-            $renderedBody = ConvertTo-TeamsChatMessageBody -Text $message.Message -MentionCandidates $message.Members -Config $Config -SenderCache $senderCache
+            $renderedBody = ConvertTo-TeamsChatMessageBody -Text $message.Message -MentionCandidates $message.Members -Settings $Settings -SenderCache $senderCache
 
             $bodyProperties = @{
                 createdDateTime = $messageTimestamp.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")

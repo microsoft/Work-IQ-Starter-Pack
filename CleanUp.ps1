@@ -53,7 +53,7 @@ try {
 
     # Tear down in the reverse order the installer creates things: sites/Teams/content first, then users.
     Remove-Sites -Config $config
-    Remove-Users -Config $config -Settings $settings
+    Remove-Users -Settings $settings
 
     $removeAppRegistration = Read-YesNo "Do you also want to remove the application registration (ClientId: $($config.Settings.ClientId)) and its service principal from Entra ID, and delete the local Teams chat migration certificate? Only do this if this script originally created the app registration for you - skip if you supplied a pre-existing one."
 

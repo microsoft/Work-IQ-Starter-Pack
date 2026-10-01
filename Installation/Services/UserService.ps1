@@ -1,7 +1,7 @@
 function Resolve-RealUsers {
     param(
         [Parameter(Mandatory = $true)]
-        $Config,
+        $Settings,
         [Parameter(Mandatory = $true)]
         [hashtable]$RealUserUpns
     )
@@ -14,7 +14,7 @@ function Resolve-RealUsers {
             throw "Could not find a user with UPN '$upn' in Entra ID. Please verify the UPN and try again."
         }
 
-        $entry = $Config.Users[$index]
+        $entry = $Settings.Users[$index]
         $entry.FirstName = $graphUser.givenName
         $entry.LastName = $graphUser.surname
         $entry.JobTitle = $graphUser.jobTitle
@@ -28,16 +28,16 @@ function Resolve-RealUsers {
         # licenses per the starter pack's plan, not a fact pulled from Entra ID.
     }
 
-    return $Config
+    return $Settings
 }
 
 function Add-Users {
     param(
         [Parameter(Mandatory = $true)]
-        $Config
+        $Settings
     )
 
-    foreach ($user in $Config.Users) {
+    foreach ($user in $Settings.Users) {
         try {
             $existingUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'&`$select=id,userPrincipalName,usageLocation" -Headers $headers -Method Get).value | Select-Object -First 1
 
@@ -83,7 +83,7 @@ function Add-Users {
 function Add-UserPhotos {
     param(
         [Parameter(Mandatory = $true)]
-        $Config
+        $Settings
     )
 
     $photosDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/UserPhotos"))
@@ -100,7 +100,7 @@ function Add-UserPhotos {
         $photosByStem[$stem] = $file
     }
 
-    foreach ($user in $Config.Users) {
+    foreach ($user in $Settings.Users) {
         try {
             $photoFile = $photosByStem[$user.UserPrincipalName.ToLowerInvariant()]
             if (-not $photoFile) {
@@ -158,12 +158,10 @@ function Add-UserPhotos {
 function Remove-Users {
     param(
         [Parameter(Mandatory = $true)]
-        $Config,
-        [Parameter(Mandatory = $true)]
         $Settings
     )
 
-    foreach ($user in $Config.Users) {
+    foreach ($user in $Settings.Users) {
         try {
             if ($Settings.DefaultUsers -notcontains $user.UserPrincipalName) {
                 Write-Host "$($user.Email) is not a default demo user, skipping deletion."

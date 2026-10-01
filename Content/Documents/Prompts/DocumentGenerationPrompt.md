@@ -61,7 +61,7 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
       "Description": "...",
       "EnableMicrosoftTeams": true,
       "IsPublic": false,
-      "Owners": ["<user email>", ...],       // from config.json's Users
+      "Owners": ["<user email>", ...],       // from settings.json's Users
       "Members": ["<user email>", ...],
       "Content": {
         "Documents": [ /* SharePoint documents */ ],
@@ -90,7 +90,7 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
 ```
 
 - `Path` is repo-relative (from the repository root, including the `Content/` prefix) and must point at a real file under `Content/Documents/<DemoName>/<Category>/`, where `<Category>` is `SharePoint_Documents`, `Meeting_Transcripts`, or `Email_Threads` to match the folder each content type is saved into.
-- `CreatedBy`/`ModifiedBy` are demo user emails from `Configuration/config.json`'s `Users` list.
+- `CreatedBy`/`ModifiedBy` are demo user emails from `Configuration/settings.json`'s `Users` list.
 - For a meeting transcript or a single-session document, `CreatedOffset` and `ModifiedOffset` are the same. For an email thread, use the date of the first message as `Created`/`CreatedBy` and the date of the last message as `Modified`/`ModifiedBy`.
 
 `Chats` keeps its existing shape — `Title`, `Members` (full names), and `Messages` (`Offset`, `Time`, `Sender`, `Message`) — derived directly from the corresponding Teams chat markdown file, so the JSON and the file stay in sync.

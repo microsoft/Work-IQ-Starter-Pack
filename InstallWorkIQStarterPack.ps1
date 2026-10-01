@@ -42,7 +42,7 @@ try {
     $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
     $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
 
-    # config.json's Users list and Content/content.json always stay the pristine demo data. When
+    # settings.json's Users list and Content/content.json always stay the pristine demo data. When
     # InstallDemoUsers is false, the real users' resolved identities and the persona-swapped
     # content live in these separate "custom" files instead, so the demo definitions are never
     # overwritten.
@@ -183,18 +183,18 @@ try {
     # If the admin opted out of the demo users, look up each supplied UPN's real profile in
     # Entra ID now that Connect-WorkIQGraph has established a Graph connection. The resolved
     # identities go into Configuration/users.custom.json and the persona-swapped content into
-    # Content/content.custom.json - config.json's Users and Content/content.json are never
+    # Content/content.custom.json - settings.json's Users and Content/content.json are never
     # touched, so the demo definitions stay intact no matter how many times this runs.
     if ($null -ne $realUserUpns) {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
 
-        $demoUsers = $config.Users | ForEach-Object { $_.PSObject.Copy() }
-        $customUsersConfig = [PSCustomObject]@{ Users = ($config.Users | ForEach-Object { $_.PSObject.Copy() }) }
-        $customUsersConfig = Resolve-RealUsers -Config $customUsersConfig -RealUserUpns $realUserUpns
-        $customUsersConfig.Users | ConvertTo-Json -Depth 10 | Set-Content -Path $customUsersPath
+        $demoUsers = $settings.Users | ForEach-Object { $_.PSObject.Copy() }
+        $customUsersSettings = [PSCustomObject]@{ Users = ($settings.Users | ForEach-Object { $_.PSObject.Copy() }) }
+        $customUsersSettings = Resolve-RealUsers -Settings $customUsersSettings -RealUserUpns $realUserUpns
+        $customUsersSettings.Users | ConvertTo-Json -Depth 10 | Set-Content -Path $customUsersPath
 
-        Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -DemoUsers $demoUsers -RealUsers $customUsersConfig.Users -RealUserUpns $realUserUpns
+        Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -DemoUsers $demoUsers -RealUsers $customUsersSettings.Users -RealUserUpns $realUserUpns
     }
 
     # ---------------------Start App Configuration------------------------------------
@@ -218,15 +218,15 @@ try {
             -TenantPrefix $config.Settings.TenantPrefix -CertificatePath $migrationCertificatePath
         $migrationHeaders = @{ Authorization = "Bearer $migrationToken" }
 
-        # Demo users provisioned -> use config.json's own Users and Content/content.json as-is.
+        # Demo users provisioned -> use settings.json's own Users and Content/content.json as-is.
         # Existing users instead -> swap in the resolved identities from users.custom.json and
         # the persona-swapped content.custom.json, without ever touching the demo definitions.
-        $provisioningConfig = $config
+        $provisioningSettings = $settings
         $activeContentPath = $contentPath
         if (-not $config.Settings.InstallDemoUsers) {
             $customUsers = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
-            $provisioningConfig = $config.PSObject.Copy()
-            $provisioningConfig.Users = $customUsers
+            $provisioningSettings = $settings.PSObject.Copy()
+            $provisioningSettings.Users = $customUsers
             $activeContentPath = $customContentPath
         }
 
@@ -247,17 +247,17 @@ try {
         if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
-            Add-Users -Config $provisioningConfig
+            Add-Users -Settings $provisioningSettings
             if ($config.Settings.InstallDemoUsers) {
-                Add-UserPhotos -Config $provisioningConfig
+                Add-UserPhotos -Settings $provisioningSettings
             }
 
             # TODO: each of these re-reads and re-parses $activeContentPath from disk independently.
             # Fine for this small one-time install script, but if the content file grows or these
             # calls move into a hotter path, parse it once here and pass the object through instead.
-            Add-TeamSite -ContentPath $activeContentPath -Config $provisioningConfig
-            Import-SiteDocuments -ContentPath $activeContentPath -Config $provisioningConfig
-            Add-TeamsChatMessages -ContentPath $activeContentPath -Config $provisioningConfig -MigrationHeaders $migrationHeaders
+            Add-TeamSite -ContentPath $activeContentPath -Config $config
+            Import-SiteDocuments -ContentPath $activeContentPath -Config $config
+            Add-TeamsChatMessages -ContentPath $activeContentPath -Settings $provisioningSettings -MigrationHeaders $migrationHeaders
         }
         else {
             Write-InstallLogAction -Message "One or more prerequisites were not met. Please review the messages above." -Level Error

@@ -33,7 +33,7 @@
             "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License",
             ""
         ],
-        "Dynamics":[
+        "Dynamics": [
             "DYN365_ENTERPRISE_SALES_CUSTOMERSERVICE",
             "DYN365_ENTERPRISE_SALES",
             "DYN365_ENTERPRISE_CUSTOMER_SERVICE",
@@ -46,5 +46,57 @@
         "cassandra.dunn",
         "charlotte.waltson",
         "david.power"
+    ],
+    "Users": [
+        {
+            "FirstName": "Serena",
+            "LastName": "Ribeiro",
+            "JobTitle": "Market Research Analyst",
+            "UserPrincipalName": "serena.ribeiro",
+            "Email": "serena.ribeiro@sympdcp.onmicrosoft.com",
+            "Department": "Marketing",
+            "DynamicsLicenses": false,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "Babak",
+            "LastName": "Shammas",
+            "JobTitle": "Financial Reconciliation Lead",
+            "UserPrincipalName": "babak.shammas",
+            "Email": "babak.shammas@sympdcp.onmicrosoft.com",
+            "Department": "Finance",
+            "DynamicsLicenses": true,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "Cassandra",
+            "LastName": "Dunn",
+            "JobTitle": "Compliance Manager",
+            "UserPrincipalName": "cassandra.dunn",
+            "Email": "cassandra.dunn@sympdcp.onmicrosoft.com",
+            "Department": "Compliance",
+            "DynamicsLicenses": false,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "Charlotte",
+            "LastName": "Waltson",
+            "JobTitle": "VP of Procurement",
+            "UserPrincipalName": "charlotte.waltson",
+            "Email": "charlotte.waltson@sympdcp.onmicrosoft.com",
+            "Department": "Procurement",
+            "DynamicsLicenses": true,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "David",
+            "LastName": "Power",
+            "JobTitle": "Sales Director",
+            "UserPrincipalName": "david.power",
+            "Email": "david.power@sympdcp.onmicrosoft.com",
+            "Department": "Sales",
+            "DynamicsLicenses": true,
+            "UsageLocation": "US"
+        }
     ]
 }
