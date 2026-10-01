@@ -1,6 +1,14 @@
 function Initialize-InstallLog {
+    param(
+        [string]$Title = "WorkIQ Starter Pack Installation Log",
+        [string]$FileName = "InstallLog.md",
+        [bool]$IncludePasswords = $true
+    )
+
+    $script:installLogTitle = $Title
+    $script:installLogIncludePasswords = $IncludePasswords
     $script:installLogStartTime = Get-Date
-    $script:installLogPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Logs/InstallLog.md"))
+    $script:installLogPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Logs/$FileName"))
     $script:installLogInputs = [System.Collections.Generic.List[object]]::new()
     $script:installLogActions = [System.Collections.Generic.List[object]]::new()
     $script:installLogPasswords = [System.Collections.Generic.List[object]]::new()
@@ -71,7 +79,7 @@ function Save-InstallLog {
     $status = if ($Success) { "Succeeded" } else { "Failed" }
 
     $lines = [System.Collections.Generic.List[string]]::new()
-    $lines.Add("# WorkIQ Starter Pack Installation Log")
+    $lines.Add("# $($script:installLogTitle)")
     $lines.Add("")
     $lines.Add("## Run Summary")
     $lines.Add("- Started: $($script:installLogStartTime.ToString('yyyy-MM-dd HH:mm:ss'))")
@@ -105,21 +113,23 @@ function Save-InstallLog {
     }
     $lines.Add("")
 
-    $lines.Add("## Demo User Passwords")
-    $lines.Add("")
-    if ($script:installLogPasswords.Count -gt 0) {
-        $lines.Add("**Store this information securely and delete this file once the passwords have been distributed.**")
+    if ($script:installLogIncludePasswords) {
+        $lines.Add("## Demo User Passwords")
         $lines.Add("")
-        $lines.Add("| Email | Temporary Password |")
-        $lines.Add("|---|---|")
-        foreach ($entry in $script:installLogPasswords) {
-            $lines.Add("| $($entry.Email) | $($entry.Password) |")
+        if ($script:installLogPasswords.Count -gt 0) {
+            $lines.Add("**Store this information securely and delete this file once the passwords have been distributed.**")
+            $lines.Add("")
+            $lines.Add("| Email | Temporary Password |")
+            $lines.Add("|---|---|")
+            foreach ($entry in $script:installLogPasswords) {
+                $lines.Add("| $($entry.Email) | $($entry.Password) |")
+            }
         }
+        else {
+            $lines.Add("_No new users were created in this run._")
+        }
+        $lines.Add("")
     }
-    else {
-        $lines.Add("_No new users were created in this run._")
-    }
-    $lines.Add("")
 
     Set-Content -Path $script:installLogPath -Value ($lines -join "`n")
 }

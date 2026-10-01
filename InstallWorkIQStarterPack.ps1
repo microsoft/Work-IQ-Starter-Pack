@@ -110,7 +110,7 @@ try {
     # Ask which starter pack content pack(s) to install. At least one must be selected, otherwise
     # the content-provisioning block below has nothing to do.
     $installM365Content = Read-YesNo "Do you want to install the M365 WorkIQ Starter Pack Content?" -Default $true
-    $installDynamicsContent = Read-YesNo "Do you want to install the Dynamics WorkIQ Starter Pack Content?" -Default $false
+    $installDynamicsContent = Read-YesNo "Do you want to install the Dynamics WorkIQ Starter Pack Content?" -Default $true
     Write-InstallLogInput -Prompt "Install the M365 WorkIQ Starter Pack Content?" -Response $(if ($installM365Content) { "Yes" } else { "No" })
     Write-InstallLogInput -Prompt "Install the Dynamics WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsContent) { "Yes" } else { "No" })
 
@@ -150,7 +150,9 @@ try {
 
         # Make sure the existing app registration has every permission the installer needs, adding any
         # that are missing and prompting for admin consent.
-        Connect-WorkIQPnP -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $clientId
+        # Always sign in fresh here (-Force) - a connection left over from an earlier run or session would
+        # otherwise be reused without prompting.
+        Connect-WorkIQPnP -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $clientId -Force
         Update-AppRegistrationPermissions -ClientId $clientId -TenantPrefix $config.Settings.TenantPrefix | Out-Null
     }
     else {
@@ -269,10 +271,12 @@ try {
 }
 catch {
     Write-InstallLogAction -Message "Failed to provision WorkIQ Starter Pack: $($_.Exception.Message)" -Level Error
-    #Disconnect-PnPOnline
     exit 1
 }
 finally {
+    # Always drop the PnP connection, whether the install succeeded or failed
+    Disconnect-PnPOnline -ErrorAction SilentlyContinue
+
     # Always write the install log, even on failure, so any inputs/actions/passwords captured
     # before an exception (e.g. already-created demo user passwords) are never lost.
     Save-InstallLog -Success ($installSucceeded -eq $true)

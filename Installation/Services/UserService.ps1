@@ -164,7 +164,7 @@ function Remove-Users {
     foreach ($user in $Settings.Users) {
         try {
             if ($Settings.DefaultUsers -notcontains $user.UserPrincipalName) {
-                Write-Host "$($user.Email) is not a default demo user, skipping deletion."
+                Write-InstallLogAction "$($user.Email) is not a default demo user, skipping deletion."
                 continue
             }
 
@@ -172,14 +172,24 @@ function Remove-Users {
 
             if ($existingUser) {
                 Invoke-RestMethod -Uri "$graphBaseUrl/users/$($existingUser.id)" -Headers $headers -Method Delete
-                Write-Host "Deleted default demo user $($user.Email)."
+                Write-InstallLogAction "Deleted default demo user $($user.Email)."
+
+                # Deleting a user only moves them to the Entra ID deleted items bin (restorable for
+                # 30 days) - permanently delete this user so the demo can be reinstalled cleanly.
+                try {
+                    Invoke-RestMethod -Uri "$graphBaseUrl/directory/deletedItems/$($existingUser.id)" -Headers $headers -Method Delete
+                    Write-InstallLogAction "Permanently deleted $($user.Email) from the deleted items bin."
+                }
+                catch {
+                    Write-InstallLogAction "Could not permanently delete $($user.Email): $($_.Exception.Message)" -Level Warning
+                }
             }
             else {
-                Write-Host "$($user.Email) does not exist, skipping deletion."
+                Write-InstallLogAction "$($user.Email) does not exist, skipping deletion."
             }
         }
         catch {
-            Write-Host "Failed to delete $($user.Email): $($_.Exception.Message)" -ForegroundColor Red
+            Write-InstallLogAction "Failed to delete $($user.Email): $($_.Exception.Message)" -Level Error
         }
     }
 }

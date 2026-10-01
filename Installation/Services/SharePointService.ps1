@@ -13,20 +13,6 @@ function Add-TeamSite {
             $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
             $existingTeam = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
 
-            $siteOwners = @()
-            foreach ($owner in $site.Owners) {
-                $siteOwners += $owner
-            }
-            $currentUserUpn = Get-CurrentUserUpn
-            if ($currentUserUpn -and ($siteOwners -notcontains $currentUserUpn)) {
-                $siteOwners += $currentUserUpn
-            }
-
-            $siteMembers = @()
-            foreach ($member in $site.Members) {
-                $siteMembers += $member
-            }
-            
             if (-not $existingTeam) {
                 $visibility = if ($site.IsPublic) { "Public" } else { "Private" }
                 $teamParams = @{
@@ -35,20 +21,22 @@ function Add-TeamSite {
                     Description  = $site.Description
                     Visibility   = $visibility
                 }
-                
-                $teamParams.Owners = $siteOwners
-                $teamParams.Members = $siteMembers
 
                 New-PnPTeamsTeam @teamParams | Out-Null
-                Wait-ForSiteProvisioned -SiteUrl $siteUrl
+                Wait-ForTeamProvisioned -SiteUrl $siteUrl
+
+                $groupId = (Get-PnPTeamsTeam -Identity $site.URL).GroupId
+                Add-SiteAccess -GroupId $groupId -Site $site
+                Add-TeamChannels -GroupId $groupId -Site $site
                 Write-InstallLogAction -Message "Created site '$($site.Title)' at $siteUrl"
             }
             else {
                 Write-InstallLogAction -Message "Team for site '$($site.URL)' already exists, skipping creation."
                 $groupId = $existingTeam.GroupId
-                Wait-ForSiteProvisioned -SiteUrl $siteUrl
+                Wait-ForTeamProvisioned -SiteUrl $siteUrl
                 Remove-SiteAccess -GroupId $groupId -Site $site
                 Add-SiteAccess -GroupId $groupId -Site $site
+                Add-TeamChannels -GroupId $groupId -Site $site
             }
         }
         catch {
@@ -57,49 +45,82 @@ function Add-TeamSite {
     }
 }
 
-function Remove-Sites {
+function Add-TeamChannels {
     param(
         [Parameter(Mandatory = $true)]
-        $Config
+        $GroupId,
+        [Parameter(Mandatory = $true)]
+        $Site
     )
 
-    foreach ($site in $Config.Sites) {
+    foreach ($channel in $Site.Channels) {
         try {
-            $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
-            $existingSite = Get-PnPTenantSite -Url $siteUrl -ErrorAction SilentlyContinue
-
-            if ($existingSite) {
-                Remove-PnPTenantSite -Url $siteUrl -Force
-                Write-Host "Removed site '$($site.Title)' at $siteUrl."
-            }
-            else {
-                Write-Host "Site with URL '$($site.URL)' does not exist, skipping deletion."
+            $existingChannel = Get-PnPTeamsChannel -Team $GroupId -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq $channel.Title }
+            if ($existingChannel) {
+                Write-InstallLogAction -Message "Channel '$($channel.Title)' already exists in site '$($Site.URL)', skipping creation."
+                continue
             }
 
-            # Remove-PnPTenantSite only soft-deletes the site into the tenant recycle bin, so purge it
-            # from there too - but only this demo's own site URL, never a blanket recycle bin sweep.
-            $deletedSite = Get-PnPTenantDeletedSite -Identity $siteUrl -ErrorAction SilentlyContinue
-
-            if ($deletedSite) {
-                Remove-PnPTenantDeletedSite -Identity $siteUrl -Force
-                Write-Host "Purged site '$($site.Title)' from the tenant recycle bin at $siteUrl."
-            }
+            Add-PnPTeamsChannel -Team $GroupId -DisplayName $channel.Title -Description $channel.Description | Out-Null
+            Write-InstallLogAction -Message "Added channel '$($channel.Title)' to site '$($Site.URL)'."
         }
         catch {
-            Write-Host "Failed to remove site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
+            Write-Host "Failed to add channel '$($channel.Title)' to site '$($Site.URL)': $($_.Exception.Message)" -ForegroundColor Red
         }
     }
 }
 
-function Wait-ForSiteProvisioned {
+function Remove-Sites {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ContentPath,
+        [Parameter(Mandatory = $true)]
+        $Config
+    )
+
+    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+
+    foreach ($site in $contentConfig.Sites) {
+        try {
+            $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
+
+            $existingTeam = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
+            if (-not $existingTeam) {
+                $existingTeam = Get-PnPTeamsTeam -ErrorAction SilentlyContinue | Where-Object { $_.MailNickName -eq $site.URL } | Select-Object -First 1
+            }
+
+            if ($existingTeam) {
+                Remove-PnPTeamsTeam -Identity $existingTeam.GroupId -Force
+                Write-InstallLogAction "Removed Team '$($site.Title)' ($($site.URL)) and its Microsoft 365 group."
+            }
+            else {
+                Write-InstallLogAction "Team for site '$($site.URL)' does not exist, skipping deletion."
+            }
+
+            $deletedGroup = Get-PnPDeletedMicrosoft365Group -ErrorAction SilentlyContinue | Where-Object { $_.MailNickname -eq $site.URL } | Select-Object -First 1
+            if ($deletedGroup) {
+                Remove-PnPDeletedMicrosoft365Group -Identity $deletedGroup.Id
+                Write-InstallLogAction "Purged group '$($site.URL)' from the deleted groups bin."
+            }
+
+            $deletedSite = Get-PnPTenantDeletedSite -Identity $siteUrl -ErrorAction SilentlyContinue
+            if ($deletedSite) {
+                Remove-PnPTenantDeletedSite -Identity $siteUrl -Force
+                Write-InstallLogAction "Purged site '$($site.Title)' from the tenant recycle bin at $siteUrl."
+            }
+        }
+        catch {
+            Write-InstallLogAction "Failed to remove site '$($site.URL)': $($_.Exception.Message)" -Level Error
+        }
+    }
+}
+
+function Wait-ForTeamProvisioned {
     param(
         [Parameter(Mandatory = $true)]
         [string]$SiteUrl
     )
 
-    # New-PnPTeamsTeam returns as soon as the group/Team is created, but the backing SharePoint
-    # site is provisioned asynchronously afterward - poll for it before callers (e.g.
-    # Import-SiteDocuments) try to connect directly to $SiteUrl.
     $pollIntervalSeconds = 5
     $timeoutSeconds = 120
     $elapsedSeconds = 0

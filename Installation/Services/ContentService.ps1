@@ -77,13 +77,16 @@ function Import-SiteDocuments {
                 continue
             }
 
-            # MeetingTranscripts get their own folder - nested under General on Teams-enabled
-            # sites (alongside the rest of the library content), or at the library root otherwise.
+            # On Teams-enabled sites each channel has its own folder in the document library, named after
+            # the channel. Files go in the site's first channel (see Add-TeamChannels), falling back to
+            # General when the site defines none. MeetingTranscripts get their own subfolder, or sit at
+            # the library root on sites without Teams.
+            $channelFolder = if ($site.Channels -and $site.Channels[0].Title) { $site.Channels[0].Title } else { "General" }
             $targetFolder = if ($group -eq "MeetingTranscripts") {
-                if ($site.EnableMicrosoftTeams) { "General/Meeting Transcripts" } else { "Meeting Transcripts" }
+                if ($site.EnableMicrosoftTeams) { "$channelFolder/Meeting Transcripts" } else { "Meeting Transcripts" }
             }
             else {
-                "General"
+                $channelFolder
             }
 
             foreach ($file in $site.Content.$group) {
@@ -199,7 +202,10 @@ function Add-TeamsChatMessages {
                 throw "No Teams team found for site '$($site.URL)'. Run Add-TeamSite first."
             }
             $teamId = $team.GroupId
-            $channelId = Get-GeneralChannelId -TeamId $teamId
+            # Chats go in the site's first channel (see Add-TeamChannels), falling back to General when
+            # the site defines none - the same channel the site's documents are uploaded to.
+            $channelName = if ($site.Channels -and $site.Channels[0].Title) { $site.Channels[0].Title } else { "General" }
+            $channelId = Get-TeamChannelId -TeamId $teamId -ChannelName $channelName
 
             $messages = foreach ($chat in $site.Content.Chats) {
                 foreach ($message in $chat.Messages) {
@@ -217,7 +223,7 @@ function Add-TeamsChatMessages {
 
             $imported = Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Settings $Settings -MigrationHeaders $MigrationHeaders
             if ($imported) {
-                Write-InstallLogAction -Message "Imported $($messages.Count) chat messages into the General channel of site '$($site.URL)'."
+                Write-InstallLogAction -Message "Imported $($messages.Count) chat messages into the '$channelName' channel of site '$($site.URL)'."
             }
         }
         catch {
@@ -226,16 +232,18 @@ function Add-TeamsChatMessages {
     }
 }
 
-function Get-GeneralChannelId {
+function Get-TeamChannelId {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$TeamId
+        [string]$TeamId,
+        [string]$ChannelName = "General"
     )
 
-    $channel = (Invoke-RestMethod -Uri "$graphBaseUrl/teams/$TeamId/channels?`$filter=displayName eq 'General'" -Headers $headers -Method Get).value | Select-Object -First 1
+    $escapedName = $ChannelName.Replace("'", "''")
+    $channel = (Invoke-RestMethod -Uri "$graphBaseUrl/teams/$TeamId/channels?`$filter=displayName eq '$escapedName'" -Headers $headers -Method Get).value | Select-Object -First 1
 
     if (-not $channel) {
-        throw "The General channel for team '$TeamId' could not be found."
+        throw "The '$ChannelName' channel for team '$TeamId' could not be found."
     }
 
     return $channel.id

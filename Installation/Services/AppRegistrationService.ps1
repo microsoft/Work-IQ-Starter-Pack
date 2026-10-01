@@ -92,14 +92,16 @@ function Connect-WorkIQPnP {
         [Parameter(Mandatory = $true)]
         [string]$SharePointUrl,
         [Parameter(Mandatory = $true)]
-        [string]$ClientId
+        [string]$ClientId,
+        [switch]$Force
     )
 
     # Update-AppRegistrationPermissions signs in before Connect-WorkIQGraph does - reuse that sign-in
     # rather than prompting the user a second time. Only reuse it if the PnP connection is still live -
     # a prior run's Disconnect-PnPOnline (e.g. CleanUp.ps1) leaves the client ID global set but the
     # connection gone, which would otherwise make the next Get-PnPAccessToken call fail.
-    if ($global:workIQPnPClientId -eq $ClientId -and (Get-PnPConnection -ErrorAction SilentlyContinue)) {
+    # -Force skips that reuse and always signs in again.
+    if (-not $Force -and $global:workIQPnPClientId -eq $ClientId -and (Get-PnPConnection -ErrorAction SilentlyContinue)) {
         return
     }
 
@@ -431,12 +433,12 @@ function Remove-AppRegistration {
         $application = (Invoke-RestMethod -Uri "$graphBaseUrl/applications?`$filter=appId eq '$ClientId'" -Headers $headers -Method Get).value | Select-Object -First 1
 
         if (-not $application) {
-            Write-Host "No application registration found for ClientId $ClientId, skipping." -ForegroundColor Yellow
+            Write-InstallLogAction "No application registration found for ClientId $ClientId, skipping." -Level Warning
             return
         }
 
         Invoke-RestMethod -Uri "$graphBaseUrl/applications/$($application.id)" -Headers $headers -Method Delete
-        Write-Host "Deleted application registration '$($application.displayName)' (ClientId: $ClientId)."
+        Write-InstallLogAction "Deleted application registration '$($application.displayName)' (ClientId: $ClientId)."
     }
     catch {
         throw "Failed to remove the application registration for ClientId $($ClientId): $($_.Exception.Message)"
@@ -449,10 +451,10 @@ function Remove-TeamsChatMigrationCertificate {
 
         if (Test-Path $certDir) {
             Remove-Item -Path $certDir -Recurse -Force
-            Write-Host "Removed local Teams chat migration certificate files at $certDir."
+            Write-InstallLogAction "Removed local Teams chat migration certificate files at $certDir."
         }
         else {
-            Write-Host "No local Teams chat migration certificate files found, skipping."
+            Write-InstallLogAction "No local Teams chat migration certificate files found, skipping."
         }
     }
     catch {
