@@ -6,7 +6,9 @@
             "User.ReadWrite.All",
             "Directory.ReadWrite.All",
             "Application.ReadWrite.All",
-            "TeamMember.ReadWrite.All"
+            "TeamMember.ReadWrite.All",
+            "ChannelMessage.Read.All",
+            "ChannelMessage.ReadWrite"
         ],
         "GraphApplication": [
             "Teamwork.Migrate.All"

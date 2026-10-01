@@ -42,12 +42,28 @@ This solution requires the user installing the solution to be a Global Administr
 - User.ReadWrite.All
 - Directory.ReadWrite.All
 - Application.ReadWrite.All
+- TeamMember.ReadWrite.All
+- ChannelMessage.Read.All
+- ChannelMessage.ReadWrite
 
 #### Graph Application Permissions
 - Teamwork.Migrate.All
 
 #### SharePoint Delegated Permissions
 - AllSites.FullControl
+
+#### Cleanup of pre-existing channel messages
+Before importing the demo chat history into a site's General channel, the installer tries to remove any messages already there (e.g. the channel's automatic "channel created" message, or leftovers from an earlier run). Deleting a message via Microsoft Graph requires more than the `ChannelMessage.ReadWrite` permission above - the caller must either be the original sender of that message, or be a team owner with the Teams **Messaging policy** setting *"Owners can delete sent messages"* turned on, which is off tenant-wide by default.
+
+The installer handles this automatically: it creates a Teams messaging policy scoped to just the account running the install (not a tenant-wide change) and assigns it to that account before importing chat content. This requires a separate interactive sign-in via the `MicrosoftTeams` PowerShell module (installed automatically if missing) and Teams Administrator or Global Administrator rights - the installer already requires Global Administrator (see above), so no extra role is needed. This step is best-effort: if it fails for any reason (module install declined, policy propagation delay, etc.), the installer logs a warning and continues - any pre-existing message it still can't delete is just left in place and the demo chat content imports normally regardless.
+
+To do this by hand instead (or to change the tenant-wide default), grant or check the policy with:
+```powershell
+Connect-MicrosoftTeams
+New-CsTeamsMessagingPolicy -Identity "WorkIQStarterPackAllowOwnerDelete" -AllowOwnerDeleteMessage $true
+Grant-CsTeamsMessagingPolicy -PolicyName "WorkIQStarterPackAllowOwnerDelete" -Identity "<installer-account-UPN>"
+```
+Or manually: Teams admin center → Messaging policies → add/edit a policy → turn on "Owners can delete sent messages" → assign it to the installer account.
 
 ## Instructions
 - Ensure you meet the critera for enabling Work IQ in your tenant (Azure Subscription, )

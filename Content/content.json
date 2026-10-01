@@ -474,6 +474,1217 @@
                     }
                 ]
             }
+        },
+        {
+            "Title": "Finance Team",
+            "URL": "Finance-Team",
+            "Description": "Intelligent Investigation - Caldova supplier invoice investigation site",
+            "EnableMicrosoftTeams": true,
+            "IsPublic": false,
+            "Owners": [
+                "babak.shammas@sympdcp.onmicrosoft.com",
+                "cassandra.dunn@sympdcp.onmicrosoft.com"
+            ],
+            "Members": [
+                "charlotte.waltson@sympdcp.onmicrosoft.com",
+                "serena.ribeiro@sympdcp.onmicrosoft.com",
+                "david.power@sympdcp.onmicrosoft.com"
+            ],
+            "Content": {
+                "Documents": [
+                    {
+                        "Title": "Supplier Master Agreement",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Supplier Master Agreement.docx",
+                        "CreatedOffset": -149,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -72,
+                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Contract Manufacturing Agreement",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Contract Manufacturing Agreement.pdf",
+                        "CreatedOffset": -135,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -51,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Suppliers Spend Policy",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Suppliers Spend Policy.docx",
+                        "CreatedOffset": -170,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -58,
+                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Invoice Approval Policy",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Invoice Approval Policy.pdf",
+                        "CreatedOffset": -163,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -44,
+                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Procurement Delegation Matrix",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Procurement Delegation Matrix.docx",
+                        "CreatedOffset": -156,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -86,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Audit Procedures",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Audit Procedures.pdf",
+                        "CreatedOffset": -142,
+                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -37,
+                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Investigation Playbook",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Investigation Playbook.docx",
+                        "CreatedOffset": -120,
+                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -4,
+                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Vendor Due Diligence File",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Vendor Due Diligence File.pdf",
+                        "CreatedOffset": -191,
+                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -93,
+                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                    }
+                ],
+                "MeetingTranscripts": [],
+                "EmailThreads": [
+                    {
+                        "Title": "Supplier Invoice Clarification",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Supplier Invoice Clarification.md",
+                        "CreatedOffset": -15,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -13,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Procurement Approval Discussion",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Procurement Approval Discussion.md",
+                        "CreatedOffset": -22,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -20,
+                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Escalation to Compliance",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Escalation to Compliance.md",
+                        "CreatedOffset": -12,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -8,
+                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Request for Contract Amendment",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Request for Contract Amendment.md",
+                        "CreatedOffset": -6,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -2,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    }
+                ],
+                "Chats": [
+                    {
+                        "Title": "Finance Operations",
+                        "Members": [
+                            "Babak Shammas",
+                            "Serena Ribeiro",
+                            "David Power"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -21,
+                                "Time": "08:30:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Morning. Northstar Fill Finish's deviation investigation line is on hold - no approval on record. Heads up if you get questions from their side."
+                            },
+                            {
+                                "Offset": -21,
+                                "Time": "08:42:00",
+                                "Sender": "David Power",
+                                "Message": "Nothing from me. Sales doesn't touch Northstar invoices."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "15:10:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "New one: BluePeak Biologics L004 on INV-SUP-009-2026-Q4-L004 is a contamination investigation charge. Disputed, pay the rest."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "15:14:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "@Babak Shammas will you want the line items in the monthly spend summary? I'm pulling it Friday."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "15:20:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Yes, show it as disputed, not approved. I'll update the status once Compliance weighs in."
+                            },
+                            {
+                                "Offset": -7,
+                                "Time": "09:05:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Status: L004 is escalated. Cassandra has the written position and Charlotte agreed it."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Procurement Leadership",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -13,
+                                "Time": "09:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "@Babak Shammas thanks for holding L004. Please open the case and loop in Cassandra today."
+                            },
+                            {
+                                "Offset": -13,
+                                "Time": "09:25:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Done. Case is in the Financial Investigation Case list, status Disputed."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "10:30:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Compliance position is clear: supplier-caused investigations aren't billable. I want the contract amended so we're never back here."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "10:40:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Makes sense. I'll add a mandatory deviation reference per invoice line to the request."
+                            },
+                            {
+                                "Offset": -2,
+                                "Time": "08:50:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Amendment approved and going to BluePeak Biologics for signature."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Compliance Review",
+                        "Members": [
+                            "Cassandra Dunn",
+                            "Babak Shammas",
+                            "Charlotte Waltson"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -12,
+                                "Time": "15:30:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "@Babak Shammas I've read the deviation record for DEV-BP-1026-SUPPLIER. Root cause points to the supplier."
+                            },
+                            {
+                                "Offset": -12,
+                                "Time": "15:35:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "That matches my read. No change order on file either."
+                            },
+                            {
+                                "Offset": -12,
+                                "Time": "15:50:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Section 4 of the billability policy covers it. Decision state is escalated."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "16:30:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Position sent to BluePeak Biologics. @Charlotte Waltson I'll update you when they reply."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "16:40:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Thanks. Keep me posted."
+                            }
+                        ]
+                    }
+                ],
+                "Lists": [
+                    {
+                        "Title": "Supplier Directory",
+                        "Template": "GenericList",
+                        "Columns": [
+                            {
+                                "Name": "SupplierId",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "Region",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "North America",
+                                    "Europe",
+                                    "Asia Pacific",
+                                    "Latin America",
+                                    "Global"
+                                ]
+                            },
+                            {
+                                "Name": "SupplierType",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "ProductsMaterials",
+                                "Type": "Note"
+                            },
+                            {
+                                "Name": "Active",
+                                "Type": "Boolean"
+                            }
+                        ],
+                        "Views": [
+                            {
+                                "Title": "Approved Suppliers",
+                                "Query": "<Where><Eq><FieldRef Name='Active'/><Value Type='Boolean'>1</Value></Eq></Where>"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Aster Ridge Biomanufacturing",
+                                "SupplierId": "sup-001",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER-10 tablets, ALLER-20 tablets",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Northstar Fill Finish",
+                                "SupplierId": "sup-002",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER-INJ prefilled syringe program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "HelioPack Pharma Services",
+                                "SupplierId": "sup-003",
+                                "SupplierType": "Packaging partner",
+                                "Region": "Europe",
+                                "ProductsMaterials": "ALLER-10 EU carton, ALLER-20 EU carton",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Meridian API Works",
+                                "SupplierId": "sup-004",
+                                "SupplierType": "API supplier",
+                                "Region": "Asia Pacific",
+                                "ProductsMaterials": "AUR-API-7 active pharmaceutical ingredient",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Crescent GMP Labs",
+                                "SupplierId": "sup-005",
+                                "SupplierType": "Quality lab",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER stability and release testing program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Summit Dose Manufacturing",
+                                "SupplierId": "sup-006",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "Europe",
+                                "ProductsMaterials": "ALLER-CAP 25 mg, ALLER-CAP 50 mg",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Orchid Clinical Supply",
+                                "SupplierId": "sup-007",
+                                "SupplierType": "Clinical supply partner",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER Phase II clinical supply kits",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Valence Cold Chain Logistics",
+                                "SupplierId": "sup-008",
+                                "SupplierType": "Logistics partner",
+                                "Region": "Global",
+                                "ProductsMaterials": "ALLER commercial and clinical temperature-controlled shipments",
+                                "Active": true
+                            },
+                            {
+                                "Title": "BluePeak Biologics",
+                                "SupplierId": "sup-009",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "North America",
+                                "ProductsMaterials": "BP-ALLER biologic drug substance program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Keystone Device Assembly",
+                                "SupplierId": "sup-010",
+                                "SupplierType": "Combination device partner",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER auto-injector assembly",
+                                "Active": true
+                            },
+                            {
+                                "Title": "LumaSterile Services",
+                                "SupplierId": "sup-011",
+                                "SupplierType": "Sterilization partner",
+                                "Region": "Europe",
+                                "ProductsMaterials": "ALLER device and packaging sterilization lots",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Pioneer Process Development",
+                                "SupplierId": "sup-012",
+                                "SupplierType": "Process development partner",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER process development and validation program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Evergreen Excipients",
+                                "SupplierId": "sup-013",
+                                "SupplierType": "Materials supplier",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER excipient and specialty ingredient supply",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Atlas Regional Manufacturing",
+                                "SupplierId": "sup-014",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "Latin America",
+                                "ProductsMaterials": "ALLER-10 tablets, ALLER-20 tablets, regional OTC bundles",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Signal Ridge Regulatory Services",
+                                "SupplierId": "sup-015",
+                                "SupplierType": "Regulatory services partner",
+                                "Region": "Global",
+                                "ProductsMaterials": "ALLER global regulatory support program",
+                                "Active": true
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Financial Investigation Cases",
+                        "Template": "GenericList",
+                        "Columns": [
+                            {
+                                "Name": "CaseId",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "Supplier",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "Product",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "InvoiceReference",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "IssueCategory",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "quality_deviation_charge",
+                                    "unapproved_investigation",
+                                    "rejected_batch_charge",
+                                    "fraud_prevention"
+                                ]
+                            },
+                            {
+                                "Name": "DecisionState",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "Approved",
+                                    "Held",
+                                    "Disputed",
+                                    "Escalated"
+                                ]
+                            },
+                            {
+                                "Name": "Owner",
+                                "Type": "User"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Deviation investigation billed without approval",
+                                "CaseId": "CASE-001",
+                                "Supplier": "Northstar Fill Finish (sup-002)",
+                                "Product": "ALLER-INJ prefilled syringe program",
+                                "InvoiceReference": "",
+                                "IssueCategory": "unapproved_investigation",
+                                "DecisionState": "Held",
+                                "Owner": "babak.shammas@sympdcp.onmicrosoft.com"
+                            },
+                            {
+                                "Title": "Contamination investigation charge",
+                                "CaseId": "CASE-002",
+                                "Supplier": "BluePeak Biologics (sup-009)",
+                                "Product": "BP-ALLER biologic drug substance program",
+                                "InvoiceReference": "INV-SUP-009-2026-Q4-L004 / DEV-BP-1026-SUPPLIER",
+                                "IssueCategory": "quality_deviation_charge",
+                                "DecisionState": "Escalated",
+                                "Owner": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Procurement Exceptions",
+                        "Template": "GenericList",
+                        "Columns": [
+                            {
+                                "Name": "Supplier",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "ExceptionType",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "No change order",
+                                    "Over delegation",
+                                    "Missing deviation reference",
+                                    "Rejected batch charge"
+                                ]
+                            },
+                            {
+                                "Name": "Status",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "Open",
+                                    "Resolved"
+                                ]
+                            },
+                            {
+                                "Name": "RaisedBy",
+                                "Type": "User"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Investigation charge without change order",
+                                "Supplier": "Northstar Fill Finish",
+                                "ExceptionType": "No change order",
+                                "Status": "Resolved",
+                                "RaisedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                            },
+                            {
+                                "Title": "Contamination investigation charge L004",
+                                "Supplier": "BluePeak Biologics",
+                                "ExceptionType": "Rejected batch charge",
+                                "Status": "Open",
+                                "RaisedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                            }
+                        ]
+                    }
+                ],
+                "Libraries": [
+                    {
+                        "Title": "Contract Library",
+                        "Template": "DocumentLibrary",
+                        "ContentTypes": [
+                            {
+                                "Name": "Contract",
+                                "Columns": [
+                                    {
+                                        "Name": "SupplierName",
+                                        "DisplayName": "Supplier Name",
+                                        "Type": "TaxonomyFieldType",
+                                        "TermSet": "Suppliers",
+                                        "Terms": [
+                                            "Aster Ridge Biomanufacturing",
+                                            "Northstar Fill Finish",
+                                            "HelioPack Pharma Services",
+                                            "Meridian API Works",
+                                            "Crescent GMP Labs",
+                                            "Summit Dose Manufacturing",
+                                            "Orchid Clinical Supply",
+                                            "Valence Cold Chain Logistics",
+                                            "BluePeak Biologics",
+                                            "Keystone Device Assembly",
+                                            "LumaSterile Services",
+                                            "Pioneer Process Development",
+                                            "Evergreen Excipients",
+                                            "Atlas Regional Manufacturing",
+                                            "Signal Ridge Regulatory Services"
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "Documents": [
+                            "Content/Documents/Demo2/SharePoint_Documents/Supplier Master Agreement.docx",
+                            "Content/Documents/Demo2/SharePoint_Documents/Contract Manufacturing Agreement.pdf"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Title": "Procurement Team",
+            "URL": "Procurement-Team",
+            "Description": "Copilot Cowork - Caldova supplier capacity expansion site",
+            "EnableMicrosoftTeams": true,
+            "IsPublic": false,
+            "Owners": [
+                "charlotte.waltson@sympdcp.onmicrosoft.com",
+                "babak.shammas@sympdcp.onmicrosoft.com"
+            ],
+            "Members": [
+                "cassandra.dunn@sympdcp.onmicrosoft.com",
+                "serena.ribeiro@sympdcp.onmicrosoft.com",
+                "david.power@sympdcp.onmicrosoft.com"
+            ],
+            "Content": {
+                "Documents": [
+                    {
+                        "Title": "Current Supplier Scorecard",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Current Supplier Scorecard.pdf",
+                        "CreatedOffset": -47,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -18,
+                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Performance Reviews",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Performance Reviews.docx",
+                        "CreatedOffset": -41,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -21,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Capacity Planning Report",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Capacity Planning Report.docx",
+                        "CreatedOffset": -33,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Raw Material Demand Forecast",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Raw Material Demand Forecast.pdf",
+                        "CreatedOffset": -29,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -14,
+                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Expansion Proposal",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Expansion Proposal.docx",
+                        "CreatedOffset": -10,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -3,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "RFP Package",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/RFP Package.pdf",
+                        "CreatedOffset": -6,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -1,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Evaluation Criteria",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Evaluation Criteria.docx",
+                        "CreatedOffset": -8,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -2,
+                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Onboarding Checklist",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Onboarding Checklist.pdf",
+                        "CreatedOffset": -78,
+                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -16,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    }
+                ],
+                "MeetingTranscripts": [
+                    {
+                        "Title": "Supplier Quarterly Review",
+                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Supplier Quarterly Review.md",
+                        "CreatedOffset": -20,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -20,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Emergency Capacity Review",
+                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Emergency Capacity Review.md",
+                        "CreatedOffset": -11,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -11,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Procurement Steering Committee",
+                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Procurement Steering Committee.md",
+                        "CreatedOffset": -2,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -2,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    }
+                ],
+                "EmailThreads": [
+                    {
+                        "Title": "Supplier Review Preparation",
+                        "Path": "Content/Documents/Demo3/Email_Threads/Supplier Review Preparation.md",
+                        "CreatedOffset": -27,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -22,
+                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Capacity Shortfall Alert",
+                        "Path": "Content/Documents/Demo3/Email_Threads/Capacity Shortfall Alert.md",
+                        "CreatedOffset": -14,
+                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Expansion Proposal",
+                        "Path": "Content/Documents/Demo3/Email_Threads/Supplier Expansion Proposal.md",
+                        "CreatedOffset": -9,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -6,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "RFP Clarification",
+                        "Path": "Content/Documents/Demo3/Email_Threads/RFP Clarification.md",
+                        "CreatedOffset": -2,
+                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -1,
+                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                    }
+                ],
+                "Chats": [
+                    {
+                        "Title": "Procurement Operations",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas",
+                            "Cassandra Dunn"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -26,
+                                "Time": "09:00:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Scorecard updated for next week. Meridian API Works is red on capacity."
+                            },
+                            {
+                                "Offset": -26,
+                                "Time": "09:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "@Babak Shammas thanks. Please flag the AUR-API-7 trend in the forecast."
+                            },
+                            {
+                                "Offset": -15,
+                                "Time": "08:40:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Raw material forecast is in: AUR-API-7 and RM-72 up 35%."
+                            },
+                            {
+                                "Offset": -1,
+                                "Time": "09:20:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "RFP clarification goes out today to both suppliers."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Supply Chain Response Team",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas",
+                            "David Power",
+                            "Serena Ribeiro"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -11,
+                                "Time": "14:30:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Emergency capacity review is live. Notes in the Capacity Planning Report."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "15:30:00",
+                                "Sender": "David Power",
+                                "Message": "@Charlotte Waltson can we promise accounts any ALLER-20 dates?"
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "15:35:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Not yet. Hold off until the steering committee."
+                            },
+                            {
+                                "Offset": -2,
+                                "Time": "11:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Approved. Atlas Regional Manufacturing expansion planning starts now."
+                            },
+                            {
+                                "Offset": -2,
+                                "Time": "11:15:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Great. I'll update the forecast notes."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Supplier Review Working Group",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas",
+                            "Cassandra Dunn"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -21,
+                                "Time": "14:05:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "No open quality items on critical suppliers."
+                            },
+                            {
+                                "Offset": -20,
+                                "Time": "10:30:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Review done. Actions: forecast update and capacity options."
+                            },
+                            {
+                                "Offset": -18,
+                                "Time": "09:00:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "@Charlotte Waltson I updated the scorecard with Meridian's red capacity rating."
+                            }
+                        ]
+                    }
+                ],
+                "Lists": [
+                    {
+                        "Title": "Supplier Directory",
+                        "Template": "GenericList",
+                        "Columns": [
+                            {
+                                "Name": "SupplierId",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "Region",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "North America",
+                                    "Europe",
+                                    "Asia Pacific",
+                                    "Latin America",
+                                    "Global"
+                                ]
+                            },
+                            {
+                                "Name": "SupplierType",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "ProductsMaterials",
+                                "Type": "Note"
+                            },
+                            {
+                                "Name": "Active",
+                                "Type": "Boolean"
+                            }
+                        ],
+                        "Views": [
+                            {
+                                "Title": "Approved Suppliers",
+                                "Query": "<Where><Eq><FieldRef Name='Active'/><Value Type='Boolean'>1</Value></Eq></Where>"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Aster Ridge Biomanufacturing",
+                                "SupplierId": "sup-001",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER-10 tablets, ALLER-20 tablets",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Northstar Fill Finish",
+                                "SupplierId": "sup-002",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER-INJ prefilled syringe program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "HelioPack Pharma Services",
+                                "SupplierId": "sup-003",
+                                "SupplierType": "Packaging partner",
+                                "Region": "Europe",
+                                "ProductsMaterials": "ALLER-10 EU carton, ALLER-20 EU carton",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Meridian API Works",
+                                "SupplierId": "sup-004",
+                                "SupplierType": "API supplier",
+                                "Region": "Asia Pacific",
+                                "ProductsMaterials": "AUR-API-7 active pharmaceutical ingredient",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Crescent GMP Labs",
+                                "SupplierId": "sup-005",
+                                "SupplierType": "Quality lab",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER stability and release testing program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Summit Dose Manufacturing",
+                                "SupplierId": "sup-006",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "Europe",
+                                "ProductsMaterials": "ALLER-CAP 25 mg, ALLER-CAP 50 mg",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Orchid Clinical Supply",
+                                "SupplierId": "sup-007",
+                                "SupplierType": "Clinical supply partner",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER Phase II clinical supply kits",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Valence Cold Chain Logistics",
+                                "SupplierId": "sup-008",
+                                "SupplierType": "Logistics partner",
+                                "Region": "Global",
+                                "ProductsMaterials": "ALLER commercial and clinical temperature-controlled shipments",
+                                "Active": true
+                            },
+                            {
+                                "Title": "BluePeak Biologics",
+                                "SupplierId": "sup-009",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "North America",
+                                "ProductsMaterials": "BP-ALLER biologic drug substance program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Keystone Device Assembly",
+                                "SupplierId": "sup-010",
+                                "SupplierType": "Combination device partner",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER auto-injector assembly",
+                                "Active": true
+                            },
+                            {
+                                "Title": "LumaSterile Services",
+                                "SupplierId": "sup-011",
+                                "SupplierType": "Sterilization partner",
+                                "Region": "Europe",
+                                "ProductsMaterials": "ALLER device and packaging sterilization lots",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Pioneer Process Development",
+                                "SupplierId": "sup-012",
+                                "SupplierType": "Process development partner",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER process development and validation program",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Evergreen Excipients",
+                                "SupplierId": "sup-013",
+                                "SupplierType": "Materials supplier",
+                                "Region": "North America",
+                                "ProductsMaterials": "ALLER excipient and specialty ingredient supply",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Atlas Regional Manufacturing",
+                                "SupplierId": "sup-014",
+                                "SupplierType": "Contract manufacturer",
+                                "Region": "Latin America",
+                                "ProductsMaterials": "ALLER-10 tablets, ALLER-20 tablets, regional OTC bundles",
+                                "Active": true
+                            },
+                            {
+                                "Title": "Signal Ridge Regulatory Services",
+                                "SupplierId": "sup-015",
+                                "SupplierType": "Regulatory services partner",
+                                "Region": "Global",
+                                "ProductsMaterials": "ALLER global regulatory support program",
+                                "Active": true
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Supplier Capacity Tracker",
+                        "Template": "GenericList",
+                        "Columns": [
+                            {
+                                "Name": "Supplier",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "Product",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "Utilisation",
+                                "Type": "Number"
+                            },
+                            {
+                                "Name": "Status",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "Green",
+                                    "Amber",
+                                    "Red"
+                                ]
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Aster Ridge Biomanufacturing",
+                                "Supplier": "Aster Ridge Biomanufacturing",
+                                "Product": "ALLER-10 tablets, ALLER-20 tablets",
+                                "Utilisation": 94,
+                                "Status": "Amber"
+                            },
+                            {
+                                "Title": "Atlas Regional Manufacturing",
+                                "Supplier": "Atlas Regional Manufacturing",
+                                "Product": "ALLER-10 tablets, ALLER-20 tablets, regional OTC bundles",
+                                "Utilisation": 68,
+                                "Status": "Green"
+                            },
+                            {
+                                "Title": "Meridian API Works",
+                                "Supplier": "Meridian API Works",
+                                "Product": "AUR-API-7, RM-72",
+                                "Utilisation": 96,
+                                "Status": "Red"
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "RFPs",
+                        "Template": "GenericList",
+                        "Columns": [
+                            {
+                                "Name": "Scope",
+                                "Type": "Note"
+                            },
+                            {
+                                "Name": "Status",
+                                "Type": "Choice",
+                                "Choices": [
+                                    "Draft",
+                                    "Active",
+                                    "Closed"
+                                ]
+                            },
+                            {
+                                "Name": "InvitedSuppliers",
+                                "Type": "Text"
+                            },
+                            {
+                                "Name": "IssueOffset",
+                                "Type": "Number"
+                            }
+                        ],
+                        "Views": [
+                            {
+                                "Title": "Active RFPs",
+                                "Query": "<Where><Eq><FieldRef Name='Status'/><Value Type='Choice'>Active</Value></Eq></Where>"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "ALLER tablet capacity expansion",
+                                "Scope": "Additional capacity for ALLER-10 and ALLER-20 tablets",
+                                "Status": "Active",
+                                "InvitedSuppliers": "Aster Ridge Biomanufacturing; Atlas Regional Manufacturing",
+                                "IssueOffset": -1
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Title": "Sales Team",
+            "URL": "Sales-Team",
+            "Description": "Unified Business Data - Caldova sales and customer engagement site",
+            "EnableMicrosoftTeams": true,
+            "IsPublic": false,
+            "Owners": [
+                "david.power@sympdcp.onmicrosoft.com",
+                "serena.ribeiro@sympdcp.onmicrosoft.com"
+            ],
+            "Members": [
+                "charlotte.waltson@sympdcp.onmicrosoft.com",
+                "babak.shammas@sympdcp.onmicrosoft.com",
+                "cassandra.dunn@sympdcp.onmicrosoft.com"
+            ],
+            "Content": {
+                "Documents": [
+                    {
+                        "Title": "Healthcare Account Strategy",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Healthcare Account Strategy.docx",
+                        "CreatedOffset": -114,
+                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -28,
+                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Customer Engagement Summary",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Customer Engagement Summary.pdf",
+                        "CreatedOffset": -51,
+                        "CreatedBy": "serena.ribeiro@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Territory Review",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Territory Review.docx",
+                        "CreatedOffset": -71,
+                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -21,
+                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Renewal Strategy",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Renewal Strategy.pdf",
+                        "CreatedOffset": -58,
+                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -5,
+                        "ModifiedBy": "serena.ribeiro@sympdcp.onmicrosoft.com"
+                    }
+                ],
+                "MeetingTranscripts": [],
+                "EmailThreads": [
+                    {
+                        "Title": "Customer Escalation",
+                        "Path": "Content/Documents/Demo4/Email_Threads/Customer Escalation.md",
+                        "CreatedOffset": -16,
+                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -14,
+                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Renewal Discussion",
+                        "Path": "Content/Documents/Demo4/Email_Threads/Renewal Discussion.md",
+                        "CreatedOffset": -8,
+                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -6,
+                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Product Adoption Review",
+                        "Path": "Content/Documents/Demo4/Email_Threads/Product Adoption Review.md",
+                        "CreatedOffset": -13,
+                        "CreatedBy": "serena.ribeiro@sympdcp.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                    }
+                ],
+                "Chats": [
+                    {
+                        "Title": "Account Team",
+                        "Members": [
+                            "David Power",
+                            "Serena Ribeiro",
+                            "Charlotte Waltson"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -16,
+                                "Time": "09:00:00",
+                                "Sender": "David Power",
+                                "Message": "Meridian escalated a late shipment. @Charlotte Waltson can you get the carrier record?"
+                            },
+                            {
+                                "Offset": -16,
+                                "Time": "09:05:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "On it."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "09:30:00",
+                                "Sender": "David Power",
+                                "Message": "Carrier delay confirmed, no temperature excursion."
+                            },
+                            {
+                                "Offset": -7,
+                                "Time": "10:00:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "@David Power Meridian's formulary committee is in October if you want that in the plan."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Customer Success",
+                        "Members": [
+                            "David Power",
+                            "Serena Ribeiro"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -13,
+                                "Time": "10:30:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Lakeshore's ALLER-10 evaluation is complete. They'd like an ALLER-20 education session."
+                            },
+                            {
+                                "Offset": -13,
+                                "Time": "10:40:00",
+                                "Sender": "David Power",
+                                "Message": "@Serena Ribeiro great, I'll set one up."
+                            },
+                            {
+                                "Offset": -5,
+                                "Time": "14:00:00",
+                                "Sender": "David Power",
+                                "Message": "Renewal Strategy updated with the adoption data."
+                            }
+                        ]
+                    }
+                ]
+            }
         }
     ]
 }
