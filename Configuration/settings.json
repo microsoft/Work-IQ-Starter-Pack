@@ -1,0 +1,101 @@
+{
+    "WorkIQAppId": "fdcc1f02-fc51-4226-8753-f668596af7f7",
+    "AppRegistrationPermissions": {
+        "GraphDelegate": [
+            "Group.ReadWrite.All",
+            "User.ReadWrite.All",
+            "Directory.ReadWrite.All",
+            "Application.ReadWrite.All",
+            "TeamMember.ReadWrite.All"
+        ],
+        "GraphApplication": [
+            "Teamwork.Migrate.All",
+            "Mail.ReadWrite"
+        ],
+        "SharePointDelegate": [
+            "AllSites.FullControl"
+        ]
+    },
+    "Licenses": {
+        "Copilot": [
+            "Microsoft_365_Copilot",
+            "M365_Copilot",
+            "M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS"
+        ],
+        "Office": [
+            "SPE_E5",
+            "SPE_E3",
+            "SPB",
+            "O365_w/o_Teams_Bundle_M5",
+            "Microsoft_365_E3_(no_Teams)",
+            "O365_w/o Teams Bundle_M3",
+            "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License",
+            ""
+        ],
+        "Dynamics": [
+            "DYN365_ENTERPRISE_SALES_CUSTOMERSERVICE",
+            "DYN365_ENTERPRISE_SALES",
+            "DYN365_ENTERPRISE_CUSTOMER_SERVICE",
+            "DYN365_FINANCE"
+        ]
+    },
+    "DefaultUsers": [
+        "serena.ribeiro",
+        "babak.shammas",
+        "cassandra.dunn",
+        "charlotte.waltson",
+        "david.power"
+    ],
+    "Users": [
+        {
+            "FirstName": "Serena",
+            "LastName": "Ribeiro",
+            "JobTitle": "Market Research Analyst",
+            "UserPrincipalName": "serena.ribeiro",
+            "Email": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+            "Department": "Marketing",
+            "DynamicsLicenses": false,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "Babak",
+            "LastName": "Shammas",
+            "JobTitle": "Financial Reconciliation Lead",
+            "UserPrincipalName": "babak.shammas",
+            "Email": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+            "Department": "Finance",
+            "DynamicsLicenses": true,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "Cassandra",
+            "LastName": "Dunn",
+            "JobTitle": "Compliance Manager",
+            "UserPrincipalName": "cassandra.dunn",
+            "Email": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+            "Department": "Compliance",
+            "DynamicsLicenses": false,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "Charlotte",
+            "LastName": "Waltson",
+            "JobTitle": "VP of Procurement",
+            "UserPrincipalName": "charlotte.waltson",
+            "Email": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+            "Department": "Procurement",
+            "DynamicsLicenses": true,
+            "UsageLocation": "US"
+        },
+        {
+            "FirstName": "David",
+            "LastName": "Power",
+            "JobTitle": "Sales Director",
+            "UserPrincipalName": "david.power",
+            "Email": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+            "Department": "Sales",
+            "DynamicsLicenses": true,
+            "UsageLocation": "US"
+        }
+    ]
+}

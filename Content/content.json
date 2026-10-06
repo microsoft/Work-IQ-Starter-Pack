@@ -1,0 +1,610 @@
+{
+    "Sites": [
+        {
+            "Title": "Finance Team",
+            "URL": "Finance-Team",
+            "Description": "Intelligent Investigation - Caldova supplier invoice investigation site",
+            "EnableMicrosoftTeams": true,
+            "IsPublic": false,
+            "Owners": [
+                "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Members": [
+                "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                "david.power@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Channels": [
+                {
+                    "Title": "Financial Investigation Cases",
+                    "Description": "Channel for financial investigation discussions and updates"
+                }
+            ],
+            "Content": {
+                "Documents": [
+                    {
+                        "Title": "Supplier Master Agreement",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Supplier Master Agreement.docx",
+                        "CreatedOffset": -149,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -72,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Contract Manufacturing Agreement",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Contract Manufacturing Agreement.pdf",
+                        "CreatedOffset": -135,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -51,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Suppliers Spend Policy",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Suppliers Spend Policy.docx",
+                        "CreatedOffset": -170,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -58,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Invoice Approval Policy",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Invoice Approval Policy.pdf",
+                        "CreatedOffset": -163,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -44,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Procurement Delegation Matrix",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Procurement Delegation Matrix.docx",
+                        "CreatedOffset": -156,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -86,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Audit Procedures",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Audit Procedures.pdf",
+                        "CreatedOffset": -142,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -37,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Investigation Playbook",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Investigation Playbook.docx",
+                        "CreatedOffset": -120,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -4,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Vendor Due Diligence File",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Vendor Due Diligence File.pdf",
+                        "CreatedOffset": -191,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -93,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "MeetingTranscripts": [],
+                "EmailThreads": [
+                    {
+                        "Title": "Supplier Invoice Clarification",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Supplier Invoice Clarification.md",
+                        "CreatedOffset": -15,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -13,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Procurement Approval Discussion",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Procurement Approval Discussion.md",
+                        "CreatedOffset": -22,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -20,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Escalation to Compliance",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Escalation to Compliance.md",
+                        "CreatedOffset": -12,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -8,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Request for Contract Amendment",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Request for Contract Amendment.md",
+                        "CreatedOffset": -6,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -2,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "Chats": [
+                    {
+                        "Title": "Finance Operations",
+                        "Members": [
+                            "Babak Shammas",
+                            "Serena Ribeiro",
+                            "David Power"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -21,
+                                "Time": "08:30:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Morning. Northstar Fill Finish's deviation investigation line is on hold - no approval on record. Heads up if you get questions from their side."
+                            },
+                            {
+                                "Offset": -21,
+                                "Time": "08:42:00",
+                                "Sender": "David Power",
+                                "Message": "Nothing from me. Sales doesn't touch Northstar invoices."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "15:10:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "New one: BluePeak Biologics L004 on INV-SUP-009-2026-Q4-L004 is a contamination investigation charge. Disputed, pay the rest."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "15:14:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "@Babak Shammas will you want the line items in the monthly spend summary? I'm pulling it Friday."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "15:20:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Yes, show it as disputed, not approved. I'll update the status once Compliance weighs in."
+                            },
+                            {
+                                "Offset": -7,
+                                "Time": "09:05:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Status: L004 is escalated. Cassandra has the written position and Charlotte agreed it."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Procurement Leadership",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -13,
+                                "Time": "09:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "@Babak Shammas thanks for holding L004. Please open the case and loop in Cassandra today."
+                            },
+                            {
+                                "Offset": -13,
+                                "Time": "09:25:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Done. Case is in the Financial Investigation Case list, status Disputed."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "10:30:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Compliance position is clear: supplier-caused investigations aren't billable. I want the contract amended so we're never back here."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "10:40:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Makes sense. I'll add a mandatory deviation reference per invoice line to the request."
+                            },
+                            {
+                                "Offset": -2,
+                                "Time": "08:50:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Amendment approved and going to BluePeak Biologics for signature."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Compliance Review",
+                        "Members": [
+                            "Cassandra Dunn",
+                            "Babak Shammas",
+                            "Charlotte Waltson"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -12,
+                                "Time": "15:30:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "@Babak Shammas I've read the deviation record for DEV-BP-1026-SUPPLIER. Root cause points to the supplier."
+                            },
+                            {
+                                "Offset": -12,
+                                "Time": "15:35:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "That matches my read. No change order on file either."
+                            },
+                            {
+                                "Offset": -12,
+                                "Time": "15:50:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Section 4 of the billability policy covers it. Decision state is escalated."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "16:30:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Position sent to BluePeak Biologics. @Charlotte Waltson I'll update you when they reply."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "16:40:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Thanks. Keep me posted."
+                            }
+                        ]
+                    }
+                ],
+                "Lists": [
+                    {
+                        "Title": "Supplier Directory",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "supplierDirectory",
+                                "DisplayName": "Supplier Directory",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplierId",
+                                        "DisplayName": "Supplier ID",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "region",
+                                        "DisplayName": "Region",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "North America",
+                                            "Europe",
+                                            "Asia Pacific",
+                                            "Latin America",
+                                            "Global"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "supplierType",
+                                        "DisplayName": "Supplier Type",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "productsMaterials",
+                                        "DisplayName": "Products Materials",
+                                        "Type": "Note"
+                                    },
+                                    {
+                                        "InternalName": "active",
+                                        "DisplayName": "Active",
+                                        "Type": "Boolean"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Views": [
+                            {
+                                "Title": "Approved Suppliers",
+                                "Query": "<Where><Eq><FieldRef Name='active'/><Value Type='Boolean'>1</Value></Eq></Where>"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Aster Ridge Biomanufacturing",
+                                "supplierId": "sup-001",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "ALLER-10 tablets, ALLER-20 tablets",
+                                "active": true
+                            },
+                            {
+                                "Title": "Northstar Fill Finish",
+                                "supplierId": "sup-002",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "ALLER-INJ prefilled syringe program",
+                                "active": true
+                            },
+                            {
+                                "Title": "HelioPack Pharma Services",
+                                "supplierId": "sup-003",
+                                "supplierType": "Packaging partner",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER-10 EU carton, ALLER-20 EU carton",
+                                "active": true
+                            },
+                            {
+                                "Title": "Meridian API Works",
+                                "supplierId": "sup-004",
+                                "supplierType": "API supplier",
+                                "region": "Asia Pacific",
+                                "productsMaterials": "AUR-API-7 active pharmaceutical ingredient",
+                                "active": true
+                            },
+                            {
+                                "Title": "Crescent GMP Labs",
+                                "supplierId": "sup-005",
+                                "supplierType": "Quality lab",
+                                "region": "North America",
+                                "productsMaterials": "ALLER stability and release testing program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Summit Dose Manufacturing",
+                                "supplierId": "sup-006",
+                                "supplierType": "Contract manufacturer",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER-CAP 25 mg, ALLER-CAP 50 mg",
+                                "active": true
+                            },
+                            {
+                                "Title": "Orchid Clinical Supply",
+                                "supplierId": "sup-007",
+                                "supplierType": "Clinical supply partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER Phase II clinical supply kits",
+                                "active": true
+                            },
+                            {
+                                "Title": "Valence Cold Chain Logistics",
+                                "supplierId": "sup-008",
+                                "supplierType": "Logistics partner",
+                                "region": "Global",
+                                "productsMaterials": "ALLER commercial and clinical temperature-controlled shipments",
+                                "active": true
+                            },
+                            {
+                                "Title": "BluePeak Biologics",
+                                "supplierId": "sup-009",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "BP-ALLER biologic drug substance program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Keystone Device Assembly",
+                                "supplierId": "sup-010",
+                                "supplierType": "Combination device partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER auto-injector assembly",
+                                "active": true
+                            },
+                            {
+                                "Title": "LumaSterile Services",
+                                "supplierId": "sup-011",
+                                "supplierType": "Sterilization partner",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER device and packaging sterilization lots",
+                                "active": true
+                            },
+                            {
+                                "Title": "Pioneer Process Development",
+                                "supplierId": "sup-012",
+                                "supplierType": "Process development partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER process development and validation program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Evergreen Excipients",
+                                "supplierId": "sup-013",
+                                "supplierType": "Materials supplier",
+                                "region": "North America",
+                                "productsMaterials": "ALLER excipient and specialty ingredient supply",
+                                "active": true
+                            },
+                            {
+                                "Title": "Atlas Regional Manufacturing",
+                                "supplierId": "sup-014",
+                                "supplierType": "Contract manufacturer",
+                                "region": "Latin America",
+                                "productsMaterials": "ALLER-10 tablets, ALLER-20 tablets, regional OTC bundles",
+                                "active": true
+                            },
+                            {
+                                "Title": "Signal Ridge Regulatory Services",
+                                "supplierId": "sup-015",
+                                "supplierType": "Regulatory services partner",
+                                "region": "Global",
+                                "productsMaterials": "ALLER global regulatory support program",
+                                "active": true
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Financial Investigation Cases",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "financialInvestigationCase",
+                                "DisplayName": "Financial Investigation Case",
+                                "Columns": [
+                                    {
+                                        "InternalName": "caseId",
+                                        "DisplayName": "Case ID",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "supplier",
+                                        "DisplayName": "Supplier",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "product",
+                                        "DisplayName": "Product",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "invoiceReference",
+                                        "DisplayName": "Invoice Reference",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "issueCategory",
+                                        "DisplayName": "Issue Category",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "quality_deviation_charge",
+                                            "unapproved_investigation",
+                                            "rejected_batch_charge",
+                                            "fraud_prevention"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "decisionState",
+                                        "DisplayName": "Decision State",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "Approved",
+                                            "Held",
+                                            "Disputed",
+                                            "Escalated"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "owner",
+                                        "DisplayName": "Owner",
+                                        "Type": "User"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Deviation investigation billed without approval",
+                                "caseId": "CASE-001",
+                                "supplier": "Northstar Fill Finish (sup-002)",
+                                "product": "ALLER-INJ prefilled syringe program",
+                                "invoiceReference": "",
+                                "issueCategory": "unapproved_investigation",
+                                "decisionState": "Held",
+                                "owner": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                            },
+                            {
+                                "Title": "Contamination investigation charge",
+                                "caseId": "CASE-002",
+                                "supplier": "BluePeak Biologics (sup-009)",
+                                "product": "BP-ALLER biologic drug substance program",
+                                "invoiceReference": "INV-SUP-009-2026-Q4-L004 / DEV-BP-1026-SUPPLIER",
+                                "issueCategory": "quality_deviation_charge",
+                                "decisionState": "Escalated",
+                                "owner": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Procurement Exception",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "procurementException",
+                                "DisplayName": "Procurement Exception",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplier",
+                                        "DisplayName": "Supplier",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "exceptionType",
+                                        "DisplayName": "Exception Type",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "No change order",
+                                            "Over delegation",
+                                            "Missing deviation reference",
+                                            "Rejected batch charge"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "status",
+                                        "DisplayName": "Status",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "Open",
+                                            "Resolved"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "raisedBy",
+                                        "DisplayName": "Raised By",
+                                        "Type": "User"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Investigation charge without change order",
+                                "supplier": "Northstar Fill Finish",
+                                "exceptionType": "No change order",
+                                "status": "Resolved",
+                                "raisedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                            },
+                            {
+                                "Title": "Contamination investigation charge L004",
+                                "supplier": "BluePeak Biologics",
+                                "exceptionType": "Rejected batch charge",
+                                "status": "Open",
+                                "raisedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                            }
+                        ]
+                    }
+                ],
+                "Libraries": [
+                    {
+                        "Title": "Contract Library",
+                        "Template": "DocumentLibrary",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "contractLibrary",
+                                "DisplayName": "Contract Library",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplierName",
+                                        "DisplayName": "Supplier Name",
+                                        "Type": "TaxonomyFieldType",
+                                        "TermSet": "Suppliers",
+                                        "Terms": [
+                                            "Aster Ridge Biomanufacturing",
+                                            "Northstar Fill Finish",
+                                            "HelioPack Pharma Services",
+                                            "Meridian API Works",
+                                            "Crescent GMP Labs",
+                                            "Summit Dose Manufacturing",
+                                            "Orchid Clinical Supply",
+                                            "Valence Cold Chain Logistics",
+                                            "BluePeak Biologics",
+                                            "Keystone Device Assembly",
+                                            "LumaSterile Services",
+                                            "Pioneer Process Development",
+                                            "Evergreen Excipients",
+                                            "Atlas Regional Manufacturing",
+                                            "Signal Ridge Regulatory Services"
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "Documents": [
+                            "Content/Documents/Demo2/SharePoint_Documents/Supplier Master Agreement.docx",
+                            "Content/Documents/Demo2/SharePoint_Documents/Contract Manufacturing Agreement.pdf"
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+{
+  "Settings": {
+    "SkipPreReqCheck": true,
+    "InstallM365Content": true,
+    "InstallDynamicsContent": true,
+    "InstallDemoUsers": true,
+    "TenantPrefix": "sympdcp",
+    "ClientId": "2a970be9-fb0c-4057-aa23-8cd8316c8ac1",
+    "ProvisionUserEmails": true
+  }
+}
