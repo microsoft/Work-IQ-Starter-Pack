@@ -1,481 +1,606 @@
 {
     "Sites": [
         {
-            "Title": "Market Research Team",
-            "URL": "MarketResearch-Team",
-            "Description": "Navigating Organisational Intelligence — Caldova ALLER launch collaboration site",
+            "Title": "Finance Team",
+            "URL": "Finance-Team",
+            "Description": "Intelligent Investigation - Caldova supplier invoice investigation site",
             "EnableMicrosoftTeams": true,
             "IsPublic": false,
             "Owners": [
-                "serena.ribeiro@sympdcp.onmicrosoft.com",
-                "babak.shammas@sympdcp.onmicrosoft.com"
+                "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
             ],
             "Members": [
-                "charlotte.waltson@sympdcp.onmicrosoft.com",
-                "cassandra.dunn@sympdcp.onmicrosoft.com",
-                "david.power@sympdcp.onmicrosoft.com"
+                "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                "david.power@<TENANTPREFIX>.onmicrosoft.com"
             ],
             "Channels": [
                 {
-                    "Title": "Launch Readiness",
-                    "Description": "Channel for launch readiness discussions and updates"
+                    "Title": "Financial Investigation Cases",
+                    "Description": "Channel for financial investigation discussions and updates"
                 }
             ],
             "Content": {
                 "Documents": [
                     {
-                        "Title": "Product Launch Readiness Assessment",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Product Launch Readiness Assessment.docx",
-                        "CreatedOffset": -29,
-                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -14,
-                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                        "Title": "Supplier Master Agreement",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Supplier Master Agreement.docx",
+                        "CreatedOffset": -149,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -72,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Next-Generation Product Launch Strategy",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Next-Generation Product Launch Strategy.docx",
-                        "CreatedOffset": -107,
-                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -46,
-                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                        "Title": "Contract Manufacturing Agreement",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Contract Manufacturing Agreement.pdf",
+                        "CreatedOffset": -135,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -51,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Market Access Strategy",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Market Access Strategy.docx",
-                        "CreatedOffset": -117,
-                        "CreatedBy": "serena.ribeiro@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -41,
-                        "ModifiedBy": "serena.ribeiro@sympdcp.onmicrosoft.com"
+                        "Title": "Suppliers Spend Policy",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Suppliers Spend Policy.docx",
+                        "CreatedOffset": -170,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -58,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Regulatory Submission Briefing",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Regulatory Submission Briefing.pdf",
-                        "CreatedOffset": -22,
-                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -11,
-                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                        "Title": "Invoice Approval Policy",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Invoice Approval Policy.pdf",
+                        "CreatedOffset": -163,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -44,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Clinical Formulation Overview",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Clinical Formulation Overview.pdf",
-                        "CreatedOffset": -102,
-                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -102,
-                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+                        "Title": "Procurement Delegation Matrix",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Procurement Delegation Matrix.docx",
+                        "CreatedOffset": -156,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -86,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Product Forecasting Report",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Product Forecasting Report.docx",
-                        "CreatedOffset": -55,
-                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -35,
-                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
-                    },
-                    {
-                        "Title": "Launch Steering Committee Meeting Notes",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Launch Steering Committee Meeting Notes.docx",
-                        "CreatedOffset": -37,
-                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
+                        "Title": "Audit Procedures",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Audit Procedures.pdf",
+                        "CreatedOffset": -142,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
                         "ModifiedOffset": -37,
-                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Product Risk Register",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Product Risk Register.pdf",
-                        "CreatedOffset": -47,
-                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -10,
-                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                        "Title": "Investigation Playbook",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Investigation Playbook.docx",
+                        "CreatedOffset": -120,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -4,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Commercialisation Timeline",
-                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Commercialisation Timeline.docx",
-                        "CreatedOffset": -112,
-                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -84,
-                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                        "Title": "Vendor Due Diligence File",
+                        "Path": "Content/Documents/Demo2/SharePoint_Documents/Vendor Due Diligence File.pdf",
+                        "CreatedOffset": -191,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -93,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
                     }
                 ],
-                "MeetingTranscripts": [
-                    {
-                        "Title": "Launch Readiness Review",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Launch Readiness Review.md",
-                        "CreatedOffset": -15,
-                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -15,
-                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
-                    },
-                    {
-                        "Title": "Regulatory Strategy Review",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Regulatory Strategy Review.md",
-                        "CreatedOffset": -84,
-                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -84,
-                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
-                    },
-                    {
-                        "Title": "Market Access Planning",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Market Access Planning.md",
-                        "CreatedOffset": -60,
-                        "CreatedBy": "serena.ribeiro@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -60,
-                        "ModifiedBy": "serena.ribeiro@sympdcp.onmicrosoft.com"
-                    },
-                    {
-                        "Title": "Cross-Functional Launch Alignment",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Cross-Functional Launch Alignment.md",
-                        "CreatedOffset": -28,
-                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -28,
-                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
-                    },
-                    {
-                        "Title": "Executive Launch Checkpoint",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Executive Launch Checkpoint.md",
-                        "CreatedOffset": -1,
-                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -1,
-                        "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
-                    }
-                ],
+                "MeetingTranscripts": [],
                 "EmailThreads": [
                     {
-                        "Title": "Regulatory Approval Concerns",
-                        "Path": "Content/Documents/Demo1/Email_Threads/Regulatory Approval Concerns.md",
-                        "CreatedOffset": -84,
-                        "CreatedBy": "cassandra.dunn@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -70,
-                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
+                        "Title": "Supplier Invoice Clarification",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Supplier Invoice Clarification.md",
+                        "CreatedOffset": -15,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -13,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Pricing Strategy Debate",
-                        "Path": "Content/Documents/Demo1/Email_Threads/Pricing Strategy Debate.md",
-                        "CreatedOffset": -56,
-                        "CreatedBy": "babak.shammas@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -49,
-                        "ModifiedBy": "babak.shammas@sympdcp.onmicrosoft.com"
+                        "Title": "Procurement Approval Discussion",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Procurement Approval Discussion.md",
+                        "CreatedOffset": -22,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -20,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Market Access Planning",
-                        "Path": "Content/Documents/Demo1/Email_Threads/Market Access Planning.md",
-                        "CreatedOffset": -60,
-                        "CreatedBy": "serena.ribeiro@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -53,
-                        "ModifiedBy": "david.power@sympdcp.onmicrosoft.com"
+                        "Title": "Escalation to Compliance",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Escalation to Compliance.md",
+                        "CreatedOffset": -12,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -8,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
                     },
                     {
-                        "Title": "Manufacturing Readiness Issues",
-                        "Path": "Content/Documents/Demo1/Email_Threads/Manufacturing Readiness Issues.md",
-                        "CreatedOffset": -43,
-                        "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -34,
-                        "ModifiedBy": "cassandra.dunn@sympdcp.onmicrosoft.com"
-                    },
-                    {
-                        "Title": "Product Launch Acceleration Request",
-                        "Path": "Content/Documents/Demo1/Email_Threads/Product Launch Acceleration Request.md",
-                        "CreatedOffset": -20,
-                        "CreatedBy": "david.power@sympdcp.onmicrosoft.com",
-                        "ModifiedOffset": -19,
-                        "ModifiedBy": "serena.ribeiro@sympdcp.onmicrosoft.com"
+                        "Title": "Request for Contract Amendment",
+                        "Path": "Content/Documents/Demo2/Email_Threads/Request for Contract Amendment.md",
+                        "CreatedOffset": -6,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -2,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
                     }
                 ],
                 "Chats": [
                     {
-                        "Title": "Launch War Room",
+                        "Title": "Finance Operations",
                         "Members": [
-                            "Serena Ribeiro",
-                            "Charlotte Waltson",
                             "Babak Shammas",
+                            "Serena Ribeiro",
                             "David Power"
                         ],
                         "Messages": [
                             {
-                                "Offset": -12,
-                                "Time": "08:12:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Morning all — using this chat as our running war room for the ALLER launch through the executive checkpoint. Ping here for anything time-sensitive."
-                            },
-                            {
-                                "Offset": -12,
-                                "Time": "08:14:00",
-                                "Sender": "Charlotte Waltson",
-                                "Message": "Sounds good. I'll post supplier updates here as they come in — LumaSterile and HelioPack are the two I'm watching most closely this week."
-                            },
-                            {
-                                "Offset": -11,
-                                "Time": "09:40:00",
+                                "Offset": -21,
+                                "Time": "08:30:00",
                                 "Sender": "Babak Shammas",
-                                "Message": "Heads up @Serena Ribeiro — Signal Ridge confirmed the regulatory authority has formally accepted the revised ALLER dosing claim language. Written confirmation should land by end of day."
+                                "Message": "Morning. Northstar Fill Finish's deviation investigation line is on hold - no approval on record. Heads up if you get questions from their side."
                             },
                             {
-                                "Offset": -11,
-                                "Time": "09:42:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "That's fantastic news! Huge unblock for the Regulatory Submission Briefing."
-                            },
-                            {
-                                "Offset": -11,
-                                "Time": "09:44:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "Great timing — I was just about to lock the pricing and forecast package for the checkpoint deck."
-                            },
-                            {
-                                "Offset": -10,
-                                "Time": "11:02:00",
-                                "Sender": "Charlotte Waltson",
-                                "Message": "LumaSterile's re-run sterilization lot for the ALLER-20 auto-injector passed release testing. Combined with the Pioneer validation batch, both manufacturing lines are now fully qualified."
-                            },
-                            {
-                                "Offset": -10,
-                                "Time": "11:05:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Excellent. That closes out the last major open item on the risk register ahead of the executive checkpoint."
-                            },
-                            {
-                                "Offset": -10,
-                                "Time": "11:08:00",
+                                "Offset": -21,
+                                "Time": "08:42:00",
                                 "Sender": "David Power",
-                                "Message": "The field team is going to be thrilled to hear supply is secured on both dose strengths. Momentum with accounts has been building since we shared the Q3 forecast."
+                                "Message": "Nothing from me. Sales doesn't touch Northstar invoices."
                             },
                             {
-                                "Offset": -8,
-                                "Time": "09:15:00",
+                                "Offset": -14,
+                                "Time": "15:10:00",
                                 "Sender": "Babak Shammas",
-                                "Message": "Pricing and forecast package is finalized and ready for the executive checkpoint deck — parity pricing on ALLER-20 versus the current standard of care, as discussed."
+                                "Message": "New one: BluePeak Biologics L004 on INV-SUP-009-2026-Q4-L004 is a contamination investigation charge. Disputed, pay the rest."
                             },
                             {
-                                "Offset": -8,
-                                "Time": "09:20:00",
+                                "Offset": -14,
+                                "Time": "15:14:00",
                                 "Sender": "Serena Ribeiro",
-                                "Message": "Perfect, I'll pull everything together with the Product Launch Readiness Assessment this week."
+                                "Message": "@Babak Shammas will you want the line items in the monthly spend summary? I'm pulling it Friday."
                             },
                             {
-                                "Offset": -8,
-                                "Time": "09:24:00",
-                                "Sender": "Charlotte Waltson",
-                                "Message": "One outstanding item: Valence Cold Chain's commercial shipment qualification run completes Thursday. I'll confirm here the moment I have results."
+                                "Offset": -14,
+                                "Time": "15:20:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Yes, show it as disputed, not approved. I'll update the status once Compliance weighs in."
                             },
                             {
                                 "Offset": -7,
-                                "Time": "15:10:00",
-                                "Sender": "David Power",
-                                "Message": "Also worth flagging for the checkpoint, @Serena Ribeiro — three of our top accounts have already asked about the November 3rd availability date. Good sign field readiness is landing well."
+                                "Time": "09:05:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Status: L004 is escalated. Cassandra has the written position and Charlotte agreed it."
                             }
                         ]
                     },
                     {
-                        "Title": "Regulatory Team",
+                        "Title": "Procurement Leadership",
                         "Members": [
-                            "Babak Shammas",
-                            "Cassandra Dunn"
-                        ],
-                        "Messages": [
-                            {
-                                "Offset": -84,
-                                "Time": "09:00:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "@Cassandra Dunn — setting up this chat so we can keep the Product Risk Register in sync with ALLER's regulatory submission status in real time."
-                            },
-                            {
-                                "Offset": -84,
-                                "Time": "09:02:00",
-                                "Sender": "Cassandra Dunn",
-                                "Message": "Perfect, that'll save us a lot of back-and-forth in email."
-                            },
-                            {
-                                "Offset": -84,
-                                "Time": "15:45:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "The regulatory authority pushed back on our ALLER-20 dosing claim language during the regulatory strategy review this morning. Signal Ridge is drafting revised copy today."
-                            },
-                            {
-                                "Offset": -84,
-                                "Time": "15:47:00",
-                                "Sender": "Cassandra Dunn",
-                                "Message": "Logging that as a high-priority item on the risk register now, with Signal Ridge as the responsible party and you as internal owner."
-                            },
-                            {
-                                "Offset": -83,
-                                "Time": "10:20:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "Signal Ridge's estimate is two to three weeks for a regulatory response once we resubmit. Will keep you posted here."
-                            },
-                            {
-                                "Offset": -70,
-                                "Time": "13:15:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "Update: the regulatory authority has accepted the revised dosing language. We're finalizing the ALLER package insert now with Signal Ridge."
-                            },
-                            {
-                                "Offset": -70,
-                                "Time": "13:17:00",
-                                "Sender": "Cassandra Dunn",
-                                "Message": "Great — closing out that risk register item today."
-                            },
-                            {
-                                "Offset": -47,
-                                "Time": "10:05:00",
-                                "Sender": "Cassandra Dunn",
-                                "Message": "Publishing the first full version of the Product Risk Register today. Regulatory labeling is marked closed; I've opened a new item for the LumaSterile sterilization lot delay on the ALLER-20 auto-injector — flagging that one as owned jointly with Charlotte."
-                            },
-                            {
-                                "Offset": -47,
-                                "Time": "10:08:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "Makes sense, I'll loop Charlotte in on the cost side if the re-run pushes the manufacturing timeline."
-                            },
-                            {
-                                "Offset": -22,
-                                "Time": "08:40:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "Approved ALLER package insert is final and incorporated into all commercial materials. I've drafted the Regulatory Submission Briefing summarizing the full regulatory package — Crescent GMP Labs' stability data is in the appendix."
-                            },
-                            {
-                                "Offset": -22,
-                                "Time": "08:42:00",
-                                "Sender": "Cassandra Dunn",
-                                "Message": "Noted for the steering committee update. Nice work getting this across the line."
-                            },
-                            {
-                                "Offset": -11,
-                                "Time": "09:45:00",
-                                "Sender": "Babak Shammas",
-                                "Message": "The regulatory authority has formally accepted the dosing claim language in writing — confirmation just came in from Signal Ridge."
-                            },
-                            {
-                                "Offset": -11,
-                                "Time": "09:50:00",
-                                "Sender": "Cassandra Dunn",
-                                "Message": "Updating the Regulatory Submission Briefing and closing the last open regulatory item on the risk register ahead of the checkpoint."
-                            }
-                        ]
-                    },
-                    {
-                        "Title": "Marketing & Product Alignment",
-                        "Members": [
-                            "Serena Ribeiro",
-                            "David Power",
+                            "Charlotte Waltson",
                             "Babak Shammas"
                         ],
                         "Messages": [
                             {
-                                "Offset": -60,
-                                "Time": "10:00:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Starting this thread to keep marketing and sales aligned on ALLER messaging as market access planning evolves."
+                                "Offset": -13,
+                                "Time": "09:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "@Babak Shammas thanks for holding L004. Please open the case and loop in Cassandra today."
                             },
                             {
-                                "Offset": -60,
-                                "Time": "10:02:00",
-                                "Sender": "David Power",
-                                "Message": "Appreciate it — the field is eager for updated collateral once dosing language and pricing settle."
-                            },
-                            {
-                                "Offset": -56,
-                                "Time": "16:10:00",
+                                "Offset": -13,
+                                "Time": "09:25:00",
                                 "Sender": "Babak Shammas",
-                                "Message": "Circulated the pricing options doc for your review, @David Power — parity vs. a modest premium for ALLER-20 relative to the current standard of care."
+                                "Message": "Done. Case is in the Financial Investigation Case list, status Disputed."
                             },
                             {
-                                "Offset": -56,
-                                "Time": "16:22:00",
-                                "Sender": "David Power",
-                                "Message": "My vote is parity, especially for accounts like Meridian Health Alliance that are price-sensitive on formulary decisions."
+                                "Offset": -8,
+                                "Time": "10:30:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Compliance position is clear: supplier-caused investigations aren't billable. I want the contract amended so we're never back here."
                             },
                             {
-                                "Offset": -49,
-                                "Time": "09:05:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Agreed, market research supports that too — @Babak Shammas is finalizing at parity for ALLER-20 with a modest premium reserved for the ALLER-10 starter dose."
-                            },
-                            {
-                                "Offset": -11,
-                                "Time": "13:30:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Updated launch collateral is in review now that the regulatory-approved dosing language is final. Should be ready by end of week."
-                            },
-                            {
-                                "Offset": -11,
-                                "Time": "13:32:00",
-                                "Sender": "David Power",
-                                "Message": "Perfect timing — several accounts are asking for updated materials ahead of the November 3rd date."
-                            },
-                            {
-                                "Offset": -9,
-                                "Time": "11:15:00",
+                                "Offset": -8,
+                                "Time": "10:40:00",
                                 "Sender": "Babak Shammas",
-                                "Message": "Forecast numbers are holding steady with the parity pricing assumption baked in — I'll have the final Product Forecasting Report figures in the checkpoint deck."
+                                "Message": "Makes sense. I'll add a mandatory deviation reference per invoice line to the request."
                             },
                             {
-                                "Offset": -9,
-                                "Time": "11:20:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Great, that lines up with what I'm putting in the Launch Readiness Assessment."
+                                "Offset": -2,
+                                "Time": "08:50:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Amendment approved and going to BluePeak Biologics for signature."
                             }
                         ]
                     },
                     {
-                        "Title": "Executive Launch Coordination",
+                        "Title": "Compliance Review",
                         "Members": [
-                            "Charlotte Waltson",
-                            "Serena Ribeiro"
+                            "Cassandra Dunn",
+                            "Babak Shammas",
+                            "Charlotte Waltson"
                         ],
                         "Messages": [
                             {
-                                "Offset": -37,
-                                "Time": "07:45:00",
-                                "Sender": "Charlotte Waltson",
-                                "Message": "@Serena Ribeiro, appreciate the steady updates. Let me know if anything needs my attention before the checkpoint."
+                                "Offset": -12,
+                                "Time": "15:30:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "@Babak Shammas I've read the deviation record for DEV-BP-1026-SUPPLIER. Root cause points to the supplier."
                             },
                             {
-                                "Offset": -37,
-                                "Time": "07:50:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Will do. Right now the two big items are the LumaSterile sterilization re-run for ALLER-20 and finalizing pricing — both tracking to close within a few weeks."
+                                "Offset": -12,
+                                "Time": "15:35:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "That matches my read. No change order on file either."
                             },
                             {
-                                "Offset": -10,
-                                "Time": "08:50:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Both of those items are now resolved. We're in strong shape heading into the checkpoint."
-                            },
-                            {
-                                "Offset": -10,
-                                "Time": "08:55:00",
-                                "Sender": "Charlotte Waltson",
-                                "Message": "Excellent. Please make sure Finance and Compliance have their materials ready as well."
+                                "Offset": -12,
+                                "Time": "15:50:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Section 4 of the billability policy covers it. Decision state is escalated."
                             },
                             {
                                 "Offset": -8,
-                                "Time": "17:10:00",
-                                "Sender": "Charlotte Waltson",
-                                "Message": "David raised the idea of pulling the launch date forward given the account interest we're seeing — what's your read?"
+                                "Time": "16:30:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Position sent to BluePeak Biologics. @Charlotte Waltson I'll update you when they reply."
                             },
                             {
                                 "Offset": -8,
-                                "Time": "17:20:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "I'd rather hold the current November 3rd date to protect field training and payer outreach timing. Flagged the same to David directly."
-                            },
-                            {
-                                "Offset": -8,
-                                "Time": "17:22:00",
+                                "Time": "16:40:00",
                                 "Sender": "Charlotte Waltson",
-                                "Message": "Agreed, let's keep the current date. We can revisit if field readiness clearly allows it closer to the checkpoint."
-                            },
-                            {
-                                "Offset": -7,
-                                "Time": "09:00:00",
-                                "Sender": "Serena Ribeiro",
-                                "Message": "Final readiness materials are ready for next week's executive checkpoint."
-                            },
-                            {
-                                "Offset": -7,
-                                "Time": "09:05:00",
-                                "Sender": "Charlotte Waltson",
-                                "Message": "Looking forward to it. Great work getting us here."
+                                "Message": "Thanks. Keep me posted."
                             }
+                        ]
+                    }
+                ],
+                "Lists": [
+                    {
+                        "Title": "Supplier Directory",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "supplierDirectory",
+                                "DisplayName": "Supplier Directory",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplierId",
+                                        "DisplayName": "Supplier ID",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "region",
+                                        "DisplayName": "Region",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "North America",
+                                            "Europe",
+                                            "Asia Pacific",
+                                            "Latin America",
+                                            "Global"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "supplierType",
+                                        "DisplayName": "Supplier Type",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "productsMaterials",
+                                        "DisplayName": "Products Materials",
+                                        "Type": "Note"
+                                    },
+                                    {
+                                        "InternalName": "active",
+                                        "DisplayName": "Active",
+                                        "Type": "Boolean"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Views": [
+                            {
+                                "Title": "Approved Suppliers",
+                                "Query": "<Where><Eq><FieldRef Name='active'/><Value Type='Boolean'>1</Value></Eq></Where>"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Aster Ridge Biomanufacturing",
+                                "supplierId": "sup-001",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "ALLER-10 tablets, ALLER-20 tablets",
+                                "active": true
+                            },
+                            {
+                                "Title": "Northstar Fill Finish",
+                                "supplierId": "sup-002",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "ALLER-INJ prefilled syringe program",
+                                "active": true
+                            },
+                            {
+                                "Title": "HelioPack Pharma Services",
+                                "supplierId": "sup-003",
+                                "supplierType": "Packaging partner",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER-10 EU carton, ALLER-20 EU carton",
+                                "active": true
+                            },
+                            {
+                                "Title": "Meridian API Works",
+                                "supplierId": "sup-004",
+                                "supplierType": "API supplier",
+                                "region": "Asia Pacific",
+                                "productsMaterials": "AUR-API-7 active pharmaceutical ingredient",
+                                "active": true
+                            },
+                            {
+                                "Title": "Crescent GMP Labs",
+                                "supplierId": "sup-005",
+                                "supplierType": "Quality lab",
+                                "region": "North America",
+                                "productsMaterials": "ALLER stability and release testing program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Summit Dose Manufacturing",
+                                "supplierId": "sup-006",
+                                "supplierType": "Contract manufacturer",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER-CAP 25 mg, ALLER-CAP 50 mg",
+                                "active": true
+                            },
+                            {
+                                "Title": "Orchid Clinical Supply",
+                                "supplierId": "sup-007",
+                                "supplierType": "Clinical supply partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER Phase II clinical supply kits",
+                                "active": true
+                            },
+                            {
+                                "Title": "Valence Cold Chain Logistics",
+                                "supplierId": "sup-008",
+                                "supplierType": "Logistics partner",
+                                "region": "Global",
+                                "productsMaterials": "ALLER commercial and clinical temperature-controlled shipments",
+                                "active": true
+                            },
+                            {
+                                "Title": "BluePeak Biologics",
+                                "supplierId": "sup-009",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "BP-ALLER biologic drug substance program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Keystone Device Assembly",
+                                "supplierId": "sup-010",
+                                "supplierType": "Combination device partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER auto-injector assembly",
+                                "active": true
+                            },
+                            {
+                                "Title": "LumaSterile Services",
+                                "supplierId": "sup-011",
+                                "supplierType": "Sterilization partner",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER device and packaging sterilization lots",
+                                "active": true
+                            },
+                            {
+                                "Title": "Pioneer Process Development",
+                                "supplierId": "sup-012",
+                                "supplierType": "Process development partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER process development and validation program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Evergreen Excipients",
+                                "supplierId": "sup-013",
+                                "supplierType": "Materials supplier",
+                                "region": "North America",
+                                "productsMaterials": "ALLER excipient and specialty ingredient supply",
+                                "active": true
+                            },
+                            {
+                                "Title": "Atlas Regional Manufacturing",
+                                "supplierId": "sup-014",
+                                "supplierType": "Contract manufacturer",
+                                "region": "Latin America",
+                                "productsMaterials": "ALLER-10 tablets, ALLER-20 tablets, regional OTC bundles",
+                                "active": true
+                            },
+                            {
+                                "Title": "Signal Ridge Regulatory Services",
+                                "supplierId": "sup-015",
+                                "supplierType": "Regulatory services partner",
+                                "region": "Global",
+                                "productsMaterials": "ALLER global regulatory support program",
+                                "active": true
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Financial Investigation Cases",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "financialInvestigationCase",
+                                "DisplayName": "Financial Investigation Case",
+                                "Columns": [
+                                    {
+                                        "InternalName": "caseId",
+                                        "DisplayName": "Case ID",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "supplier",
+                                        "DisplayName": "Supplier",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "product",
+                                        "DisplayName": "Product",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "invoiceReference",
+                                        "DisplayName": "Invoice Reference",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "issueCategory",
+                                        "DisplayName": "Issue Category",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "quality_deviation_charge",
+                                            "unapproved_investigation",
+                                            "rejected_batch_charge",
+                                            "fraud_prevention"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "decisionState",
+                                        "DisplayName": "Decision State",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "Approved",
+                                            "Held",
+                                            "Disputed",
+                                            "Escalated"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "owner",
+                                        "DisplayName": "Owner",
+                                        "Type": "User"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Deviation investigation billed without approval",
+                                "caseId": "CASE-001",
+                                "supplier": "Northstar Fill Finish (sup-002)",
+                                "product": "ALLER-INJ prefilled syringe program",
+                                "invoiceReference": "",
+                                "issueCategory": "unapproved_investigation",
+                                "decisionState": "Held",
+                                "owner": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                            },
+                            {
+                                "Title": "Contamination investigation charge",
+                                "caseId": "CASE-002",
+                                "supplier": "BluePeak Biologics (sup-009)",
+                                "product": "BP-ALLER biologic drug substance program",
+                                "invoiceReference": "INV-SUP-009-2026-Q4-L004 / DEV-BP-1026-SUPPLIER",
+                                "issueCategory": "quality_deviation_charge",
+                                "decisionState": "Escalated",
+                                "owner": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Procurement Exception",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "procurementException",
+                                "DisplayName": "Procurement Exception",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplier",
+                                        "DisplayName": "Supplier",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "exceptionType",
+                                        "DisplayName": "Exception Type",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "No change order",
+                                            "Over delegation",
+                                            "Missing deviation reference",
+                                            "Rejected batch charge"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "status",
+                                        "DisplayName": "Status",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "Open",
+                                            "Resolved"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "raisedBy",
+                                        "DisplayName": "Raised By",
+                                        "Type": "User"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Investigation charge without change order",
+                                "supplier": "Northstar Fill Finish",
+                                "exceptionType": "No change order",
+                                "status": "Resolved",
+                                "raisedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                            },
+                            {
+                                "Title": "Contamination investigation charge L004",
+                                "supplier": "BluePeak Biologics",
+                                "exceptionType": "Rejected batch charge",
+                                "status": "Open",
+                                "raisedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                            }
+                        ]
+                    }
+                ],
+                "Libraries": [
+                    {
+                        "Title": "Contract Library",
+                        "Template": "DocumentLibrary",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "contractLibrary",
+                                "DisplayName": "Contract Library",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplierName",
+                                        "DisplayName": "Supplier Name",
+                                        "Type": "TaxonomyFieldType",
+                                        "TermSet": "Suppliers",
+                                        "Terms": [
+                                            "Aster Ridge Biomanufacturing",
+                                            "Northstar Fill Finish",
+                                            "HelioPack Pharma Services",
+                                            "Meridian API Works",
+                                            "Crescent GMP Labs",
+                                            "Summit Dose Manufacturing",
+                                            "Orchid Clinical Supply",
+                                            "Valence Cold Chain Logistics",
+                                            "BluePeak Biologics",
+                                            "Keystone Device Assembly",
+                                            "LumaSterile Services",
+                                            "Pioneer Process Development",
+                                            "Evergreen Excipients",
+                                            "Atlas Regional Manufacturing",
+                                            "Signal Ridge Regulatory Services"
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "Documents": [
+                            "Content/Documents/Demo2/SharePoint_Documents/Supplier Master Agreement.docx",
+                            "Content/Documents/Demo2/SharePoint_Documents/Contract Manufacturing Agreement.pdf"
                         ]
                     }
                 ]

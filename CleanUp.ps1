@@ -53,6 +53,9 @@ try {
     # Load the installation settings file from file system
     $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
     $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
+    foreach ($user in $settings.Users) {
+        $user.Email = $user.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
+    }
 
     # The sites to remove always come from the pristine content.json; the custom (persona-swapped)
     # copy defines the same sites.
@@ -93,7 +96,8 @@ try {
     # Load services files
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegistrationService.ps1")
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/SharePointService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
 
     # Connect to SharePoint Online using PnP PowerShell. Connect explicitly (rather than relying on
     # Connect-WorkIQGraph to do it) - Connect-WorkIQPnP skips connecting when a previous run in this
@@ -111,8 +115,27 @@ try {
     # Set the global Graph variables, reusing the PnP connection made above
     Connect-WorkIQGraph -SharePointUrl $sharePointUrl -ClientId $config.Settings.ClientId
 
+    # Real (existing) users keep their mailboxes, so the imported emails have to be removed explicitly.
+    # Demo users' mailboxes disappear with the users. Deleting from another user's mailbox needs the
+    # app-only Mail.ReadWrite token, which comes from the migration certificate.
+    $migrationCertificatePath = Join-Path -Path $PSScriptRoot -ChildPath "Installation/.certs/teams-chat-migration.pfx"
+    if (((Test-Path $customUsersPath) -or (Test-Path $customContentPath)) -and (Test-Path $migrationCertificatePath)) {
+        try {
+            $mailToken = Get-TeamsChatMigrationAccessToken -ClientId $config.Settings.ClientId `
+                -TenantPrefix $config.Settings.TenantPrefix -CertificatePath $migrationCertificatePath
+            $mailSettings = $null
+            if (Test-Path $customUsersPath) {
+                $mailSettings = [PSCustomObject]@{ Users = (Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json) }
+            }
+            Remove-ImportedEmails -Settings $mailSettings -ContentPath $customContentPath -MailHeaders @{ Authorization = "Bearer $mailToken" }
+        }
+        catch {
+            Write-InstallLogAction -Message "Could not remove imported emails: $($_.Exception.Message)" -Level Warning
+        }
+    }
+
     # Tear down in the reverse order the installer creates things: Teams/groups/sites first, then users.
-    Remove-Sites -ContentPath $contentPath -Config $config
+    Remove-Teams -ContentPath $contentPath -Config $config
     Remove-Users -Settings $settings
 
     # Generated files: the real-user mapping and persona-swapped content from "existing users" installs

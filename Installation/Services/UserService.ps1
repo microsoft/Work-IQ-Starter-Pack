@@ -47,7 +47,7 @@ function Add-Users {
                     accountEnabled    = $true
                     displayName       = "$($user.FirstName) $($user.LastName)"
                     mailNickname       = $user.UserPrincipalName
-                    userPrincipalName = $user.Email
+                    userPrincipalName = $user.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
                     jobTitle          = $user.JobTitle
                     department        = $user.Department
                     usageLocation     = $user.UsageLocation

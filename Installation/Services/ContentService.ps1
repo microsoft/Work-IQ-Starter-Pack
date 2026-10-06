@@ -5,20 +5,20 @@ function Update-ContentPersonas {
         [Parameter(Mandatory = $true)]
         [string]$OutputPath,
         [Parameter(Mandatory = $true)]
+        [string]$TenantPrefix,
         $DemoUsers,
-        [Parameter(Mandatory = $true)]
         $RealUsers,
-        [Parameter(Mandatory = $true)]
         [hashtable]$RealUserUpns
     )
 
-    # content.json (SourcePath) is always the pristine demo content - it's never modified. This
-    # always re-derives content.custom.json (OutputPath) from it fresh, so re-running the
-    # installer with different real users never leaves stale swapped names behind.
-    $contentText = Get-Content -Path $SourcePath -Raw
+    # content.json only carries the <TENANTPREFIX> token; the real prefix comes from config.json.
+    # The custom file written here is regenerated every run and is what provisioning reads.
+    $contentText = (Get-Content -Path $SourcePath -Raw).Replace('<TENANTPREFIX>', $TenantPrefix)
 
-    # Emails and full names first - full name before first name, since "Serena Ribeiro" contains
-    # "Serena" and swapping the first name first would break the full-name match.
+    if (-not $RealUserUpns) {
+        $RealUserUpns = @{}
+    }
+
     foreach ($index in $RealUserUpns.Keys) {
         $demoEmail = $DemoUsers[$index].Email
         $realEmail = $RealUsers[$index].Email
@@ -33,8 +33,6 @@ function Update-ContentPersonas {
         }
     }
 
-    # Bare first-name mentions in chat message text (e.g. "Serena, appreciate...") - word-bounded
-    # so this doesn't match inside unrelated longer words.
     foreach ($index in $RealUserUpns.Keys) {
         $demoFirstName = $DemoUsers[$index].FirstName
         $realFirstName = $RealUsers[$index].FirstName
@@ -44,7 +42,33 @@ function Update-ContentPersonas {
     }
 
     # Validate the result is still well-formed JSON before writing it out.
-    $null = $contentText | ConvertFrom-Json
+    $newContent = $contentText | ConvertFrom-Json
+
+    # Regenerating would drop the email message IDs recorded by Import-UserEmails, which a re-run needs
+    # to delete the previously imported messages. Carry them over from the existing file, keyed by thread path.
+    $previousIds = @{}
+    if (Test-Path $OutputPath) {
+        try {
+            $previousContent = Get-Content -Path $OutputPath -Raw | ConvertFrom-Json
+            foreach ($site in $previousContent.Sites) {
+                foreach ($thread in @($site.Content.EmailThreads)) {
+                    if ($thread -and $thread.Path -and $thread.Messages) { $previousIds[$thread.Path] = @($thread.Messages) }
+                }
+            }
+        }
+        catch { Write-Verbose "Could not read the previous custom content file: $($_.Exception.Message)" }
+    }
+
+    if ($previousIds.Count -gt 0) {
+        foreach ($site in $newContent.Sites) {
+            foreach ($thread in @($site.Content.EmailThreads)) {
+                if ($thread -and $previousIds.ContainsKey($thread.Path)) {
+                    $thread | Add-Member -NotePropertyName Messages -NotePropertyValue $previousIds[$thread.Path] -Force
+                }
+            }
+        }
+        $contentText = $newContent | ConvertTo-Json -Depth 20
+    }
 
     Set-Content -Path $OutputPath -Value $contentText
 }
@@ -60,9 +84,6 @@ function Import-SiteDocuments {
     $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
 
     foreach ($site in $contentConfig.Sites) {
-        # Documents and MeetingTranscripts are both just files uploaded into the site's document
-        # library - same shape (Title/Path/Created*/Modified*), same upload path - but each group
-        # has its own target folder within the library.
         $groups = @("Documents", "MeetingTranscripts")
         $hasFiles = $groups | Where-Object { $site.Content -and $site.Content.$_ } | Select-Object -First 1
         if (-not $hasFiles) {
@@ -77,10 +98,6 @@ function Import-SiteDocuments {
                 continue
             }
 
-            # On Teams-enabled sites each channel has its own folder in the document library, named after
-            # the channel. Files go in the site's first channel (see Add-TeamChannels), falling back to
-            # General when the site defines none. MeetingTranscripts get their own subfolder, or sit at
-            # the library root on sites without Teams.
             $channelFolder = if ($site.Channels -and $site.Channels[0].Title) { $site.Channels[0].Title } else { "General" }
             $targetFolder = if ($group -eq "MeetingTranscripts") {
                 if ($site.EnableMicrosoftTeams) { "$channelFolder/Meeting Transcripts" } else { "Meeting Transcripts" }
@@ -184,11 +201,6 @@ function Add-TeamsChatMessages {
 
     $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
 
-    # Graph rejects a migrated message if its createdDateTime (down to the millisecond) was already
-    # used in that channel, so re-running the installer against a site whose channel already absorbed
-    # messages from a previous (even failed/partial) attempt must not recompute identical timestamps.
-    # Folding in a run-specific jitter, derived from the actual moment this run executes, keeps each
-    # run's values unique without perceptibly changing the configured time-of-day in the Teams client.
     $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
 
     foreach ($site in $contentConfig.Sites) {
@@ -259,9 +271,6 @@ function Resolve-TeamsChatUserIdentity {
         $SenderCache
     )
 
-    # $null is cached alongside real identities (not just omitted) so a name that doesn't match
-    # anyone isn't re-queried against Settings.Users/Graph every time it's seen again - callers must
-    # check ContainsKey rather than truthiness to tell "unresolved" apart from "not looked up yet".
     if ($SenderCache.ContainsKey($Name)) {
         return $SenderCache[$Name]
     }
@@ -320,9 +329,6 @@ function ConvertTo-TeamsChatMessageBody {
         return @{ contentType = "text"; content = $Text; mentions = @() }
     }
 
-    # Longest name first - regex alternation matches the first alternative that fits at a given
-    # position, not the longest one, so without this a shorter candidate that prefixes a longer one
-    # (e.g. "David" vs "David Power") could steal the match and strand the rest as literal text.
     $escapedNames = $MentionCandidates | Sort-Object -Property Length -Descending | ForEach-Object { [regex]::Escape($_) }
     $pattern = "(?<![\w@])@(?:$($escapedNames -join '|'))\b"
     $regex = [regex]::new($pattern, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
@@ -388,13 +394,6 @@ function Import-TeamsChatMessages {
 
     $migrationBaseUrl = "$graphBaseUrl/teams/$TeamId/channels/$ChannelId"
 
-    # Check the channel's actual migration state instead of guessing. "completed" means an earlier run
-    # already fully imported and sealed this channel - Graph *does* allow reopening it via startMigration,
-    # but doing so unconditionally would just re-post every message a second time (with no record of what
-    # was already sent), so treat "completed" as done and skip. A channel left "inProgress" by an earlier
-    # failed attempt (which we now deliberately don't complete on failure - see below) must not have
-    # startMigration called on it again (that 400s) - just resume posting into it. Only $null (never
-    # entered migration mode) needs a fresh startMigration call.
     $channel = Invoke-RestMethod -Uri "$migrationBaseUrl`?`$select=migrationMode,createdDateTime" -Headers $headers -Method Get
 
     if ($channel.migrationMode -eq "completed") {
@@ -403,10 +402,6 @@ function Import-TeamsChatMessages {
     }
 
     if ($channel.migrationMode -ne "inProgress") {
-        # conversationCreationDateTime must be older than the channel's *current* createdDateTime, which
-        # an earlier migration attempt may have already pushed back. Anchor off whichever of the channel's
-        # current createdDateTime or our own earliest message is older, then step back further still, so
-        # this succeeds no matter how many times this channel has already been retried.
         $channelCreatedDateTime = ([DateTimeOffset]$channel.createdDateTime).UtcDateTime
         $earliestMessageTimestamp = $Messages[0].Timestamp.ToUniversalTime()
         $anchor = if ($channelCreatedDateTime -lt $earliestMessageTimestamp) { $channelCreatedDateTime } else { $earliestMessageTimestamp }
@@ -417,9 +412,6 @@ function Import-TeamsChatMessages {
     }
 
     $senderCache = @{}
-    # Each chat's Title is treated as a topic: the first message posted for a given title starts the
-    # conversation, and its Graph-assigned id is captured here so later messages with the same title
-    # can be posted as replies underneath it instead of as separate flat posts.
     $topicStarterIds = @{}
 
     try {
@@ -451,9 +443,6 @@ function Import-TeamsChatMessages {
                 $bodyProperties.mentions = $renderedBody.mentions
             }
 
-            # replyToId is a read-only property on chatMessage - Graph ignores it if set in the request
-            # body, so a reply can only be created by posting to the parent message's own /replies
-            # sub-resource (this also works under migrationMode, same as posting to /messages directly).
             if ($isTopicStarter) {
                 $bodyProperties.subject = $message.ChatTitle
                 $postUrl = "$migrationBaseUrl/messages"
@@ -462,10 +451,6 @@ function Import-TeamsChatMessages {
                 $postUrl = "$migrationBaseUrl/messages/$($topicStarterIds[$message.ChatTitle])/replies"
             }
 
-            # -Depth 8: the mentions array adds a level of nesting beyond bodyProperties.from.user
-            # (bodyProperties -> mentions -> item -> mentioned -> user -> {id, displayName, ...}) -
-            # PowerShell silently flattens anything past the configured depth to its .ToString()
-            # rather than erroring, so under-depth here would corrupt mentions without warning.
             $body = $bodyProperties | ConvertTo-Json -Depth 8
 
             $createdMessage = Invoke-RestMethod -Uri $postUrl -Headers $MigrationHeaders -Method Post -ContentType "application/json" -Body $body

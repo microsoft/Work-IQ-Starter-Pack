@@ -5,6 +5,7 @@
     "InstallDynamicsContent": true,
     "InstallDemoUsers": true,
     "TenantPrefix": "sympdcp",
-    "ClientId": "80b73466-e187-4500-abad-75ba79ec885c"
+    "ClientId": "2a970be9-fb0c-4057-aa23-8cd8316c8ac1",
+    "ProvisionUserEmails": true
   }
 }

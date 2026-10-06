@@ -1,12 +1,11 @@
-# Permissions the app registration is created with (or repaired to have), loaded from settings.json.
-# The delegated Graph permissions are also the ones the Graph token used by the installer must carry.
+# get the permissions from the settings file.
 $WorkIQSettingsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Configuration/settings.json"))
 $WorkIQAppRegistrationPermissions = (Get-Content -Path $WorkIQSettingsPath -Raw | ConvertFrom-Json).AppRegistrationPermissions
 $WorkIQGraphDelegatePermissions = @($WorkIQAppRegistrationPermissions.GraphDelegate)
 $WorkIQGraphApplicationPermissions = @($WorkIQAppRegistrationPermissions.GraphApplication)
 $WorkIQSharePointDelegatePermissions = @($WorkIQAppRegistrationPermissions.SharePointDelegate)
 
-# Well-known appIds of the Microsoft Graph and SharePoint Online service principals.
+# appIds of the Microsoft Graph and SharePoint Online service principals.
 $GraphResourceAppId = "00000003-0000-0000-c000-000000000000"
 $SharePointResourceAppId = "00000003-0000-0ff1-ce00-000000000000"
 
@@ -36,13 +35,6 @@ function New-AppRegistration {
     }
 
     try {
-        # Application.ReadWrite.All lets this script attach its own self-signed certificate to the app
-        # registration below, so no manual "create a client secret" step is needed. Teamwork.Migrate.All
-        # is the application permission actually used at install time to import backdated Teams chat
-        # messages. License assignment (Set-LicenseForUser's call to /users/{id}/assignLicense) is
-        # covered by User.ReadWrite.All below - LicenseAssignment.ReadWrite.All is the documented
-        # least-privileged permission for that call, but this PnP module version's ValidateSet doesn't
-        # recognize it yet, so User.ReadWrite.All (a documented higher-privileged alternative) is used.
         $app = Register-PnPEntraIDAppForInteractiveLogin -ApplicationName $AppName -Tenant $tenantName `
             -GraphDelegatePermissions $WorkIQGraphDelegatePermissions `
             -SharePointDelegatePermissions $WorkIQSharePointDelegatePermissions `
@@ -96,11 +88,6 @@ function Connect-WorkIQPnP {
         [switch]$Force
     )
 
-    # Update-AppRegistrationPermissions signs in before Connect-WorkIQGraph does - reuse that sign-in
-    # rather than prompting the user a second time. Only reuse it if the PnP connection is still live -
-    # a prior run's Disconnect-PnPOnline (e.g. CleanUp.ps1) leaves the client ID global set but the
-    # connection gone, which would otherwise make the next Get-PnPAccessToken call fail.
-    # -Force skips that reuse and always signs in again.
     if (-not $Force -and $global:workIQPnPClientId -eq $ClientId -and (Get-PnPConnection -ErrorAction SilentlyContinue)) {
         return
     }
@@ -218,7 +205,12 @@ function Update-AppRegistrationPermissions {
         catch {
             # Opening the browser is best-effort, the URL is printed above.
         }
-        Read-Host "Press Enter once admin consent has been granted" | Out-Null
+        if ($UseConfig) {
+            Write-Host "Running with -UseConfig: continuing without waiting. Grant admin consent at the URL above if it has not been granted yet." -ForegroundColor Yellow
+        }
+        else {
+            Read-Host "Press Enter once admin consent has been granted" | Out-Null
+        }
 
         return $true
     }
@@ -242,10 +234,6 @@ function Connect-WorkIQGraph {
         [string]$ClientId
     )
 
-    # Always rebuild the header from a fresh token rather than reusing a cached one - the header is a
-    # frozen string, so a cached one from an earlier run in this session can be an expired token even
-    # though PnP's own underlying connection would have refreshed it. Get-PnPAccessToken serves from
-    # PnP/MSAL's token cache and refreshes silently, so this doesn't add an extra sign-in prompt.
     Connect-WorkIQPnP -SharePointUrl $SharePointUrl -ClientId $ClientId
 
     $global:graphBaseUrl = "https://graph.microsoft.com/v1.0"
@@ -253,13 +241,6 @@ function Connect-WorkIQGraph {
 }
 
 function Get-WorkIQGraphAccessToken {
-    # Get-PnPAccessToken requests only AllSites.FullControl unless -Scopes is given, which yields a
-    # Graph token without any of the Graph permissions (Graph then answers 403). Ask for .default first:
-    # it only covers permissions that are already consented, so it never makes Entra show a consent
-    # page. Naming the scopes did, when the request came in before a fresh admin consent had
-    # propagated - a second, redundant consent prompt. On a fresh install the consent can take a little
-    # while to show up in tokens, so retry until it does. A .default token that came back missing
-    # scopes stays cached, so from then on name the scopes to force a new token.
     $defaultScope = "https://graph.microsoft.com/.default"
     $namedScopes = $WorkIQGraphDelegatePermissions | ForEach-Object { "https://graph.microsoft.com/$_" }
     $scopes = $defaultScope
@@ -301,10 +282,6 @@ function Get-TeamsChatMigrationAccessToken {
         [string]$CertificatePath
     )
 
-    # Connect-PnPOnline with a certificate doesn't sign in until a token is requested, so the retry has
-    # to cover the token request too. A certificate just added to the app registration can take a few
-    # minutes to be accepted (AADSTS700027), and the Teamwork.Migrate.All consent can take a moment to
-    # show up in the token's roles. App-only tokens need the .default scope.
     $maxAttempts = 10
     $reason = $null
 
@@ -316,10 +293,14 @@ function Get-TeamsChatMigrationAccessToken {
             # -ResourceUrl is ambiguous between parameter sets in PnP 3.x, so pass .default via -Scopes.
             $token = Get-PnPAccessToken -ResourceTypeName Graph -Scopes "https://graph.microsoft.com/.default" -Connection $connection
 
-            if ((ConvertFrom-AccessToken -Token $token).roles -contains "Teamwork.Migrate.All") {
+            # Teamwork.Migrate.All (Teams chat import) and Mail.ReadWrite (inbox import) are both
+            # application permissions served by this one certificate token.
+            $grantedRoles = (ConvertFrom-AccessToken -Token $token).roles
+            $missingRoles = $WorkIQGraphApplicationPermissions | Where-Object { $_ -notin $grantedRoles }
+            if (-not $missingRoles) {
                 return $token
             }
-            $reason = "token is missing Teamwork.Migrate.All"
+            $reason = "token is missing $($missingRoles -join ', ')"
         }
         catch {
             if ($_.Exception.Message -notmatch "AADSTS700027") {
@@ -334,7 +315,7 @@ function Get-TeamsChatMigrationAccessToken {
         }
     }
 
-    throw "Could not sign in with the Teams chat migration certificate ($reason). Check that the certificate is listed under Certificates & secrets and that admin consent is granted for Teamwork.Migrate.All on the app registration, then run the installer again."
+    throw "Could not sign in with the Teams chat migration certificate ($reason). Check that the certificate is listed under Certificates & secrets and that admin consent is granted for $($WorkIQGraphApplicationPermissions -join ', ') on the app registration, then run the installer again."
 }
 
 function ConvertFrom-AccessToken {
@@ -382,9 +363,6 @@ function Initialize-TeamsChatMigrationCertificate {
         $publicKeyBase64 = [Convert]::ToBase64String($cert.GetRawCertData())
         $thumbprintBase64 = [Convert]::ToBase64String($cert.GetCertHash())
 
-        # keyCredentials is only returned by Graph when explicitly selected, and PATCH replaces the
-        # whole array - so the existing entries (with their key data) have to be read back and
-        # resubmitted alongside the new one, or they'd be silently dropped.
         $step = "read the app registration"
         $application =Invoke-RestMethod -Uri "$graphBaseUrl/applications(appId='$ClientId')?`$select=id,keyCredentials" -Headers $headers -Method Get
 

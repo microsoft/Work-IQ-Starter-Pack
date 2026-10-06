@@ -156,3 +156,7 @@ Installation/.certs/
 # per-run installation reports - contain plaintext temporary passwords for any demo users
 # created, must never be committed
 Logs/
+
+# per-run generated files (tenant prefix / persona-swapped content and resolved users)
+Content/content.custom.json
+Configuration/users.custom.json

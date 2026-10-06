@@ -2,6 +2,9 @@
 
 Site templates used as demos from Microsoft
 
+### DO NOT USE THIS IN PRODUCTION. THis puts email in the users inbox.
+NOTE: How will the install tool do the consents?
+
 ## Overview
 
 The Work IQ Starter Pack is a collection of scripts designed to automate the provisioning of demo users, content, and business data onto a target demo or developer tenant. It provides a consolidated knowledge base for exploring and experimenting with Work IQ, as well as for delivering consistent demos
@@ -23,11 +26,14 @@ The configuration file contains all the user editable settings. You can edit the
   "Settings": {
     "InstallM365Content": true, - True installs the M365 Content Pack
     "InstallDynamicsContent": true, - True installs the Dynamics 365 Content Pack
-    "TenantPrefix": "caldova", - The prefix for your tenant (e.g. caldova.sharepoint.com)
+    "TenantPrefix": "caldova", - The prefix for your tenant (e.g. caldova.sharepoint.com) It is substituted for the `<TENANTPREFIX>` token in `Content/content.json` and `Configuration/settings.json`; the installer regenerates the git-ignored `Content/content.custom.json` from it on every run.
     "ClientId": "d73d41ad-fdd8-5r4g-8537-4a81c0360986" - If you are using an existing app registration enter the ClientId here. The installation script will update this value if you don't enter it. 
   }
 }
 ```
+### Unattended install
+Run `./InstallWorkIQStarterPack.ps1 -UseConfig` to skip every install question and use the values in config.json instead (the browser sign-in and, for a new app registration, admin consent still happen). The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, and `ClientId` (set = use that existing app registration; empty = create one, named by the optional `AppRegistrationName`, default `WorkIQStarterPack`). If `InstallDemoUsers` is false, also set `ProvisionUserEmails` and `RealUserUpns`, a list of 5 UPNs in the order Marketing, Finance, Security/Governance, Finance 2, Sales.
+
 ### Users
 This demo requires 5 users. The installation will create these users in your tenant. If you would like to use your own users edit the [settings.json file](./Configuration/settings.json) (the `Users` list) and replace the user information with your existing users. If the users already exist they will not be recreated or edited. If the installation creates new users the passwords for the users will be output in the console. 
 
@@ -48,6 +54,7 @@ This solution requires the user installing the solution to be a Global Administr
 
 #### Graph Application Permissions
 - Teamwork.Migrate.All
+- Mail.ReadWrite
 
 #### SharePoint Delegated Permissions
 - AllSites.FullControl

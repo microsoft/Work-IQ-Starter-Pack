@@ -1,3 +1,8 @@
+param(
+    # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
+    [switch]$UseConfig
+)
+
 try {
     if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
         Install-Module -Name PnP.PowerShell -Scope CurrentUser -Force
@@ -32,7 +37,9 @@ function Read-YesNo {
 
 $installSucceeded = $false
 try {
-    Clear-Host
+    if (-not $UseConfig) {
+        Clear-Host
+    }
     Write-Host ""
     # Load the configuration file from file system
     $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
@@ -41,6 +48,11 @@ try {
     # Load the installtion settings file from file system
     $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
     $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
+
+    # settings.json emails carry a <TENANTPREFIX> token; resolve it from config.json once, in memory.
+    foreach ($user in $settings.Users) {
+        $user.Email = $user.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
+    }
 
     # settings.json's Users list and Content/content.json always stay the pristine demo data. When
     # InstallDemoUsers is false, the real users' resolved identities and the persona-swapped
@@ -61,6 +73,13 @@ try {
     # Ask for the tenant prefix once up front - both the existing and new app registration paths need it.
     # Pressing Enter keeps the value already in config.json.
     $currentTenant = $config.Settings.TenantPrefix
+    if ($UseConfig) {
+        if ([string]::IsNullOrWhiteSpace($currentTenant)) {
+            throw "-UseConfig requires Settings.TenantPrefix in config.json."
+        }
+        $tenant = $currentTenant
+    }
+    else {
     do {
         $prompt = "Enter your tenant prefix name (e.g. caldova from caldova.onmicrosoft.com)"
         if (-not [string]::IsNullOrWhiteSpace($currentTenant)) {
@@ -71,7 +90,7 @@ try {
             $tenant = $currentTenant
         }
     } while ([string]::IsNullOrWhiteSpace($tenant))
-    
+    }
 
     $config.Settings.TenantPrefix = ($tenant -replace '\.onmicrosoft\.com$', '')
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
@@ -81,13 +100,27 @@ try {
     # slots at real, existing users instead. The UPNs are collected here (upfront, alongside
     # the other one-time setup questions); the actual Entra ID lookup happens later, once
     # Connect-WorkIQGraph has established a Graph connection.
-    $provisionDemoUsers = Read-YesNo "Do you want to provision the built-in demo users?" -Default $true
+    $provisionDemoUsers = if ($UseConfig) { [bool]$config.Settings.InstallDemoUsers } else { Read-YesNo "Do you want to provision the built-in demo users?" -Default $true }
     $config.Settings.InstallDemoUsers = $provisionDemoUsers
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
     Write-InstallLogInput -Prompt "Provision the built-in demo users?" -Response $(if ($provisionDemoUsers) { "Yes" } else { "No" })
 
+    # Persisted so the email import step can be gated on it later. Demo users always get emails.
+    $provisionEmails = $true
     $realUserUpns = $null
     if (-not $provisionDemoUsers) {
+        if ($UseConfig) {
+            $provisionEmails = [bool]$config.Settings.ProvisionUserEmails
+        }
+        else {
+            Write-Host ""
+            Write-Host "NOTICE: This starter pack will provision emails in the users' inboxes." -ForegroundColor Yellow
+            Write-Host "        It should NOT be used in a production tenant." -ForegroundColor Yellow
+            Write-Host ""
+            $provisionEmails = Read-YesNo "Do you want to provision emails in the users' inboxes?" -Default $false
+        }
+        Write-InstallLogInput -Prompt "Provision emails in the users' inboxes?" -Response $(if ($provisionEmails) { "Yes" } else { "No" })
+
         $demoRoles = @(
             @{ Label = "Marketing user"; Index = 0 },
             @{ Label = "Finance user"; Index = 1 },
@@ -96,21 +129,41 @@ try {
             @{ Label = "Sales user"; Index = 4 }
         )
 
+        $configUpns = @($config.Settings.RealUserUpns)
+        if ($UseConfig -and ($configUpns.Count -ne $demoRoles.Count -or @($configUpns | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0)) {
+            throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
+        }
+
         $realUserUpns = @{}
         foreach ($role in $demoRoles) {
-            do {
-                $upn = (Read-Host "Enter the UPN for the $($role.Label)").Trim()
-            } while ([string]::IsNullOrWhiteSpace($upn))
+            if ($UseConfig) {
+                $upn = "$($configUpns[$role.Index])".Trim()
+            }
+            else {
+                do {
+                    $upn = (Read-Host "Enter the UPN for the $($role.Label)").Trim()
+                } while ([string]::IsNullOrWhiteSpace($upn))
+            }
 
             $realUserUpns[$role.Index] = $upn
             Write-InstallLogInput -Prompt "UPN for the $($role.Label)" -Response $upn
         }
     }
 
+    # Add-Member -Force so configs that predate this setting still work.
+    $config.Settings | Add-Member -NotePropertyName ProvisionUserEmails -NotePropertyValue $provisionEmails -Force
+    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+
     # Ask which starter pack content pack(s) to install. At least one must be selected, otherwise
     # the content-provisioning block below has nothing to do.
-    $installM365Content = Read-YesNo "Do you want to install the M365 WorkIQ Starter Pack Content?" -Default $true
-    $installDynamicsContent = Read-YesNo "Do you want to install the Dynamics WorkIQ Starter Pack Content?" -Default $true
+    if ($UseConfig) {
+        $installM365Content = [bool]$config.Settings.InstallM365Content
+        $installDynamicsContent = [bool]$config.Settings.InstallDynamicsContent
+    }
+    else {
+        $installM365Content = Read-YesNo "Do you want to install the M365 WorkIQ Starter Pack Content?" -Default $true
+        $installDynamicsContent = Read-YesNo "Do you want to install the Dynamics WorkIQ Starter Pack Content?" -Default $true
+    }
     Write-InstallLogInput -Prompt "Install the M365 WorkIQ Starter Pack Content?" -Response $(if ($installM365Content) { "Yes" } else { "No" })
     Write-InstallLogInput -Prompt "Install the Dynamics WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsContent) { "Yes" } else { "No" })
 
@@ -124,13 +177,18 @@ try {
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
 
     # Check if the user needs the app registration created
-    $hasAppRegistration = Read-YesNo "Do you have an existing Application Registration? Please review the README.md file for the level of permissions required." -Default $false
+    # With -UseConfig, a ClientId in config.json means use that existing app registration; otherwise one is created.
+    $hasAppRegistration = if ($UseConfig) { -not [string]::IsNullOrWhiteSpace($config.Settings.ClientId) } else { Read-YesNo "Do you have an existing Application Registration? Please review the README.md file for the level of permissions required." -Default $false }
     Write-InstallLogInput -Prompt "Do you have an existing Application Registration?" -Response $(if ($hasAppRegistration) { "Yes" } else { "No" })
 
     # If they have an app reg then ask for the client ID.
     if ($hasAppRegistration) {
         
         $storedClientID = $config.Settings.ClientId
+        if ($UseConfig) {
+            $clientId = $storedClientID
+        }
+        else {
         do {
             $prompt = "Enter the application registration client ID"
             if (-not [string]::IsNullOrWhiteSpace($storedClientID)) {
@@ -141,6 +199,7 @@ try {
                 $clientId = $storedClientID
             }
         } while ([string]::IsNullOrWhiteSpace($clientId))
+        }
         Write-InstallLogInput -Prompt "Application registration client ID" -Response $clientId
 
         $config.Settings.ClientId = $clientId
@@ -157,7 +216,7 @@ try {
     }
     else {
         # If they don't have an app reg create one.
-        $appName = Read-Host "Enter the name for your application registration (default: WorkIQStarterPack)"
+        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your application registration (default: WorkIQStarterPack)" }
         if ([string]::IsNullOrWhiteSpace($appName)) {
             $appName = "WorkIQStarterPack"
         }
@@ -187,16 +246,21 @@ try {
     # identities go into Configuration/users.custom.json and the persona-swapped content into
     # Content/content.custom.json - settings.json's Users and Content/content.json are never
     # touched, so the demo definitions stay intact no matter how many times this runs.
-    if ($null -ne $realUserUpns) {
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
+    if ($null -eq $realUserUpns) {
+        # Demo users: no persona swap, but content.custom.json is still generated so the
+        # <TENANTPREFIX> token in content.json is resolved from config.json.
+        Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -TenantPrefix $config.Settings.TenantPrefix
+    }
+    else {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
 
         $demoUsers = $settings.Users | ForEach-Object { $_.PSObject.Copy() }
         $customUsersSettings = [PSCustomObject]@{ Users = ($settings.Users | ForEach-Object { $_.PSObject.Copy() }) }
         $customUsersSettings = Resolve-RealUsers -Settings $customUsersSettings -RealUserUpns $realUserUpns
         $customUsersSettings.Users | ConvertTo-Json -Depth 10 | Set-Content -Path $customUsersPath
 
-        Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -DemoUsers $demoUsers -RealUsers $customUsersSettings.Users -RealUserUpns $realUserUpns
+        Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -TenantPrefix $config.Settings.TenantPrefix -DemoUsers $demoUsers -RealUsers $customUsersSettings.Users -RealUserUpns $realUserUpns
     }
 
     # ---------------------Start App Configuration------------------------------------
@@ -206,8 +270,10 @@ try {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/SharePointService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PermissionsService.ps1")
 
         # Teams chat history import uses Microsoft Graph's message migration API, which only supports
@@ -224,12 +290,11 @@ try {
         # Existing users instead -> swap in the resolved identities from users.custom.json and
         # the persona-swapped content.custom.json, without ever touching the demo definitions.
         $provisioningSettings = $settings
-        $activeContentPath = $contentPath
+        $activeContentPath = $customContentPath
         if (-not $config.Settings.InstallDemoUsers) {
             $customUsers = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
             $provisioningSettings = $settings.PSObject.Copy()
             $provisioningSettings.Users = $customUsers
-            $activeContentPath = $customContentPath
         }
 
         #Check to see if the current user is a Global Administrator before checking license availability
@@ -259,7 +324,16 @@ try {
             # calls move into a hotter path, parse it once here and pass the object through instead.
             Add-TeamSite -ContentPath $activeContentPath -Config $config
             Import-SiteDocuments -ContentPath $activeContentPath -Config $config
+            Add-SiteListsAndLibraries -ContentPath $activeContentPath -Config $config
             Add-TeamsChatMessages -ContentPath $activeContentPath -Settings $provisioningSettings -MigrationHeaders $migrationHeaders
+            # The same certificate token carries Mail.ReadWrite, so it also serves the inbox import.
+            # $settings.Users are always the demo personas the email markdown is written with.
+            if ($config.Settings.ProvisionUserEmails) {
+                Import-UserEmails -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
+            }
+            else {
+                Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
+            }
         }
         else {
             Write-InstallLogAction -Message "One or more prerequisites were not met. Please review the messages above." -Level Error

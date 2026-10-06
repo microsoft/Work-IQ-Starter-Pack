@@ -9,7 +9,8 @@
             "TeamMember.ReadWrite.All"
         ],
         "GraphApplication": [
-            "Teamwork.Migrate.All"
+            "Teamwork.Migrate.All",
+            "Mail.ReadWrite"
         ],
         "SharePointDelegate": [
             "AllSites.FullControl"
@@ -51,7 +52,7 @@
             "LastName": "Ribeiro",
             "JobTitle": "Market Research Analyst",
             "UserPrincipalName": "serena.ribeiro",
-            "Email": "serena.ribeiro@sympdcp.onmicrosoft.com",
+            "Email": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
             "Department": "Marketing",
             "DynamicsLicenses": false,
             "UsageLocation": "US"
@@ -61,7 +62,7 @@
             "LastName": "Shammas",
             "JobTitle": "Financial Reconciliation Lead",
             "UserPrincipalName": "babak.shammas",
-            "Email": "babak.shammas@sympdcp.onmicrosoft.com",
+            "Email": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
             "Department": "Finance",
             "DynamicsLicenses": true,
             "UsageLocation": "US"
@@ -71,7 +72,7 @@
             "LastName": "Dunn",
             "JobTitle": "Compliance Manager",
             "UserPrincipalName": "cassandra.dunn",
-            "Email": "cassandra.dunn@sympdcp.onmicrosoft.com",
+            "Email": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
             "Department": "Compliance",
             "DynamicsLicenses": false,
             "UsageLocation": "US"
@@ -81,7 +82,7 @@
             "LastName": "Waltson",
             "JobTitle": "VP of Procurement",
             "UserPrincipalName": "charlotte.waltson",
-            "Email": "charlotte.waltson@sympdcp.onmicrosoft.com",
+            "Email": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
             "Department": "Procurement",
             "DynamicsLicenses": true,
             "UsageLocation": "US"
@@ -91,7 +92,7 @@
             "LastName": "Power",
             "JobTitle": "Sales Director",
             "UserPrincipalName": "david.power",
-            "Email": "david.power@sympdcp.onmicrosoft.com",
+            "Email": "david.power@<TENANTPREFIX>.onmicrosoft.com",
             "Department": "Sales",
             "DynamicsLicenses": true,
             "UsageLocation": "US"

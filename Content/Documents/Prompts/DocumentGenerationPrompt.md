@@ -98,6 +98,34 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
 ##### @mentions in chat messages
 A message may @mention another member of that same chat by writing `@FirstName LastName` inline (must exactly match one of that chat's `Members` entries) — this renders as a real, notifying Teams mention when installed. Use it naturally, only where a real person would actually tag someone (looping someone in, a direct question, flagging urgency) — not in every message. A chat that's all mentions reads unnaturally.
 
+#### Lists and content types
+Every entry in `Lists` and `Libraries` must define a content type using the same `ContentTypes` syntax. Columns belong inside the content type (`ContentTypes[].Columns`), not directly on the list/library.
+
+Content types and site columns each carry two names:
+- **Content type**: `InternalName` is the list/library `Title` with spaces removed and camel-cased (e.g. "Supplier Directory" → `supplierDirectory`, "Procurement Exception" → `procurementException`); `DisplayName` is the list/library `Title` exactly (e.g. "Supplier Directory"). The provisioner creates the content type in SharePoint under its `DisplayName`.
+- **Site column**: `DisplayName` is the human-readable label (e.g. "Supplier ID"); `InternalName` is that label with spaces removed and camel-cased, with only the first letter of each word capitalised, so "ID" becomes "Id" (e.g. "Supplier ID" → `supplierId`, "Products Materials" → `productsMaterials`). `InternalName` becomes the SharePoint internal name. Every column must have both.
+- Everywhere else in `content.json` that refers to a column — keys in `Items`, `FieldRef Name='...'` in view `Query`, and view `Fields` — use the column's `InternalName` (e.g. `supplierId`), never the `DisplayName`.
+
+```jsonc
+{
+  "Title": "Supplier Directory",
+  "Template": "GenericList",
+  "ContentTypes": [
+    {
+      "InternalName": "supplierDirectory",
+      "DisplayName": "Supplier Directory",
+      "Columns": [
+        { "InternalName": "supplierId", "DisplayName": "Supplier ID", "Type": "Text" },
+        { "InternalName": "region", "DisplayName": "Region", "Type": "Choice", "Choices": ["North America", "Europe"] },
+        { "InternalName": "active", "DisplayName": "Active", "Type": "Boolean" }
+      ]
+    }
+  ],
+  "Views": [ /* ... */ ],
+  "Items": [ /* ... */ ]
+}
+```
+
 #### No metadata duplication in file bodies
 `content.json` is the only place `Title`/`Created*`/`Modified*` lives. Don't also restate it inside the file itself:
 - **SharePoint documents**: no "Prepared by" / "Date prepared" / "Last updated" header line, and no "Update Log" section restating those dates. Start straight into the content after the title (a short "Product:" / "Classification:" line is fine — that's not tracked in `content.json`).
@@ -170,12 +198,13 @@ Documents should be a mix of DOCX and PDF files.
 - Vendor due diligence file
 
 #### Lists
+Each list gets a content type per the "Lists and content types" rules.
 - Supplier Directory List with view of approved supplies
 - Financial Investigation Case list
 - Procurement Exception list
 
 #### Libraries
-- Contract library with Contract content type with managed metadata sites column for supplier name
+- Contract library with a content type (named per the "Lists and content types" rules) with a managed metadata site column for supplier name
 
 #### Email discussion
 Create sample email discussions from the participants. The email threads should mimic the interaction between Caldova's employees. Save the data as markdown files
@@ -222,6 +251,7 @@ Create a transcript for the teams meeting. Each of these meeting transcripts sho
 - Procurement Steering Committee
 
 #### Lists
+Each list gets a content type per the "Lists and content types" rules.
 - Supplier Directory List with view of approved supplies
 - Supplier Capacity Tracker list
 - RFPs list with metadata for active RFPs
