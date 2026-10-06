@@ -1,12 +1,9 @@
-# Category stamped on every imported message so Remove-ImportedEmails can find exactly what we added.
 $script:ImportedEmailCategory = "WorkIQStarterPack"
 
 function Get-EmailThreadMessages {
     param(
         [Parameter(Mandatory = $true)]
         [string]$Path,
-        # Demo users and the users they are standing in for (index-aligned). Demo names in the markdown
-        # are swapped for the real ones the same way Update-ContentPersonas does for content.json.
         [Parameter(Mandatory = $true)]
         $DemoUsers,
         [Parameter(Mandatory = $true)]
@@ -32,7 +29,6 @@ function Get-EmailThreadMessages {
         $text = $text -replace "\b$([regex]::Escape($demo.FirstName))\b", $active.FirstName
     }
 
-    # Messages are separated by a line containing only "---"; the first block is the "# Email Thread" title.
     $messages = @()
     foreach ($block in ($text -split '(?m)^\s*---\s*$')) {
         if ($block -notmatch '(?m)^\*\*From:\*\*') { continue }
@@ -90,7 +86,12 @@ function Add-InboxMessage {
         [Parameter(Mandatory = $true)]
         [datetime]$SentDate,
         [Parameter(Mandatory = $true)]
-        [hashtable]$MailHeaders
+        [hashtable]$MailHeaders,
+        [string]$InternetMessageId,
+        [string]$InReplyTo,
+        [string]$References,
+        [string]$ConversationTopic,
+        [string]$ConversationIndex
     )
 
     $sentUtc = $SentDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
@@ -109,10 +110,13 @@ function Add-InboxMessage {
             @{ id = "SystemTime 0x0039"; value = $sentUtc }
         )
     }
+    if ($InternetMessageId) { $message.internetMessageId = $InternetMessageId }
+    if ($ConversationTopic) { $message.singleValueExtendedProperties += @{ id = "String 0x0070"; value = $ConversationTopic } }
+    if ($ConversationIndex) { $message.singleValueExtendedProperties += @{ id = "Binary 0x0071"; value = $ConversationIndex } }
+    if ($InReplyTo) { $message.singleValueExtendedProperties += @{ id = "String 0x1042"; value = $InReplyTo } }
+    if ($References) { $message.singleValueExtendedProperties += @{ id = "String 0x1039"; value = $References } }
     $body = $message | ConvertTo-Json -Depth 10
 
-    # A newly licensed user's Exchange Online mailbox is provisioned asynchronously, so a 404 here
-    # means "not ready yet" - retry like Add-UserPhotos does.
     $uri = "$graphBaseUrl/users/$MailboxEmail/mailFolders/inbox/messages"
     $maxAttempts = 6
     $delaySeconds = 20
@@ -158,13 +162,10 @@ function Import-UserEmails {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ContentPath,
-        # Active users (demo users, or the real users standing in for them).
         [Parameter(Mandatory = $true)]
         $Settings,
-        # settings.json's demo users - the names used in the email markdown files.
         [Parameter(Mandatory = $true)]
         $DemoUsers,
-        # App-only token headers; writing into other users' mailboxes needs the Mail.ReadWrite application permission.
         [Parameter(Mandatory = $true)]
         [hashtable]$MailHeaders
     )
@@ -202,11 +203,16 @@ function Import-UserEmails {
                 }
                 $recorded = @($stillPresent)
 
-                # Send dates come from the entry's offsets: the first message is CreatedOffset days ago,
-                # the last is ModifiedOffset, and any in between are spread evenly across that span.
                 $firstDay = $today.AddDays([int]$thread.CreatedOffset)
                 $lastDay = $today.AddDays([int]$thread.ModifiedOffset)
                 $span = ($lastDay - $firstDay).TotalDays
+
+                $topic = if ($messages.Count -gt 0) { ($messages[0].Subject -replace '^\s*((RE|FW|FWD):\s*)+', '').Trim() } else { '' }
+                $indexBytes = New-Object byte[] 22
+                [System.Random]::new().NextBytes($indexBytes)
+                $indexBytes[0] = 1
+                $parentMessageId = $null
+                $references = @()
 
                 $imported = 0
                 for ($i = 0; $i -lt $messages.Count; $i++) {
@@ -222,13 +228,27 @@ function Import-UserEmails {
                     }
 
                     $bodyHtml = ConvertTo-EmailHtml -Text $message.Body
+
+                    $internetMessageId = "<$([guid]::NewGuid().ToString('N'))@workiqstarterpack.local>"
+                    # Conversation index: 22-byte thread header, plus a 5-byte child block per reply.
+                    if ($i -gt 0) {
+                        $indexBytes += [byte[]]@(0, 0, 0, 0, [byte]($i -band 0xFF))
+                    }
+                    $inReplyTo = $parentMessageId
+                    $referenceChain = $references -join ' '
+
                     foreach ($recipient in $recipients) {
                         $messageId = Add-InboxMessage -MailboxEmail $recipient.Email -From $sender -Recipients $recipients `
-                            -Subject $message.Subject -BodyHtml $bodyHtml -SentDate $sentDate -MailHeaders $MailHeaders
+                            -Subject $message.Subject -BodyHtml $bodyHtml -SentDate $sentDate -MailHeaders $MailHeaders `
+                            -InternetMessageId $internetMessageId -InReplyTo $inReplyTo -References $referenceChain `
+                            -ConversationTopic $topic -ConversationIndex ([Convert]::ToBase64String($indexBytes))
                         $recorded += [PSCustomObject]@{ Mailbox = $recipient.Email; MessageId = $messageId }
                         Write-InstallLogAction -Message "Delivered '$($message.Subject)' from $($sender.Email) to $($recipient.Email) (sent $($sentDate.ToString('yyyy-MM-dd HH:mm')))."
                         $imported++
                     }
+
+                    $parentMessageId = $internetMessageId
+                    $references += $internetMessageId
                 }
                 Write-InstallLogAction -Message "Imported email thread '$($thread.Title)' ($($messages.Count) messages, $imported inbox deliveries)." -Level Success
             }
@@ -248,9 +268,7 @@ function Import-UserEmails {
 
 function Remove-ImportedEmails {
     param(
-        # Real users whose mailboxes survive cleanup; swept by category as a fallback.
         $Settings,
-        # content.custom.json, whose email threads record the ID of every delivered message.
         [string]$ContentPath,
         [Parameter(Mandatory = $true)]
         [hashtable]$MailHeaders
