@@ -1,0 +1,11 @@
+{
+  "Settings": {
+    "SkipPreReqCheck": true,
+    "InstallM365Content": true,
+    "InstallDynamicsContent": true,
+    "InstallDemoUsers": true,
+    "TenantPrefix": "",
+    "ClientId": "",
+    "ProvisionUserEmails": true
+  }
+}
