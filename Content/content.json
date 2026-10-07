@@ -1,6 +1,487 @@
 {
     "Sites": [
         {
+            "Title": "Market Research Team",
+            "URL": "MarketResearch-Team",
+            "Description": "Navigating Organisational Intelligence — Caldova ALLER launch collaboration site",
+            "EnableMicrosoftTeams": true,
+            "IsPublic": false,
+            "Owners": [
+                "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Members": [
+                "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                "david.power@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Channels": [
+                {
+                    "Title": "Launch Readiness",
+                    "Description": "Channel for launch readiness discussions and updates"
+                }
+            ],
+            "Content": {
+                "Documents": [
+                    {
+                        "Title": "Product Launch Readiness Assessment",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Product Launch Readiness Assessment.docx",
+                        "CreatedOffset": -29,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -14,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Next-Generation Product Launch Strategy",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Next-Generation Product Launch Strategy.docx",
+                        "CreatedOffset": -107,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -46,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Market Access Strategy",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Market Access Strategy.docx",
+                        "CreatedOffset": -117,
+                        "CreatedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -41,
+                        "ModifiedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Regulatory Submission Briefing",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Regulatory Submission Briefing.pdf",
+                        "CreatedOffset": -22,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -11,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Clinical Formulation Overview",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Clinical Formulation Overview.pdf",
+                        "CreatedOffset": -102,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -102,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Product Forecasting Report",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Product Forecasting Report.docx",
+                        "CreatedOffset": -55,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -35,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Launch Steering Committee Meeting Notes",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Launch Steering Committee Meeting Notes.docx",
+                        "CreatedOffset": -37,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -37,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Product Risk Register",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Product Risk Register.pdf",
+                        "CreatedOffset": -47,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -10,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Commercialisation Timeline",
+                        "Path": "Content/Documents/Demo1/SharePoint_Documents/Commercialisation Timeline.docx",
+                        "CreatedOffset": -112,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -84,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "MeetingTranscripts": [
+                    {
+                        "Title": "Launch Readiness Review",
+                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Launch Readiness Review.md",
+                        "CreatedOffset": -15,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -15,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Regulatory Strategy Review",
+                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Regulatory Strategy Review.md",
+                        "CreatedOffset": -84,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -84,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Market Access Planning",
+                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Market Access Planning.md",
+                        "CreatedOffset": -60,
+                        "CreatedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -60,
+                        "ModifiedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Cross-Functional Launch Alignment",
+                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Cross-Functional Launch Alignment.md",
+                        "CreatedOffset": -28,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -28,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Executive Launch Checkpoint",
+                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Executive Launch Checkpoint.md",
+                        "CreatedOffset": -1,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -1,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "EmailThreads": [
+                    {
+                        "Title": "Regulatory Approval Concerns",
+                        "Path": "Content/Documents/Demo1/Email_Threads/Regulatory Approval Concerns.md",
+                        "CreatedOffset": -84,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -70,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Pricing Strategy Debate",
+                        "Path": "Content/Documents/Demo1/Email_Threads/Pricing Strategy Debate.md",
+                        "CreatedOffset": -56,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -49,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Market Access Planning",
+                        "Path": "Content/Documents/Demo1/Email_Threads/Market Access Planning.md",
+                        "CreatedOffset": -60,
+                        "CreatedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -53,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Manufacturing Readiness Issues",
+                        "Path": "Content/Documents/Demo1/Email_Threads/Manufacturing Readiness Issues.md",
+                        "CreatedOffset": -43,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -34,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Product Launch Acceleration Request",
+                        "Path": "Content/Documents/Demo1/Email_Threads/Product Launch Acceleration Request.md",
+                        "CreatedOffset": -20,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -19,
+                        "ModifiedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "Chats": [
+                    {
+                        "Title": "Launch War Room",
+                        "Members": [
+                            "Serena Ribeiro",
+                            "Charlotte Waltson",
+                            "Babak Shammas",
+                            "David Power"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -12,
+                                "Time": "08:12:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Morning all — using this chat as our running war room for the ALLER launch through the executive checkpoint. Ping here for anything time-sensitive."
+                            },
+                            {
+                                "Offset": -12,
+                                "Time": "08:14:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Sounds good. I'll post supplier updates here as they come in — LumaSterile and HelioPack are the two I'm watching most closely this week."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "09:40:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Heads up @Serena Ribeiro — Signal Ridge confirmed the regulatory authority has formally accepted the revised ALLER dosing claim language. Written confirmation should land by end of day."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "09:42:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "That's fantastic news! Huge unblock for the Regulatory Submission Briefing."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "09:44:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Great timing — I was just about to lock the pricing and forecast package for the checkpoint deck."
+                            },
+                            {
+                                "Offset": -10,
+                                "Time": "11:02:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "LumaSterile's re-run sterilization lot for the ALLER-20 auto-injector passed release testing. Combined with the Pioneer validation batch, both manufacturing lines are now fully qualified."
+                            },
+                            {
+                                "Offset": -10,
+                                "Time": "11:05:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Excellent. That closes out the last major open item on the risk register ahead of the executive checkpoint."
+                            },
+                            {
+                                "Offset": -10,
+                                "Time": "11:08:00",
+                                "Sender": "David Power",
+                                "Message": "The field team is going to be thrilled to hear supply is secured on both dose strengths. Momentum with accounts has been building since we shared the Q3 forecast."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "09:15:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Pricing and forecast package is finalized and ready for the executive checkpoint deck — parity pricing on ALLER-20 versus the current standard of care, as discussed."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "09:20:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Perfect, I'll pull everything together with the Product Launch Readiness Assessment this week."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "09:24:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "One outstanding item: Valence Cold Chain's commercial shipment qualification run completes Thursday. I'll confirm here the moment I have results."
+                            },
+                            {
+                                "Offset": -7,
+                                "Time": "15:10:00",
+                                "Sender": "David Power",
+                                "Message": "Also worth flagging for the checkpoint, @Serena Ribeiro — three of our top accounts have already asked about the November 3rd availability date. Good sign field readiness is landing well."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Regulatory Team",
+                        "Members": [
+                            "Babak Shammas",
+                            "Cassandra Dunn"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -84,
+                                "Time": "09:00:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "@Cassandra Dunn — setting up this chat so we can keep the Product Risk Register in sync with ALLER's regulatory submission status in real time."
+                            },
+                            {
+                                "Offset": -84,
+                                "Time": "09:02:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Perfect, that'll save us a lot of back-and-forth in email."
+                            },
+                            {
+                                "Offset": -84,
+                                "Time": "15:45:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "The regulatory authority pushed back on our ALLER-20 dosing claim language during the regulatory strategy review this morning. Signal Ridge is drafting revised copy today."
+                            },
+                            {
+                                "Offset": -84,
+                                "Time": "15:47:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Logging that as a high-priority item on the risk register now, with Signal Ridge as the responsible party and you as internal owner."
+                            },
+                            {
+                                "Offset": -83,
+                                "Time": "10:20:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Signal Ridge's estimate is two to three weeks for a regulatory response once we resubmit. Will keep you posted here."
+                            },
+                            {
+                                "Offset": -70,
+                                "Time": "13:15:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Update: the regulatory authority has accepted the revised dosing language. We're finalizing the ALLER package insert now with Signal Ridge."
+                            },
+                            {
+                                "Offset": -70,
+                                "Time": "13:17:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Great — closing out that risk register item today."
+                            },
+                            {
+                                "Offset": -47,
+                                "Time": "10:05:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Publishing the first full version of the Product Risk Register today. Regulatory labeling is marked closed; I've opened a new item for the LumaSterile sterilization lot delay on the ALLER-20 auto-injector — flagging that one as owned jointly with Charlotte."
+                            },
+                            {
+                                "Offset": -47,
+                                "Time": "10:08:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Makes sense, I'll loop Charlotte in on the cost side if the re-run pushes the manufacturing timeline."
+                            },
+                            {
+                                "Offset": -22,
+                                "Time": "08:40:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Approved ALLER package insert is final and incorporated into all commercial materials. I've drafted the Regulatory Submission Briefing summarizing the full regulatory package — Crescent GMP Labs' stability data is in the appendix."
+                            },
+                            {
+                                "Offset": -22,
+                                "Time": "08:42:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Noted for the steering committee update. Nice work getting this across the line."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "09:45:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "The regulatory authority has formally accepted the dosing claim language in writing — confirmation just came in from Signal Ridge."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "09:50:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "Updating the Regulatory Submission Briefing and closing the last open regulatory item on the risk register ahead of the checkpoint."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Marketing & Product Alignment",
+                        "Members": [
+                            "Serena Ribeiro",
+                            "David Power",
+                            "Babak Shammas"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -60,
+                                "Time": "10:00:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Starting this thread to keep marketing and sales aligned on ALLER messaging as market access planning evolves."
+                            },
+                            {
+                                "Offset": -60,
+                                "Time": "10:02:00",
+                                "Sender": "David Power",
+                                "Message": "Appreciate it — the field is eager for updated collateral once dosing language and pricing settle."
+                            },
+                            {
+                                "Offset": -56,
+                                "Time": "16:10:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Circulated the pricing options doc for your review, @David Power — parity vs. a modest premium for ALLER-20 relative to the current standard of care."
+                            },
+                            {
+                                "Offset": -56,
+                                "Time": "16:22:00",
+                                "Sender": "David Power",
+                                "Message": "My vote is parity, especially for accounts like Meridian Health Alliance that are price-sensitive on formulary decisions."
+                            },
+                            {
+                                "Offset": -49,
+                                "Time": "09:05:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Agreed, market research supports that too — @Babak Shammas is finalizing at parity for ALLER-20 with a modest premium reserved for the ALLER-10 starter dose."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "13:30:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Updated launch collateral is in review now that the regulatory-approved dosing language is final. Should be ready by end of week."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "13:32:00",
+                                "Sender": "David Power",
+                                "Message": "Perfect timing — several accounts are asking for updated materials ahead of the November 3rd date."
+                            },
+                            {
+                                "Offset": -9,
+                                "Time": "11:15:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Forecast numbers are holding steady with the parity pricing assumption baked in — I'll have the final Product Forecasting Report figures in the checkpoint deck."
+                            },
+                            {
+                                "Offset": -9,
+                                "Time": "11:20:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Great, that lines up with what I'm putting in the Launch Readiness Assessment."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Executive Launch Coordination",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Serena Ribeiro"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -37,
+                                "Time": "07:45:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "@Serena Ribeiro, appreciate the steady updates. Let me know if anything needs my attention before the checkpoint."
+                            },
+                            {
+                                "Offset": -37,
+                                "Time": "07:50:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Will do. Right now the two big items are the LumaSterile sterilization re-run for ALLER-20 and finalizing pricing — both tracking to close within a few weeks."
+                            },
+                            {
+                                "Offset": -10,
+                                "Time": "08:50:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Both of those items are now resolved. We're in strong shape heading into the checkpoint."
+                            },
+                            {
+                                "Offset": -10,
+                                "Time": "08:55:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Excellent. Please make sure Finance and Compliance have their materials ready as well."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "17:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "David raised the idea of pulling the launch date forward given the account interest we're seeing — what's your read?"
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "17:20:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "I'd rather hold the current November 3rd date to protect field training and payer outreach timing. Flagged the same to David directly."
+                            },
+                            {
+                                "Offset": -8,
+                                "Time": "17:22:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Agreed, let's keep the current date. We can revisit if field readiness clearly allows it closer to the checkpoint."
+                            },
+                            {
+                                "Offset": -7,
+                                "Time": "09:00:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Final readiness materials are ready for next week's executive checkpoint."
+                            },
+                            {
+                                "Offset": -7,
+                                "Time": "09:05:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Looking forward to it. Great work getting us here."
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
             "Title": "Finance Team",
             "URL": "Finance-Team",
             "Description": "Intelligent Investigation - Caldova supplier invoice investigation site",
@@ -424,7 +905,7 @@
                         ]
                     },
                     {
-                        "Title": "Financial Investigation Cases",
+                        "Title": "Financial Investigation Case",
                         "Template": "GenericList",
                         "ContentTypes": [
                             {
@@ -601,6 +1082,683 @@
                         "Documents": [
                             "Content/Documents/Demo2/SharePoint_Documents/Supplier Master Agreement.docx",
                             "Content/Documents/Demo2/SharePoint_Documents/Contract Manufacturing Agreement.pdf"
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Title": "Procurement Team",
+            "URL": "Procurement-Team",
+            "Description": "Copilot Cowork - Caldova supplier capacity expansion site",
+            "EnableMicrosoftTeams": true,
+            "IsPublic": false,
+            "Owners": [
+                "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Members": [
+                "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                "david.power@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Content": {
+                "Documents": [
+                    {
+                        "Title": "Current Supplier Scorecard",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Current Supplier Scorecard.pdf",
+                        "CreatedOffset": -47,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -18,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Performance Reviews",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Performance Reviews.docx",
+                        "CreatedOffset": -41,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -21,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Capacity Planning Report",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Capacity Planning Report.docx",
+                        "CreatedOffset": -33,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Raw Material Demand Forecast",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Raw Material Demand Forecast.pdf",
+                        "CreatedOffset": -29,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -14,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Expansion Proposal",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Expansion Proposal.docx",
+                        "CreatedOffset": -10,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -3,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "RFP Package",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/RFP Package.pdf",
+                        "CreatedOffset": -6,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -1,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Evaluation Criteria",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Evaluation Criteria.docx",
+                        "CreatedOffset": -8,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -2,
+                        "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Onboarding Checklist",
+                        "Path": "Content/Documents/Demo3/SharePoint_Documents/Supplier Onboarding Checklist.pdf",
+                        "CreatedOffset": -78,
+                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -16,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "MeetingTranscripts": [
+                    {
+                        "Title": "Supplier Quarterly Review",
+                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Supplier Quarterly Review.md",
+                        "CreatedOffset": -20,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -20,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Emergency Capacity Review",
+                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Emergency Capacity Review.md",
+                        "CreatedOffset": -11,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -11,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Procurement Steering Committee",
+                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Procurement Steering Committee.md",
+                        "CreatedOffset": -2,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -2,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "EmailThreads": [
+                    {
+                        "Title": "Supplier Review Preparation",
+                        "Path": "Content/Documents/Demo3/Email_Threads/Supplier Review Preparation.md",
+                        "CreatedOffset": -27,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -22,
+                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Capacity Shortfall Alert",
+                        "Path": "Content/Documents/Demo3/Email_Threads/Capacity Shortfall Alert.md",
+                        "CreatedOffset": -14,
+                        "CreatedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Supplier Expansion Proposal",
+                        "Path": "Content/Documents/Demo3/Email_Threads/Supplier Expansion Proposal.md",
+                        "CreatedOffset": -9,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -6,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "RFP Clarification",
+                        "Path": "Content/Documents/Demo3/Email_Threads/RFP Clarification.md",
+                        "CreatedOffset": -2,
+                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -1,
+                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "Chats": [
+                    {
+                        "Title": "Procurement Operations",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas",
+                            "Cassandra Dunn"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -26,
+                                "Time": "09:00:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Scorecard updated for next week. Meridian API Works is red on capacity."
+                            },
+                            {
+                                "Offset": -26,
+                                "Time": "09:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "@Babak Shammas thanks. Please flag the AUR-API-7 trend in the forecast."
+                            },
+                            {
+                                "Offset": -15,
+                                "Time": "08:40:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "Raw material forecast is in: AUR-API-7 and RM-72 up 35%."
+                            },
+                            {
+                                "Offset": -1,
+                                "Time": "09:20:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "RFP clarification goes out today to both suppliers."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Supply Chain Response Team",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas",
+                            "David Power",
+                            "Serena Ribeiro"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -11,
+                                "Time": "14:30:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Emergency capacity review is live. Notes in the Capacity Planning Report."
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "15:30:00",
+                                "Sender": "David Power",
+                                "Message": "@Charlotte Waltson can we promise accounts any ALLER-20 dates?"
+                            },
+                            {
+                                "Offset": -11,
+                                "Time": "15:35:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Not yet. Hold off until the steering committee."
+                            },
+                            {
+                                "Offset": -2,
+                                "Time": "11:10:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Approved. Atlas Regional Manufacturing expansion planning starts now."
+                            },
+                            {
+                                "Offset": -2,
+                                "Time": "11:15:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Great. I'll update the forecast notes."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Supplier Review Working Group",
+                        "Members": [
+                            "Charlotte Waltson",
+                            "Babak Shammas",
+                            "Cassandra Dunn"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -21,
+                                "Time": "14:05:00",
+                                "Sender": "Cassandra Dunn",
+                                "Message": "No open quality items on critical suppliers."
+                            },
+                            {
+                                "Offset": -20,
+                                "Time": "10:30:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "Review done. Actions: forecast update and capacity options."
+                            },
+                            {
+                                "Offset": -18,
+                                "Time": "09:00:00",
+                                "Sender": "Babak Shammas",
+                                "Message": "@Charlotte Waltson I updated the scorecard with Meridian's red capacity rating."
+                            }
+                        ]
+                    }
+                ],
+                "Lists": [
+                    {
+                        "Title": "Supplier Directory",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "supplierDirectory",
+                                "DisplayName": "Supplier Directory",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplierId",
+                                        "DisplayName": "Supplier ID",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "region",
+                                        "DisplayName": "Region",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "North America",
+                                            "Europe",
+                                            "Asia Pacific",
+                                            "Latin America",
+                                            "Global"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "supplierType",
+                                        "DisplayName": "Supplier Type",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "productsMaterials",
+                                        "DisplayName": "Products Materials",
+                                        "Type": "Note"
+                                    },
+                                    {
+                                        "InternalName": "active",
+                                        "DisplayName": "Active",
+                                        "Type": "Boolean"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Views": [
+                            {
+                                "Title": "Approved Suppliers",
+                                "Query": "<Where><Eq><FieldRef Name='active'/><Value Type='Boolean'>1</Value></Eq></Where>"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Aster Ridge Biomanufacturing",
+                                "supplierId": "sup-001",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "ALLER-10 tablets, ALLER-20 tablets",
+                                "active": true
+                            },
+                            {
+                                "Title": "Northstar Fill Finish",
+                                "supplierId": "sup-002",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "ALLER-INJ prefilled syringe program",
+                                "active": true
+                            },
+                            {
+                                "Title": "HelioPack Pharma Services",
+                                "supplierId": "sup-003",
+                                "supplierType": "Packaging partner",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER-10 EU carton, ALLER-20 EU carton",
+                                "active": true
+                            },
+                            {
+                                "Title": "Meridian API Works",
+                                "supplierId": "sup-004",
+                                "supplierType": "API supplier",
+                                "region": "Asia Pacific",
+                                "productsMaterials": "AUR-API-7 active pharmaceutical ingredient",
+                                "active": true
+                            },
+                            {
+                                "Title": "Crescent GMP Labs",
+                                "supplierId": "sup-005",
+                                "supplierType": "Quality lab",
+                                "region": "North America",
+                                "productsMaterials": "ALLER stability and release testing program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Summit Dose Manufacturing",
+                                "supplierId": "sup-006",
+                                "supplierType": "Contract manufacturer",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER-CAP 25 mg, ALLER-CAP 50 mg",
+                                "active": true
+                            },
+                            {
+                                "Title": "Orchid Clinical Supply",
+                                "supplierId": "sup-007",
+                                "supplierType": "Clinical supply partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER Phase II clinical supply kits",
+                                "active": true
+                            },
+                            {
+                                "Title": "Valence Cold Chain Logistics",
+                                "supplierId": "sup-008",
+                                "supplierType": "Logistics partner",
+                                "region": "Global",
+                                "productsMaterials": "ALLER commercial and clinical temperature-controlled shipments",
+                                "active": true
+                            },
+                            {
+                                "Title": "BluePeak Biologics",
+                                "supplierId": "sup-009",
+                                "supplierType": "Contract manufacturer",
+                                "region": "North America",
+                                "productsMaterials": "BP-ALLER biologic drug substance program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Keystone Device Assembly",
+                                "supplierId": "sup-010",
+                                "supplierType": "Combination device partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER auto-injector assembly",
+                                "active": true
+                            },
+                            {
+                                "Title": "LumaSterile Services",
+                                "supplierId": "sup-011",
+                                "supplierType": "Sterilization partner",
+                                "region": "Europe",
+                                "productsMaterials": "ALLER device and packaging sterilization lots",
+                                "active": true
+                            },
+                            {
+                                "Title": "Pioneer Process Development",
+                                "supplierId": "sup-012",
+                                "supplierType": "Process development partner",
+                                "region": "North America",
+                                "productsMaterials": "ALLER process development and validation program",
+                                "active": true
+                            },
+                            {
+                                "Title": "Evergreen Excipients",
+                                "supplierId": "sup-013",
+                                "supplierType": "Materials supplier",
+                                "region": "North America",
+                                "productsMaterials": "ALLER excipient and specialty ingredient supply",
+                                "active": true
+                            },
+                            {
+                                "Title": "Atlas Regional Manufacturing",
+                                "supplierId": "sup-014",
+                                "supplierType": "Contract manufacturer",
+                                "region": "Latin America",
+                                "productsMaterials": "ALLER-10 tablets, ALLER-20 tablets, regional OTC bundles",
+                                "active": true
+                            },
+                            {
+                                "Title": "Signal Ridge Regulatory Services",
+                                "supplierId": "sup-015",
+                                "supplierType": "Regulatory services partner",
+                                "region": "Global",
+                                "productsMaterials": "ALLER global regulatory support program",
+                                "active": true
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Supplier Capacity Tracker",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "supplierCapacityTracker",
+                                "DisplayName": "Supplier Capacity Tracker",
+                                "Columns": [
+                                    {
+                                        "InternalName": "supplier",
+                                        "DisplayName": "Supplier",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "product",
+                                        "DisplayName": "Product",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "utilisation",
+                                        "DisplayName": "Utilisation",
+                                        "Type": "Number"
+                                    },
+                                    {
+                                        "InternalName": "status",
+                                        "DisplayName": "Status",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "Green",
+                                            "Amber",
+                                            "Red"
+                                        ]
+                                    }
+                                ]
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "Aster Ridge Biomanufacturing",
+                                "supplier": "Aster Ridge Biomanufacturing",
+                                "product": "ALLER-10 tablets, ALLER-20 tablets",
+                                "utilisation": 94,
+                                "status": "Amber"
+                            },
+                            {
+                                "Title": "Atlas Regional Manufacturing",
+                                "supplier": "Atlas Regional Manufacturing",
+                                "product": "ALLER-10 tablets, ALLER-20 tablets, regional OTC bundles",
+                                "utilisation": 68,
+                                "status": "Green"
+                            },
+                            {
+                                "Title": "Meridian API Works",
+                                "supplier": "Meridian API Works",
+                                "product": "AUR-API-7, RM-72",
+                                "utilisation": 96,
+                                "status": "Red"
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "RFPs",
+                        "Template": "GenericList",
+                        "ContentTypes": [
+                            {
+                                "InternalName": "rfps",
+                                "DisplayName": "RFPs",
+                                "Columns": [
+                                    {
+                                        "InternalName": "scope",
+                                        "DisplayName": "Scope",
+                                        "Type": "Note"
+                                    },
+                                    {
+                                        "InternalName": "status",
+                                        "DisplayName": "Status",
+                                        "Type": "Choice",
+                                        "Choices": [
+                                            "Draft",
+                                            "Active",
+                                            "Closed"
+                                        ]
+                                    },
+                                    {
+                                        "InternalName": "invitedSuppliers",
+                                        "DisplayName": "Invited Suppliers",
+                                        "Type": "Text"
+                                    },
+                                    {
+                                        "InternalName": "issueOffset",
+                                        "DisplayName": "Issue Offset",
+                                        "Type": "Number"
+                                    }
+                                ]
+                            }
+                        ],
+                        "Views": [
+                            {
+                                "Title": "Active RFPs",
+                                "Query": "<Where><Eq><FieldRef Name='status'/><Value Type='Choice'>Active</Value></Eq></Where>"
+                            }
+                        ],
+                        "Items": [
+                            {
+                                "Title": "ALLER tablet capacity expansion",
+                                "scope": "Additional capacity for ALLER-10 and ALLER-20 tablets",
+                                "status": "Active",
+                                "invitedSuppliers": "Aster Ridge Biomanufacturing; Atlas Regional Manufacturing",
+                                "issueOffset": -1
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "Title": "Sales Team",
+            "URL": "Sales-Team",
+            "Description": "Unified Business Data - Caldova sales and customer engagement site",
+            "EnableMicrosoftTeams": true,
+            "IsPublic": false,
+            "Owners": [
+                "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Members": [
+                "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Content": {
+                "Documents": [
+                    {
+                        "Title": "Healthcare Account Strategy",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Healthcare Account Strategy.docx",
+                        "CreatedOffset": -114,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -28,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Customer Engagement Summary",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Customer Engagement Summary.pdf",
+                        "CreatedOffset": -51,
+                        "CreatedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Territory Review",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Territory Review.docx",
+                        "CreatedOffset": -71,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -21,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Renewal Strategy",
+                        "Path": "Content/Documents/Demo4/SharePoint_Documents/Renewal Strategy.pdf",
+                        "CreatedOffset": -58,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -5,
+                        "ModifiedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "MeetingTranscripts": [],
+                "EmailThreads": [
+                    {
+                        "Title": "Customer Escalation",
+                        "Path": "Content/Documents/Demo4/Email_Threads/Customer Escalation.md",
+                        "CreatedOffset": -16,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -14,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Renewal Discussion",
+                        "Path": "Content/Documents/Demo4/Email_Threads/Renewal Discussion.md",
+                        "CreatedOffset": -8,
+                        "CreatedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -6,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    },
+                    {
+                        "Title": "Product Adoption Review",
+                        "Path": "Content/Documents/Demo4/Email_Threads/Product Adoption Review.md",
+                        "CreatedOffset": -13,
+                        "CreatedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                        "ModifiedOffset": -12,
+                        "ModifiedBy": "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                    }
+                ],
+                "Chats": [
+                    {
+                        "Title": "Account Team",
+                        "Members": [
+                            "David Power",
+                            "Serena Ribeiro",
+                            "Charlotte Waltson"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -16,
+                                "Time": "09:00:00",
+                                "Sender": "David Power",
+                                "Message": "Meridian escalated a late shipment. @Charlotte Waltson can you get the carrier record?"
+                            },
+                            {
+                                "Offset": -16,
+                                "Time": "09:05:00",
+                                "Sender": "Charlotte Waltson",
+                                "Message": "On it."
+                            },
+                            {
+                                "Offset": -14,
+                                "Time": "09:30:00",
+                                "Sender": "David Power",
+                                "Message": "Carrier delay confirmed, no temperature excursion."
+                            },
+                            {
+                                "Offset": -7,
+                                "Time": "10:00:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "@David Power Meridian's formulary committee is in October if you want that in the plan."
+                            }
+                        ]
+                    },
+                    {
+                        "Title": "Customer Success",
+                        "Members": [
+                            "David Power",
+                            "Serena Ribeiro"
+                        ],
+                        "Messages": [
+                            {
+                                "Offset": -13,
+                                "Time": "10:30:00",
+                                "Sender": "Serena Ribeiro",
+                                "Message": "Lakeshore's ALLER-10 evaluation is complete. They'd like an ALLER-20 education session."
+                            },
+                            {
+                                "Offset": -13,
+                                "Time": "10:40:00",
+                                "Sender": "David Power",
+                                "Message": "@Serena Ribeiro great, I'll set one up."
+                            },
+                            {
+                                "Offset": -5,
+                                "Time": "14:00:00",
+                                "Sender": "David Power",
+                                "Message": "Renewal Strategy updated with the adoption data."
+                            }
                         ]
                     }
                 ]

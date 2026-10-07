@@ -1,15 +1,4 @@
-# Provisions the SharePoint lists and libraries described by each site's Content.Lists and
-# Content.Libraries in content.json: term sets, site columns, site content types, the lists
-# and libraries themselves, their views and their sample data.
-#
-# Every function checks for what already exists before creating it, so the whole flow can be
-# re-run safely and only fills in what is missing.
-
 $script:SharePointContentGroup = "WorkIQ Starter Pack"
-
-# content.json gives every content type and column an internal Name (camelCase) and a DisplayName.
-# Columns keep the internal name as their SharePoint internal name. SharePoint content types have no
-# separate internal name, so they are created, found and attached under their display name.
 function Get-ContentTypeDisplayName {
     param(
         [Parameter(Mandatory = $true)]
@@ -19,7 +8,6 @@ function Get-ContentTypeDisplayName {
     if ($ContentType.DisplayName) { return $ContentType.DisplayName }
     return $ContentType.InternalName
 }
-
 function Add-SiteListsAndLibraries {
     param(
         [Parameter(Mandatory = $true)]
@@ -42,8 +30,6 @@ function Add-SiteListsAndLibraries {
             $connection = Connect-PnPOnline -Url $siteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
             Write-InstallLogAction -Message "Provisioning lists and libraries for site '$($site.URL)'."
 
-            # Order matters: term sets feed taxonomy columns, columns feed content types, and
-            # content types/columns must exist before the lists that use them.
             Add-SiteTermSets -Connection $connection -Site $site -Lists $lists -Libraries $libraries
             Add-SiteColumns -Connection $connection -Site $site -Lists $lists -Libraries $libraries
             Add-SiteContentTypes -Connection $connection -Site $site -Lists $lists -Libraries $libraries
@@ -79,9 +65,6 @@ function Add-SiteListsAndLibraries {
         }
     }
 }
-
-# Every column the site's lists and libraries use, de-duplicated by internal name. Columns that
-# sit directly on a list/library and columns nested in its content types are both included.
 function Get-SiteColumnDefinitions {
     param(
         [Parameter(Mandatory = $true)]

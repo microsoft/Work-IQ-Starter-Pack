@@ -99,9 +99,6 @@ try {
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
 
-    # Connect to SharePoint Online using PnP PowerShell. Connect explicitly (rather than relying on
-    # Connect-WorkIQGraph to do it) - Connect-WorkIQPnP skips connecting when a previous run in this
-    # session left its client ID global set, which leaves us signed out after the Disconnect above.
     $sharePointUrl = "https://$($config.Settings.TenantPrefix).sharepoint.com"
     try {
         Connect-PnPOnline -Url $sharePointUrl -ClientId $config.Settings.ClientId -Interactive -ErrorAction Stop
@@ -115,9 +112,7 @@ try {
     # Set the global Graph variables, reusing the PnP connection made above
     Connect-WorkIQGraph -SharePointUrl $sharePointUrl -ClientId $config.Settings.ClientId
 
-    # Real (existing) users keep their mailboxes, so the imported emails have to be removed explicitly.
-    # Demo users' mailboxes disappear with the users. Deleting from another user's mailbox needs the
-    # app-only Mail.ReadWrite token, which comes from the migration certificate.
+    # Deleting from real user mailboxes requires a Teams chat migration certificate and access token. 
     $migrationCertificatePath = Join-Path -Path $PSScriptRoot -ChildPath "Installation/.certs/teams-chat-migration.pfx"
     if (((Test-Path $customUsersPath) -or (Test-Path $customContentPath)) -and (Test-Path $migrationCertificatePath)) {
         try {

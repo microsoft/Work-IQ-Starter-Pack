@@ -86,24 +86,43 @@ function Remove-Teams {
                 $existingTeam = Get-PnPTeamsTeam -ErrorAction SilentlyContinue | Where-Object { $_.MailNickName -eq $site.URL } | Select-Object -First 1
             }
 
+            # Deleted items take time to show up in the bins, so only poll after a team was removed.
+            $waitForBins = $false
             if ($existingTeam) {
                 Remove-PnPTeamsTeam -Identity $existingTeam.GroupId -Force
                 Write-InstallLogAction "Removed Team '$($site.Title)' ($($site.URL)) and its Microsoft 365 group."
+                $waitForBins = $true
             }
             else {
                 Write-InstallLogAction "Team for site '$($site.URL)' does not exist, skipping deletion."
             }
 
-            $deletedGroup = Get-PnPDeletedMicrosoft365Group -ErrorAction SilentlyContinue | Where-Object { $_.MailNickname -eq $site.URL } | Select-Object -First 1
+            $deadline = (Get-Date).AddMinutes(3)
+            do {
+                $deletedGroup = Get-PnPDeletedMicrosoft365Group -ErrorAction SilentlyContinue | Where-Object { $_.MailNickname -eq $site.URL } | Select-Object -First 1
+                if (-not $deletedGroup -and $waitForBins) { Start-Sleep -Seconds 10 }
+            } while (-not $deletedGroup -and $waitForBins -and (Get-Date) -lt $deadline)
+
             if ($deletedGroup) {
                 Remove-PnPDeletedMicrosoft365Group -Identity $deletedGroup.Id
                 Write-InstallLogAction "Purged group '$($site.URL)' from the deleted groups bin."
             }
+            elseif ($waitForBins) {
+                Write-InstallLogAction "Group '$($site.URL)' did not appear in the deleted groups bin in time." -Level Warning
+            }
 
-            $deletedSite = Get-PnPTenantDeletedSite -Identity $siteUrl -ErrorAction SilentlyContinue
+            $deadline = (Get-Date).AddMinutes(5)
+            do {
+                $deletedSite = Get-PnPTenantDeletedSite -Identity $siteUrl -ErrorAction SilentlyContinue
+                if (-not $deletedSite -and $waitForBins) { Start-Sleep -Seconds 10 }
+            } while (-not $deletedSite -and $waitForBins -and (Get-Date) -lt $deadline)
+
             if ($deletedSite) {
                 Remove-PnPTenantDeletedSite -Identity $siteUrl -Force
                 Write-InstallLogAction "Purged site '$($site.Title)' from the tenant recycle bin at $siteUrl."
+            }
+            elseif ($waitForBins) {
+                Write-InstallLogAction "Site '$siteUrl' did not appear in the tenant recycle bin in time." -Level Warning
             }
         }
         catch {

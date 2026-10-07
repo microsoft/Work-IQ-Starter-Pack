@@ -9,18 +9,6 @@ $WorkIQSharePointDelegatePermissions = @($WorkIQAppRegistrationPermissions.Share
 $GraphResourceAppId = "00000003-0000-0000-c000-000000000000"
 $SharePointResourceAppId = "00000003-0000-0ff1-ce00-000000000000"
 
-function Install-PnPPowerShellModule {
-    try {
-        if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
-            Install-Module -Name PnP.PowerShell -Scope CurrentUser -Force
-        }
-        Import-Module PnP.PowerShell
-    }
-    catch {
-        throw "Failed to install or import the PnP.PowerShell module: $($_.Exception.Message)"
-    }
-}
-
 function New-AppRegistration {
     param(
         [Parameter(Mandatory = $true)]
@@ -106,8 +94,6 @@ function Update-AppRegistrationPermissions {
     )
 
     try {
-        # A .default token carries every delegated Graph scope that has been consented on the app, so it
-        # shows both whether the app can edit itself and whether consent is still outstanding.
         $token = Get-PnPAccessToken -Scopes "https://graph.microsoft.com/.default"
         $grantedScopes = (ConvertFrom-AccessToken -Token $token).scp -split ' '
     }
@@ -133,8 +119,6 @@ function Update-AppRegistrationPermissions {
             @{ ResourceAppId = $SharePointResourceAppId; Type = "Scope"; Names = $WorkIQSharePointDelegatePermissions }
         )
 
-        # PATCH replaces the whole requiredResourceAccess array, so start from what is already on the app
-        # (including unrelated resources) and only append what's missing.
         $resourceAccessByApp = [ordered]@{}
         foreach ($resource in @($application.requiredResourceAccess)) {
             $resourceAccessByApp[$resource.resourceAppId] = [System.Collections.Generic.List[object]]@(
@@ -290,7 +274,6 @@ function Get-TeamsChatMigrationAccessToken {
             $connection = Connect-PnPOnline -Url "https://$TenantPrefix.sharepoint.com" `
                 -ClientId $ClientId -Tenant "$TenantPrefix.onmicrosoft.com" `
                 -CertificatePath $CertificatePath -ReturnConnection
-            # -ResourceUrl is ambiguous between parameter sets in PnP 3.x, so pass .default via -Scopes.
             $token = Get-PnPAccessToken -ResourceTypeName Graph -Scopes "https://graph.microsoft.com/.default" -Connection $connection
 
             # Teamwork.Migrate.All (Teams chat import) and Mail.ReadWrite (inbox import) are both
@@ -388,8 +371,6 @@ function Initialize-TeamsChatMigrationCertificate {
         Write-Host "Registered the Teams chat migration certificate on the app registration."
     }
     catch {
-        # Invoke-RestMethod's exception message only carries the HTTP status - Graph's actual
-        # error code/message (e.g. Authorization_RequestDenied) is in ErrorDetails.
         $message = "Failed to register the Teams chat migration certificate (could not $step): $($_.Exception.Message)"
         if ($_.ErrorDetails.Message) {
             $message += " Graph response: $($_.ErrorDetails.Message)"

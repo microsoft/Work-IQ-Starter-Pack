@@ -44,8 +44,6 @@ function Update-ContentPersonas {
     # Validate the result is still well-formed JSON before writing it out.
     $newContent = $contentText | ConvertFrom-Json
 
-    # Regenerating would drop the email message IDs recorded by Import-UserEmails, which a re-run needs
-    # to delete the previously imported messages. Carry them over from the existing file, keyed by thread path.
     $previousIds = @{}
     if (Test-Path $OutputPath) {
         try {
