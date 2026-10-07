@@ -83,9 +83,9 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
   "Title": "Clinical Formulation Overview",
   "Path": "Content/Documents/Demo1/SharePoint_Documents/Clinical Formulation Overview.pdf",
   "CreatedOffset": -102,                     // days before install day (always negative)
-  "CreatedBy": "charlotte.waltson@sympdcp.onmicrosoft.com",
+  "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
   "ModifiedOffset": -102,
-  "ModifiedBy": "charlotte.waltson@sympdcp.onmicrosoft.com"
+  "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
 }
 ```
 
