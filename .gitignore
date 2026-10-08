@@ -160,3 +160,6 @@ Logs/
 # per-run generated files (tenant prefix / persona-swapped content and resolved users)
 Content/content.custom.json
 Configuration/users.custom.json
+
+# Installer record of the meeting posts imported into each channel.
+Installation/.state/

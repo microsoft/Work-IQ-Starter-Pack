@@ -71,48 +71,53 @@ function Update-ContentPersonas {
     Set-Content -Path $OutputPath -Value $contentText
 }
 
-function Import-SiteDocuments {
+function Get-EligibleSites {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ContentPath,
+        $ContentConfig,
         [Parameter(Mandatory = $true)]
         $Config
     )
 
-    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+    # Dynamics sites belong to the Dynamics content pack, every other site to the M365 pack.
+    foreach ($site in $ContentConfig.Sites) {
+        $isDynamicsSite = [bool]$site.DynamicsContent
+        $packSelected = if ($isDynamicsSite) { $Config.Settings.InstallDynamicsContent -eq $true } else { $Config.Settings.InstallM365Content -eq $true }
 
-    foreach ($site in $contentConfig.Sites) {
-        $groups = @("Documents", "MeetingTranscripts")
-        $hasFiles = $groups | Where-Object { $site.Content -and $site.Content.$_ } | Select-Object -First 1
-        if (-not $hasFiles) {
-            continue
+        if ($packSelected) {
+            $site
         }
+        else {
+            $packName = if ($isDynamicsSite) { "Dynamics" } else { "M365" }
+            Write-InstallLogAction -Message "Skipping site '$($site.Title)': the $packName content pack was not selected."
+        }
+    }
+}
 
-        $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
-        $siteConnection = Connect-PnPOnline -Url $siteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
+function Import-SiteDocuments {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Site,
+        [Parameter(Mandatory = $true)]
+        $Config
+    )
 
-        foreach ($group in $groups) {
-            if (-not ($site.Content -and $site.Content.$group)) {
-                continue
-            }
+    if (-not ($Site.Content -and $Site.Content.Documents)) {
+        return
+    }
 
-            $channelFolder = if ($site.Channels -and $site.Channels[0].Title) { $site.Channels[0].Title } else { "General" }
-            $targetFolder = if ($group -eq "MeetingTranscripts") {
-                if ($site.EnableMicrosoftTeams) { "$channelFolder/Meeting Transcripts" } else { "Meeting Transcripts" }
-            }
-            else {
-                $channelFolder
-            }
+    $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($Site.URL)"
+    $siteConnection = Connect-PnPOnline -Url $siteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
 
-            foreach ($file in $site.Content.$group) {
-                try {
-                    Import-SiteDocument -SiteUrl $siteUrl -File $file -Connection $siteConnection -TargetFolder $targetFolder
-                    Write-InstallLogAction -Message "Imported '$($file.Title)' into site '$($site.URL)'."
-                }
-                catch {
-                    Write-Host "Failed to import '$($file.Title)' into site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
-                }
-            }
+    $channelFolder = if ($Site.Channels -and $Site.Channels[0].Title) { $Site.Channels[0].Title } else { "General" }
+
+    foreach ($file in $Site.Content.Documents) {
+        try {
+            Import-SiteDocument -SiteUrl $siteUrl -File $file -Connection $siteConnection -TargetFolder $channelFolder | Out-Null
+            Write-InstallLogAction -Message "Imported '$($file.Title)' into site '$($Site.URL)'."
+        }
+        catch {
+            Write-Host "Failed to import '$($file.Title)' into site '$($Site.URL)': $($_.Exception.Message)" -ForegroundColor Red
         }
     }
 }
@@ -126,10 +131,12 @@ function Import-SiteDocument {
         [Parameter(Mandatory = $true)]
         $Connection,
         [Parameter(Mandatory = $true)]
-        [string]$TargetFolder
+        [string]$TargetFolder,
+        # Overrides the repo-relative $File.Path for rewritten copies (e.g. transcripts with the names swapped).
+        [string]$LocalPath
     )
 
-    $localPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../$($File.Path)"))
+    $localPath = if ($LocalPath) { $LocalPath } else { [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../$($File.Path)")) }
 
     # Get the library and hydrate the RootFolder property
     $documentsLibrary = Get-PnPList -Identity "Documents" -Connection $Connection
@@ -177,7 +184,7 @@ function Import-SiteDocument {
             Accept         = "application/json;odata=verbose"
         }
         $response = Invoke-RestMethod -Method Post -Uri $url -Headers $headers -Body $body
-        $response
+        [PSCustomObject]@{ Response = $response; ServerRelativeUrl = $uploadedFile.ServerRelativeUrl }
     }
     catch {
         Write-Host "URL: $url" -ForegroundColor Yellow
@@ -190,55 +197,55 @@ function Import-SiteDocument {
 function Add-TeamsChatMessages {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ContentPath,
+        $Site,
         [Parameter(Mandatory = $true)]
         $Settings,
         [Parameter(Mandatory = $true)]
-        $MigrationHeaders
+        $MigrationHeaders,
+        # Shared across sites so every site's message timestamps are offset by the same amount.
+        [TimeSpan]$RunJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond),
+        # Pre-built messages (e.g. the meeting transcript posts from Add-TeamMeetings) imported in the
+        # same migration session, because a channel can only be migrated once.
+        $ExtraMessages = @()
     )
 
-    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+    $hasChats = $Site.Content -and $Site.Content.Chats -and $Site.Content.Chats.Count -gt 0
+    if (-not $hasChats -and @($ExtraMessages).Count -eq 0) {
+        return
+    }
 
-    $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
-
-    foreach ($site in $contentConfig.Sites) {
-        if (-not $site.Content -or -not $site.Content.Chats -or $site.Content.Chats.Count -eq 0) {
-            continue
+    try {
+        $team = Get-PnPTeamsTeam -Identity $Site.URL -ErrorAction SilentlyContinue
+        if (-not $team) {
+            throw "No Teams team found for site '$($Site.URL)'. Run Add-TeamSite first."
         }
+        $teamId = $team.GroupId
+        # Chats go in the site's first channel (see Add-TeamChannels), falling back to General when
+        # the site defines none - the same channel the site's documents are uploaded to.
+        $channelName = if ($Site.Channels -and $Site.Channels[0].Title) { $Site.Channels[0].Title } else { "General" }
+        $channelId = Get-TeamChannelId -TeamId $teamId -ChannelName $channelName
 
-        try {
-            $team = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
-            if (-not $team) {
-                throw "No Teams team found for site '$($site.URL)'. Run Add-TeamSite first."
-            }
-            $teamId = $team.GroupId
-            # Chats go in the site's first channel (see Add-TeamChannels), falling back to General when
-            # the site defines none - the same channel the site's documents are uploaded to.
-            $channelName = if ($site.Channels -and $site.Channels[0].Title) { $site.Channels[0].Title } else { "General" }
-            $channelId = Get-TeamChannelId -TeamId $teamId -ChannelName $channelName
-
-            $messages = foreach ($chat in $site.Content.Chats) {
-                foreach ($message in $chat.Messages) {
-                    $timestamp = (Get-Date).Date.AddDays($message.Offset).Add([TimeSpan]::Parse($message.Time)).Add($runJitter)
-                    [PSCustomObject]@{
-                        Timestamp = $timestamp
-                        Sender    = $message.Sender
-                        Message   = $message.Message
-                        ChatTitle = $chat.Title
-                        Members   = $chat.Members
-                    }
+        $chatMessages = foreach ($chat in @($Site.Content.Chats)) {
+            foreach ($message in $chat.Messages) {
+                $timestamp = (Get-Date).Date.AddDays($message.Offset).Add([TimeSpan]::Parse($message.Time)).Add($RunJitter)
+                [PSCustomObject]@{
+                    Timestamp = $timestamp
+                    Sender    = $message.Sender
+                    Message   = $message.Message
+                    ChatTitle = $chat.Title
+                    Members   = $chat.Members
                 }
             }
-            $messages = $messages | Sort-Object -Property Timestamp
+        }
+        $messages = @($chatMessages) + @($ExtraMessages) | Sort-Object -Property Timestamp
 
-            $imported = Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Settings $Settings -MigrationHeaders $MigrationHeaders
-            if ($imported) {
-                Write-InstallLogAction -Message "Imported $($messages.Count) chat messages into the '$channelName' channel of site '$($site.URL)'."
-            }
+        $imported = Import-TeamsChatMessages -TeamId $teamId -ChannelId $channelId -Messages $messages -Settings $Settings -MigrationHeaders $MigrationHeaders
+        if ($imported) {
+            Write-InstallLogAction -Message "Imported $imported chat messages into the '$channelName' channel of site '$($Site.URL)'."
         }
-        catch {
-            Write-Host "Failed to import chat messages into site '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
-        }
+    }
+    catch {
+        Write-InstallLogAction -Message "Failed to import chat messages into site '$($Site.URL)': $($_.Exception.Message)" -Level Error
     }
 }
 
@@ -372,6 +379,44 @@ function ConvertTo-TeamsChatMessageBody {
     return @{ contentType = "html"; content = $html.ToString(); mentions = $mentions }
 }
 
+# Which meeting posts were imported into which channel. The migration API can't de-duplicate and reading a
+# channel's messages needs another permission, so the installer keeps its own record, keyed by channel id
+# (a recreated channel has a new id and starts clean).
+$ImportedPostsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../.state/imported-posts.json"))
+
+function Get-ImportedPostSubjects {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ChannelId
+    )
+
+    if (-not (Test-Path $ImportedPostsPath)) {
+        return @()
+    }
+    $state = Get-Content -Path $ImportedPostsPath -Raw | ConvertFrom-Json
+    return @($state.$ChannelId)
+}
+
+function Add-ImportedPostSubjects {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ChannelId,
+        [string[]]$Subjects = @()
+    )
+
+    if ($Subjects.Count -eq 0) {
+        return
+    }
+    $state = [ordered]@{}
+    if (Test-Path $ImportedPostsPath) {
+        $existing = Get-Content -Path $ImportedPostsPath -Raw | ConvertFrom-Json
+        foreach ($property in $existing.PSObject.Properties) { $state[$property.Name] = @($property.Value) }
+    }
+    $state[$ChannelId] = @(@($state[$ChannelId]) + $Subjects | Where-Object { $_ } | Select-Object -Unique)
+    $null = New-Item -Path (Split-Path $ImportedPostsPath) -ItemType Directory -Force
+    $state | ConvertTo-Json -Depth 4 | Set-Content -Path $ImportedPostsPath
+}
+
 function Import-TeamsChatMessages {
     param(
         [Parameter(Mandatory = $true)]
@@ -387,7 +432,7 @@ function Import-TeamsChatMessages {
     )
 
     if ($Messages.Count -eq 0) {
-        return $false
+        return 0
     }
 
     $migrationBaseUrl = "$graphBaseUrl/teams/$TeamId/channels/$ChannelId"
@@ -395,8 +440,16 @@ function Import-TeamsChatMessages {
     $channel = Invoke-RestMethod -Uri "$migrationBaseUrl`?`$select=migrationMode,createdDateTime" -Headers $headers -Method Get
 
     if ($channel.migrationMode -eq "completed") {
-        Write-Host "Channel '$ChannelId' on team '$TeamId' was already fully migrated in a previous run - skipping." -ForegroundColor Yellow
-        return $false
+        # A completed channel can be migrated into again (startMigration), but the API does not de-duplicate.
+        # The chat history is only ever imported with the channel's first migration, so only the pre-rendered
+        # meeting posts that are not recorded as imported yet are added now.
+        $alreadyImported = Get-ImportedPostSubjects -ChannelId $ChannelId
+        $Messages = @($Messages | Where-Object { $_.Html -and $_.ChatTitle -notin $alreadyImported })
+        if ($Messages.Count -eq 0) {
+            Write-InstallLogAction -Message "Channel '$ChannelId' on team '$TeamId' was already migrated and has all of its meeting posts - skipping."
+            return 0
+        }
+        Write-InstallLogAction -Message "Channel '$ChannelId' on team '$TeamId' was already migrated - importing $($Messages.Count) missing meeting post(s)."
     }
 
     if ($channel.migrationMode -ne "inProgress") {
@@ -426,7 +479,13 @@ function Import-TeamsChatMessages {
 
             $isTopicStarter = -not $topicStarterIds.ContainsKey($message.ChatTitle)
 
-            $renderedBody = ConvertTo-TeamsChatMessageBody -Text $message.Message -MentionCandidates $message.Members -Settings $Settings -SenderCache $senderCache
+            # Pre-rendered HTML (meeting transcript links) skips the @mention rendering.
+            $renderedBody = if ($message.Html) {
+                @{ contentType = "html"; content = $message.Html; mentions = @() }
+            }
+            else {
+                ConvertTo-TeamsChatMessageBody -Text $message.Message -MentionCandidates $message.Members -Settings $Settings -SenderCache $senderCache
+            }
 
             $bodyProperties = @{
                 createdDateTime = $messageTimestamp.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
@@ -461,7 +520,8 @@ function Import-TeamsChatMessages {
         # Only seal the migration once every message has actually been sent - completing it after a
         # partial failure would permanently lock in a half-imported channel.
         $null = Invoke-RestMethod -Uri "$migrationBaseUrl/completeMigration" -Headers $MigrationHeaders -Method Post
-        return $true
+        Add-ImportedPostSubjects -ChannelId $ChannelId -Subjects @($Messages | Where-Object { $_.Html } | ForEach-Object { $_.ChatTitle })
+        return $Messages.Count
     }
     catch {
         Write-Host "Import-TeamsChatMessages failed for team '$TeamId', channel '$ChannelId': $($_.Exception.Message)" -ForegroundColor Red

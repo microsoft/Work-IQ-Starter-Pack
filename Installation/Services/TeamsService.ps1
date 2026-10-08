@@ -1,44 +1,52 @@
 function Add-TeamSite {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ContentPath,
+        $Site,
         [Parameter(Mandatory = $true)]
         $Config
     )
 
-    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+    # Returns $true when the team is ready, $false on failure so the caller can skip the site's other steps.
+    try {
+        $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($Site.URL)"
+        $existingTeam = Get-PnPTeamsTeam -Identity $Site.URL -ErrorAction SilentlyContinue
 
-    foreach ($site in $contentConfig.Sites) {
-        try {
-            $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
-            $existingTeam = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
-
-            if (-not $existingTeam) {
-                $visibility = if ($site.IsPublic) { "Public" } else { "Private" }
-                $teamParams = @{
-                    DisplayName  = $site.Title
-                    MailNickName = $site.URL
-                    Description  = $site.Description
-                    Visibility   = $visibility
-                }
-
-                New-PnPTeamsTeam @teamParams | Out-Null
-                $groupId = Wait-ForTeamProvisioned -SiteUrl $siteUrl -MailNickName $site.URL
-                Add-TeamAccess -GroupId $groupId -Site $site
-                Add-TeamChannels -GroupId $groupId -Site $site
-                Write-InstallLogAction -Message "Created site '$($site.Title)' at $siteUrl"
+        if (-not $existingTeam) {
+            $visibility = if ($Site.IsPublic) { "Public" } else { "Private" }
+            $teamParams = @{
+                DisplayName  = $Site.Title
+                MailNickName = $Site.URL
+                Description  = $Site.Description
+                Visibility   = $visibility
             }
-            else {
-                Write-InstallLogAction -Message "Team for site '$($site.URL)' already exists, skipping creation."
-                $groupId = Wait-ForTeamProvisioned -SiteUrl $siteUrl -MailNickName $site.URL
-                Remove-TeamAccess -GroupId $groupId -Site $site
-                Add-TeamAccess -GroupId $groupId -Site $site
-                Add-TeamChannels -GroupId $groupId -Site $site
+
+            New-PnPTeamsTeam @teamParams | Out-Null
+            $groupId = Wait-ForTeamProvisioned -SiteUrl $siteUrl -MailNickName $Site.URL
+            Add-TeamAccess -GroupId $groupId -Site $Site | Out-Null
+            Add-TeamChannels -GroupId $groupId -Site $Site | Out-Null
+            Write-InstallLogAction -Message "Created site '$($Site.Title)' at $siteUrl"
+        }
+        else {
+            Write-InstallLogAction -Message "Team for site '$($Site.URL)' already exists, skipping creation."
+            $groupId = $existingTeam.GroupId
+
+            # Channels only need the team, so create any missing ones before waiting on the SharePoint site -
+            # a slow or half-provisioned site must not leave a previously created team without its channels.
+            Add-TeamChannels -GroupId $groupId -Site $Site | Out-Null
+            try {
+                $null = Wait-ForTeamProvisioned -SiteUrl $siteUrl -MailNickName $Site.URL
             }
+            catch {
+                Write-InstallLogAction -Message "Team '$($Site.URL)' exists but is not fully provisioned: $($_.Exception.Message)" -Level Warning
+            }
+            Remove-TeamAccess -GroupId $groupId -Site $Site | Out-Null
+            Add-TeamAccess -GroupId $groupId -Site $Site | Out-Null
         }
-        catch {
-            Write-Host "Failed to create team (Add-TeamSite). '$($site.URL)': $($_.Exception.Message)" -ForegroundColor Red
-        }
+        return $true
+    }
+    catch {
+        Write-InstallLogAction -Message "Failed to create team (Add-TeamSite). '$($Site.URL)': $($_.Exception.Message)" -Level Error
+        return $false
     }
 }
 
@@ -62,7 +70,7 @@ function Add-TeamChannels {
             Write-InstallLogAction -Message "Added channel '$($channel.Title)' to site '$($Site.URL)'."
         }
         catch {
-            Write-Host "Failed to add channel '$($channel.Title)' to site '$($Site.URL)': $($_.Exception.Message)" -ForegroundColor Red
+            Write-InstallLogAction -Message "Failed to add channel '$($channel.Title)' to site '$($Site.URL)': $($_.Exception.Message)" -Level Error
         }
     }
 }
@@ -111,7 +119,34 @@ function Remove-Teams {
                 Write-InstallLogAction "Group '$($site.URL)' did not appear in the deleted groups bin in time." -Level Warning
             }
 
+            # The site can stay bound to the deleted group for a while, so keep retrying the removal
+            # until it leaves active use (or was never there).
             $deadline = (Get-Date).AddMinutes(5)
+            $siteInactive = $false
+            do {
+                $activeSite = Get-PnPTenantSite -Identity $siteUrl -ErrorAction SilentlyContinue
+                if (-not $activeSite) {
+                    $siteInactive = $true
+                    break
+                }
+
+                try {
+                    Remove-PnPTenantSite -Url $siteUrl -Force -ErrorAction Stop
+                    Write-InstallLogAction "Removed site '$($site.Title)' from active sites at $siteUrl."
+                    $siteInactive = $true
+                }
+                catch {
+                    if (-not $waitForBins) { break }
+                    Start-Sleep -Seconds 10
+                }
+            } while (-not $siteInactive -and (Get-Date) -lt $deadline)
+
+            if (-not $siteInactive) {
+                Write-InstallLogAction "Site '$siteUrl' could not be removed from active sites in time." -Level Warning
+                continue
+            }
+
+            $deadline = (Get-Date).AddMinutes(2)
             do {
                 $deletedSite = Get-PnPTenantDeletedSite -Identity $siteUrl -ErrorAction SilentlyContinue
                 if (-not $deletedSite -and $waitForBins) { Start-Sleep -Seconds 10 }
@@ -140,7 +175,7 @@ function Wait-ForTeamProvisioned {
     )
 
     $pollIntervalSeconds = 5
-    $timeoutSeconds = 120
+    $timeoutSeconds = 300
     $elapsedSeconds = 0
     $site = $null
     $groupId = $null

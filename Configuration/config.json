@@ -4,8 +4,8 @@
     "InstallM365Content": true,
     "InstallDynamicsContent": true,
     "InstallDemoUsers": true,
-    "TenantPrefix": "",
-    "ClientId": "",
+    "TenantPrefix": "sympdcp",
+    "ClientId": "89c83c5e-7542-4483-9ee3-71cebabf4675",
     "ProvisionUserEmails": true
   }
 }

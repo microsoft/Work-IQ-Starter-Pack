@@ -11,58 +11,54 @@ function Get-ContentTypeDisplayName {
 function Add-SiteListsAndLibraries {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$ContentPath,
+        $Site,
         [Parameter(Mandatory = $true)]
         $Config
     )
 
-    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+    $lists = @($Site.Content.Lists | Where-Object { $_ })
+    $libraries = @($Site.Content.Libraries | Where-Object { $_ })
+    if ($lists.Count -eq 0 -and $libraries.Count -eq 0) {
+        return
+    }
 
-    foreach ($site in $contentConfig.Sites) {
-        $lists = @($site.Content.Lists | Where-Object { $_ })
-        $libraries = @($site.Content.Libraries | Where-Object { $_ })
-        if ($lists.Count -eq 0 -and $libraries.Count -eq 0) {
-            continue
-        }
+    try {
+        $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($Site.URL)"
+        $connection = Connect-PnPOnline -Url $siteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
+        Write-InstallLogAction -Message "Provisioning lists and libraries for site '$($Site.URL)'."
 
-        try {
-            $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
-            $connection = Connect-PnPOnline -Url $siteUrl -ClientId $Config.Settings.ClientId -Interactive -ReturnConnection
-            Write-InstallLogAction -Message "Provisioning lists and libraries for site '$($site.URL)'."
+        Add-SiteTermSets -Connection $connection -Site $Site -Lists $lists -Libraries $libraries
+        Add-SiteColumns -Connection $connection -Site $Site -Lists $lists -Libraries $libraries
+        Add-SiteContentTypes -Connection $connection -Site $Site -Lists $lists -Libraries $libraries
 
-            Add-SiteTermSets -Connection $connection -Site $site -Lists $lists -Libraries $libraries
-            Add-SiteColumns -Connection $connection -Site $site -Lists $lists -Libraries $libraries
-            Add-SiteContentTypes -Connection $connection -Site $site -Lists $lists -Libraries $libraries
-
-            foreach ($list in $lists) {
-                try {
-                    $pnpList = Add-SiteList -Connection $connection -Site $site -Definition $list
-                    Add-ListColumns -Connection $connection -Site $site -List $pnpList -Definition $list
-                    Add-ListContentTypes -Connection $connection -Site $site -List $pnpList -Definition $list
-                    Add-ListViews -Connection $connection -Site $site -List $pnpList -Definition $list
-                    Add-ListItems -Connection $connection -Site $site -List $pnpList -Definition $list
-                }
-                catch {
-                    Write-InstallLogAction -Message "Failed to provision list '$($list.Title)' on site '$($site.URL)': $($_.Exception.Message)" -Level Error
-                }
+        foreach ($list in $lists) {
+            try {
+                $pnpList = Add-SiteList -Connection $connection -Site $Site -Definition $list
+                Add-ListColumns -Connection $connection -Site $Site -List $pnpList -Definition $list
+                Add-ListContentTypes -Connection $connection -Site $Site -List $pnpList -Definition $list
+                Add-ListViews -Connection $connection -Site $Site -List $pnpList -Definition $list
+                Add-ListItems -Connection $connection -Site $Site -List $pnpList -Definition $list
             }
-
-            foreach ($library in $libraries) {
-                try {
-                    $pnpLibrary = Add-SiteList -Connection $connection -Site $site -Definition $library
-                    Add-ListColumns -Connection $connection -Site $site -List $pnpLibrary -Definition $library
-                    Add-ListContentTypes -Connection $connection -Site $site -List $pnpLibrary -Definition $library
-                    Add-ListViews -Connection $connection -Site $site -List $pnpLibrary -Definition $library
-                    Add-LibraryDocuments -Connection $connection -Site $site -Library $pnpLibrary -Definition $library
-                }
-                catch {
-                    Write-InstallLogAction -Message "Failed to provision library '$($library.Title)' on site '$($site.URL)': $($_.Exception.Message)" -Level Error
-                }
+            catch {
+                Write-InstallLogAction -Message "Failed to provision list '$($list.Title)' on site '$($Site.URL)': $($_.Exception.Message)" -Level Error
             }
         }
-        catch {
-            Write-InstallLogAction -Message "Failed to provision lists and libraries for site '$($site.URL)': $($_.Exception.Message)" -Level Error
+
+        foreach ($library in $libraries) {
+            try {
+                $pnpLibrary = Add-SiteList -Connection $connection -Site $Site -Definition $library
+                Add-ListColumns -Connection $connection -Site $Site -List $pnpLibrary -Definition $library
+                Add-ListContentTypes -Connection $connection -Site $Site -List $pnpLibrary -Definition $library
+                Add-ListViews -Connection $connection -Site $Site -List $pnpLibrary -Definition $library
+                Add-LibraryDocuments -Connection $connection -Site $Site -Library $pnpLibrary -Definition $library
+            }
+            catch {
+                Write-InstallLogAction -Message "Failed to provision library '$($library.Title)' on site '$($Site.URL)': $($_.Exception.Message)" -Level Error
+            }
         }
+    }
+    catch {
+        Write-InstallLogAction -Message "Failed to provision lists and libraries for site '$($Site.URL)': $($_.Exception.Message)" -Level Error
     }
 }
 function Get-SiteColumnDefinitions {

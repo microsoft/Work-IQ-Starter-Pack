@@ -61,11 +61,12 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
       "Description": "...",
       "EnableMicrosoftTeams": true,
       "IsPublic": false,
+      "DynamicsContent": false,
       "Owners": ["<user email>", ...],       // from settings.json's Users
       "Members": ["<user email>", ...],
       "Content": {
         "Documents": [ /* SharePoint documents */ ],
-        "MeetingTranscripts": [ /* Teams meeting transcripts */ ],
+        "Meetings": [ /* Past Teams meetings, each linked to a transcript file */ ],
         "EmailThreads": [ /* Email discussions */ ],
         "Chats": [ /* Teams chats */ ],
         "Lists": [ /* Lists */ ],
@@ -76,7 +77,7 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
 }
 ```
 
-`Documents`, `MeetingTranscripts`, and `EmailThreads` all share the same file-entry shape (they're just files uploaded into the site's document library):
+`Documents` and `EmailThreads` share the same file-entry shape (they're just files uploaded into the site's document library):
 
 ```jsonc
 {
@@ -91,7 +92,24 @@ Before generating content for a demo, check whether `Content/Documents/<DemoName
 
 - `Path` is repo-relative (from the repository root, including the `Content/` prefix) and must point at a real file under `Content/Documents/<DemoName>/<Category>/`, where `<Category>` is `SharePoint_Documents`, `Meeting_Transcripts`, or `Email_Threads` to match the folder each content type is saved into.
 - `CreatedBy`/`ModifiedBy` are demo user emails from `Configuration/settings.json`'s `Users` list.
-- For a meeting transcript or a single-session document, `CreatedOffset` and `ModifiedOffset` are the same. For an email thread, use the date of the first message as `Created`/`CreatedBy` and the date of the last message as `Modified`/`ModifiedBy`.
+- For a single-session document, `CreatedOffset` and `ModifiedOffset` are the same. For an email thread, use the date of the first message as `Created`/`CreatedBy` and the date of the last message as `Modified`/`ModifiedBy`.
+
+`Meetings` entries describe a past Teams meeting. The installer creates it on the team calendar, uploads its transcript Word document (`.docx`) to the channel's `Meeting Transcripts` folder, and posts a message in the channel linking to it:
+
+```jsonc
+{
+  "Title": "Launch Readiness Review",
+  "StartOffset": -15,                       // days before install day (always negative, so the meeting is in the past)
+  "StartTime": "11:00:08",                  // HH:mm:ss (UTC) - the first [HH:MM:SS] timestamp in the transcript
+  "DurationMinutes": 6,                     // from the first to the last transcript timestamp, plus a minute (minimum 5)
+  "Organizer": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+  "TranscriptPath": "Content/Documents/Demo1/Meeting_Transcripts/Launch Readiness Review.docx"
+}
+```
+
+- `TranscriptPath` follows the same repo-relative rules as `Path` above and must be a `.docx` file in `Meeting_Transcripts`.
+- Attendees are read from the transcript's `Attendees:` paragraph, so every attendee must be a demo user from `settings.json`'s `Users` list, written as `Full Name (Job Title)`.
+- `StartOffset` must be consistent with the other dates for the site (documents, emails, chats), and never in the future.
 
 `Chats` keeps its existing shape — `Title`, `Members` (full names), and `Messages` (`Offset`, `Time`, `Sender`, `Message`) — derived directly from the corresponding Teams chat markdown file, so the JSON and the file stay in sync.
 
@@ -126,10 +144,19 @@ Content types and site columns each carry two names:
 }
 ```
 
+#### Transcript Word document structure
+Meeting transcripts are `.docx` files (so they open in Teams). The installer reads and rewrites them, so keep this exact structure:
+- A Heading 1 paragraph: `Meeting Transcript: <Title>`.
+- One paragraph: a bold run `Attendees:` followed by a plain run `Full Name (Job Title), Full Name (Job Title), ...`.
+- A horizontal rule (paragraph bottom border) separating the header from the dialogue.
+- One paragraph per spoken line: a bold run `[HH:MM:SS] Full Name:` followed by a plain run with the spoken text.
+- Names appear as unbroken text within a single run (never split a name across runs or formatting changes), because the installer swaps the demo personas' names for the provisioned users' names inside the document.
+- No tables, text boxes, headers or footers, and no date line.
+
 #### No metadata duplication in file bodies
 `content.json` is the only place `Title`/`Created*`/`Modified*` lives. Don't also restate it inside the file itself:
 - **SharePoint documents**: no "Prepared by" / "Date prepared" / "Last updated" header line, and no "Update Log" section restating those dates. Start straight into the content after the title (a short "Product:" / "Classification:" line is fine — that's not tracked in `content.json`).
-- **Meeting transcripts**: no "Date:" line. Keep "Attendees:" (not tracked elsewhere). The transcript's date lives only in its `content.json` `MeetingTranscripts` entry.
+- **Meeting transcripts**: no "Date:" line. Keep "Attendees:" (not tracked elsewhere). Every spoken line must be its own paragraph in the form `[HH:MM:SS] Full Name: text` with timestamps that only increase - the start time and duration are derived from them. See "Transcript Word document structure" below. The meeting's date and time live only in its `content.json` `Meetings` entry.
 - **Email threads** and **Teams chats** are exempt from this rule — the per-message `From`/`Date` (emails) and `Sender`/timestamp (chats) are the actual content, not a redundant summary block, and `content.json`'s entries for them are derived from that content rather than duplicating it.
 
 ## Demo information
@@ -150,7 +177,7 @@ Documents should be a mix of DOCX and PDF files.
 - Commercialisation timeline
 
 #### Teams meetings
-Create a transcript for the teams meeting. Each of these meeting transcripts should be saved as a markdown file.
+Create a transcript for the teams meeting. Each of these meeting transcripts should be saved as a Word document (`.docx`), and each needs a `Meetings` entry in `content.json` (start offset, start time and duration) so the installer can create it as a past Teams meeting in the channel.
 
 - Launch readiness review
 - Regulatory strategy review
@@ -244,7 +271,7 @@ This demo should be provisioned in the Procurement team
 - Supplier onboarding checklist
 
 #### Teams meetings
-Create a transcript for the teams meeting. Each of these meeting transcripts should be saved as a markdown file.
+Create a transcript for the teams meeting. Each of these meeting transcripts should be saved as a Word document (`.docx`), and each needs a `Meetings` entry in `content.json` (start offset, start time and duration) so the installer can create it as a past Teams meeting in the channel.
 
 - Supplier Quarterly Review
 - Emergency Capacity Review
