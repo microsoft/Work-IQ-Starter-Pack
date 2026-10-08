@@ -13,7 +13,7 @@ The Work IQ Starter Pack is a collection of PowerShell scripts that automate the
 
 - Users (optional), their licenses, and profile photos
 - Microsoft Teams and their SharePoint sites, with channels
-- Documents and meeting transcripts uploaded with the right authors and dates
+- Documents uploaded with the right authors and dates, and past Teams meetings created on each team's calendar with their transcripts (Word documents) linked from the channel
 - SharePoint lists, libraries, content types, views, and managed-metadata term sets
 - Teams chat history, imported with the Graph channel migration API
 - Email threads, delivered to each recipient's inbox
@@ -94,7 +94,7 @@ The user running the installer must be a Global Administrator, because the insta
 The app registration needs the permissions below. The installer creates them, as defined under `AppRegistrationPermissions` in [Configuration/settings.json](./Configuration/settings.json). With an existing app registration, the installer adds any missing permissions and opens the admin consent page for you to approve them. For this to work, the existing app must already have the delegated Graph permission `Application.ReadWrite.All` with admin consent granted.
 
 #### Graph Delegated Permissions
-- Group.ReadWrite.All
+- Group.ReadWrite.All (also creates the past meetings on the team calendar)
 - User.ReadWrite.All
 - Directory.ReadWrite.All
 - Application.ReadWrite.All
@@ -121,7 +121,7 @@ The two application permissions are used with certificate authentication. The in
 The installer can be run again. Existing Teams are kept, but their owners and members are reset. Chat history is skipped if the channel was already imported. Emails are deleted and re-delivered.
 
 ## What gets installed
-- **Market Research Team** (private Team): a "Launch Readiness" channel, 9 documents, 5 meeting transcripts, 5 email threads, and 4 chats.
+- **Market Research Team** (private Team): a "Launch Readiness" channel, 9 documents, 5 past Teams meetings (with transcripts), 5 email threads, and 4 chats.
 - **Finance Team** (private Team): a "Financial Investigation Cases" channel, 8 documents, 4 email threads, and 3 chats. It also gets the Supplier Directory, Financial Investigation Cases, and Procurement Exception lists, and the Contract Library. The library uses a "WorkIQ Starter Pack" term group in the tenant term store.
 - Profile photos for the demo users.
 

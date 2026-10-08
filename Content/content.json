@@ -6,6 +6,7 @@
             "Description": "Navigating Organisational Intelligence — Caldova ALLER launch collaboration site",
             "EnableMicrosoftTeams": true,
             "IsPublic": false,
+            "DynamicsContent": false,
             "Owners": [
                 "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
                 "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
@@ -96,46 +97,46 @@
                         "ModifiedBy": "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                     }
                 ],
-                "MeetingTranscripts": [
+                "Meetings": [
                     {
                         "Title": "Launch Readiness Review",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Launch Readiness Review.md",
-                        "CreatedOffset": -15,
-                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -15,
-                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -15,
+                        "StartTime": "11:00:08",
+                        "DurationMinutes": 6,
+                        "Organizer": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo1/Meeting_Transcripts/Launch Readiness Review.docx"
                     },
                     {
                         "Title": "Regulatory Strategy Review",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Regulatory Strategy Review.md",
-                        "CreatedOffset": -84,
-                        "CreatedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -84,
-                        "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -84,
+                        "StartTime": "09:00:12",
+                        "DurationMinutes": 8,
+                        "Organizer": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo1/Meeting_Transcripts/Regulatory Strategy Review.docx"
                     },
                     {
                         "Title": "Market Access Planning",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Market Access Planning.md",
-                        "CreatedOffset": -60,
-                        "CreatedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -60,
-                        "ModifiedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -60,
+                        "StartTime": "10:00:05",
+                        "DurationMinutes": 6,
+                        "Organizer": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo1/Meeting_Transcripts/Market Access Planning.docx"
                     },
                     {
                         "Title": "Cross-Functional Launch Alignment",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Cross-Functional Launch Alignment.md",
-                        "CreatedOffset": -28,
-                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -28,
-                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -28,
+                        "StartTime": "13:00:10",
+                        "DurationMinutes": 7,
+                        "Organizer": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo1/Meeting_Transcripts/Cross-Functional Launch Alignment.docx"
                     },
                     {
                         "Title": "Executive Launch Checkpoint",
-                        "Path": "Content/Documents/Demo1/Meeting_Transcripts/Executive Launch Checkpoint.md",
-                        "CreatedOffset": -1,
-                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -1,
-                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -1,
+                        "StartTime": "15:00:10",
+                        "DurationMinutes": 7,
+                        "Organizer": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo1/Meeting_Transcripts/Executive Launch Checkpoint.docx"
                     }
                 ],
                 "EmailThreads": [
@@ -487,6 +488,7 @@
             "Description": "Intelligent Investigation - Caldova supplier invoice investigation site",
             "EnableMicrosoftTeams": true,
             "IsPublic": false,
+            "DynamicsContent": false,
             "Owners": [
                 "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
                 "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
@@ -569,7 +571,7 @@
                         "ModifiedBy": "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
                     }
                 ],
-                "MeetingTranscripts": [],
+                "Meetings": [],
                 "EmailThreads": [
                     {
                         "Title": "Supplier Invoice Clarification",
@@ -1093,6 +1095,7 @@
             "Description": "Copilot Cowork - Caldova supplier capacity expansion site",
             "EnableMicrosoftTeams": true,
             "IsPublic": false,
+            "DynamicsContent": false,
             "Owners": [
                 "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
                 "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
@@ -1101,6 +1104,12 @@
                 "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
                 "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
                 "david.power@<TENANTPREFIX>.onmicrosoft.com"
+            ],
+            "Channels": [
+                {
+                    "Title": "Capacity Planning",
+                    "Description": "Channel for capacity planning discussions and updates"
+                }
             ],
             "Content": {
                 "Documents": [
@@ -1169,30 +1178,30 @@
                         "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
                     }
                 ],
-                "MeetingTranscripts": [
+                "Meetings": [
                     {
                         "Title": "Supplier Quarterly Review",
-                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Supplier Quarterly Review.md",
-                        "CreatedOffset": -20,
-                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -20,
-                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -20,
+                        "StartTime": "10:00:05",
+                        "DurationMinutes": 6,
+                        "Organizer": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo3/Meeting_Transcripts/Supplier Quarterly Review.docx"
                     },
                     {
                         "Title": "Emergency Capacity Review",
-                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Emergency Capacity Review.md",
-                        "CreatedOffset": -11,
-                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -11,
-                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -11,
+                        "StartTime": "14:00:10",
+                        "DurationMinutes": 7,
+                        "Organizer": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo3/Meeting_Transcripts/Emergency Capacity Review.docx"
                     },
                     {
                         "Title": "Procurement Steering Committee",
-                        "Path": "Content/Documents/Demo3/Meeting_Transcripts/Procurement Steering Committee.md",
-                        "CreatedOffset": -2,
-                        "CreatedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
-                        "ModifiedOffset": -2,
-                        "ModifiedBy": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                        "StartOffset": -2,
+                        "StartTime": "11:00:08",
+                        "DurationMinutes": 6,
+                        "Organizer": "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                        "TranscriptPath": "Content/Documents/Demo3/Meeting_Transcripts/Procurement Steering Committee.docx"
                     }
                 ],
                 "EmailThreads": [
@@ -1628,6 +1637,7 @@
             "Description": "Unified Business Data - Caldova sales and customer engagement site",
             "EnableMicrosoftTeams": true,
             "IsPublic": false,
+            "DynamicsContent": true,
             "Owners": [
                 "david.power@<TENANTPREFIX>.onmicrosoft.com",
                 "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
@@ -1672,7 +1682,7 @@
                         "ModifiedBy": "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
                     }
                 ],
-                "MeetingTranscripts": [],
+                "Meetings": [],
                 "EmailThreads": [
                     {
                         "Title": "Customer Escalation",

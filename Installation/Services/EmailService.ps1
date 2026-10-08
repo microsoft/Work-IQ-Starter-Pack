@@ -161,6 +161,12 @@ function Remove-InboxMessage {
 function Import-UserEmails {
     param(
         [Parameter(Mandatory = $true)]
+        $Site,
+        # The full parsed content (the caller's object) and its path: message IDs are recorded onto
+        # the threads and the whole file is saved, so earlier sites' recorded IDs are kept.
+        [Parameter(Mandatory = $true)]
+        $ContentConfig,
+        [Parameter(Mandatory = $true)]
         [string]$ContentPath,
         [Parameter(Mandatory = $true)]
         $Settings,
@@ -170,8 +176,7 @@ function Import-UserEmails {
         [hashtable]$MailHeaders
     )
 
-    Write-InstallLogAction -Message "Importing email threads from $ContentPath..."
-    $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+    Write-InstallLogAction -Message "Importing email threads for site '$($Site.URL)'..."
     $users = @($Settings.Users)
 
     function Find-EmailUser([string]$Name) {
@@ -181,86 +186,84 @@ function Import-UserEmails {
     }
 
     $today = (Get-Date).Date
-    foreach ($site in $contentConfig.Sites) {
-        foreach ($thread in @($site.Content.EmailThreads)) {
-            if (-not $thread) { continue }
-            $recorded = $null
-            try {
-                $messages = @(Get-EmailThreadMessages -Path $thread.Path -DemoUsers $DemoUsers -ActiveUsers $users)
+    foreach ($thread in @($Site.Content.EmailThreads)) {
+        if (-not $thread) { continue }
+        $recorded = $null
+        try {
+            $messages = @(Get-EmailThreadMessages -Path $thread.Path -DemoUsers $DemoUsers -ActiveUsers $users)
 
-                # Re-provisioning: delete the copies from the previous run (IDs recorded below) first.
-                $previous = @($thread.Messages | Where-Object { $_ })
-                $stillPresent = @()
-                foreach ($entry in $previous) {
-                    try { Remove-InboxMessage -MailboxEmail $entry.Mailbox -MessageId $entry.MessageId -MailHeaders $MailHeaders }
-                    catch {
-                        $stillPresent += $entry
-                        Write-InstallLogAction -Message "Could not delete previous email in $($entry.Mailbox): $($_.Exception.Message)" -Level Warning
-                    }
+            # Re-provisioning: delete the copies from the previous run (IDs recorded below) first.
+            $previous = @($thread.Messages | Where-Object { $_ })
+            $stillPresent = @()
+            foreach ($entry in $previous) {
+                try { Remove-InboxMessage -MailboxEmail $entry.Mailbox -MessageId $entry.MessageId -MailHeaders $MailHeaders }
+                catch {
+                    $stillPresent += $entry
+                    Write-InstallLogAction -Message "Could not delete previous email in $($entry.Mailbox): $($_.Exception.Message)" -Level Warning
                 }
-                if ($previous.Count -gt 0) {
-                    Write-InstallLogAction -Message "Removed $($previous.Count - $stillPresent.Count) previously imported message(s) for '$($thread.Title)'."
-                }
-                $recorded = @($stillPresent)
-
-                $firstDay = $today.AddDays([int]$thread.CreatedOffset)
-                $lastDay = $today.AddDays([int]$thread.ModifiedOffset)
-                $span = ($lastDay - $firstDay).TotalDays
-
-                $topic = if ($messages.Count -gt 0) { ($messages[0].Subject -replace '^\s*((RE|FW|FWD):\s*)+', '').Trim() } else { '' }
-                $indexBytes = New-Object byte[] 22
-                [System.Random]::new().NextBytes($indexBytes)
-                $indexBytes[0] = 1
-                $parentMessageId = $null
-                $references = @()
-
-                $imported = 0
-                for ($i = 0; $i -lt $messages.Count; $i++) {
-                    $message = $messages[$i]
-                    $fraction = if ($messages.Count -gt 1) { $i / ($messages.Count - 1) } else { 0 }
-                    $sentDate = $firstDay.AddDays([math]::Round($span * $fraction)).Add($message.Time)
-
-                    $sender = Find-EmailUser $message.From
-                    $recipients = @($message.To | ForEach-Object { Find-EmailUser $_ } | Where-Object { $_ })
-                    if (-not $sender -or $recipients.Count -eq 0) {
-                        Write-InstallLogAction -Message "Skipped '$($message.Subject)' in '$($thread.Title)': could not match sender '$($message.From)' or recipients '$($message.To -join ', ')' to a user." -Level Warning
-                        continue
-                    }
-
-                    $bodyHtml = ConvertTo-EmailHtml -Text $message.Body
-
-                    $internetMessageId = "<$([guid]::NewGuid().ToString('N'))@workiqstarterpack.local>"
-                    # Conversation index: 22-byte thread header, plus a 5-byte child block per reply.
-                    if ($i -gt 0) {
-                        $indexBytes += [byte[]]@(0, 0, 0, 0, [byte]($i -band 0xFF))
-                    }
-                    $inReplyTo = $parentMessageId
-                    $referenceChain = $references -join ' '
-
-                    foreach ($recipient in $recipients) {
-                        $messageId = Add-InboxMessage -MailboxEmail $recipient.Email -From $sender -Recipients $recipients `
-                            -Subject $message.Subject -BodyHtml $bodyHtml -SentDate $sentDate -MailHeaders $MailHeaders `
-                            -InternetMessageId $internetMessageId -InReplyTo $inReplyTo -References $referenceChain `
-                            -ConversationTopic $topic -ConversationIndex ([Convert]::ToBase64String($indexBytes))
-                        $recorded += [PSCustomObject]@{ Mailbox = $recipient.Email; MessageId = $messageId }
-                        Write-InstallLogAction -Message "Delivered '$($message.Subject)' from $($sender.Email) to $($recipient.Email) (sent $($sentDate.ToString('yyyy-MM-dd HH:mm')))."
-                        $imported++
-                    }
-
-                    $parentMessageId = $internetMessageId
-                    $references += $internetMessageId
-                }
-                Write-InstallLogAction -Message "Imported email thread '$($thread.Title)' ($($messages.Count) messages, $imported inbox deliveries)." -Level Success
             }
-            catch {
-                Write-InstallLogAction -Message "Failed to import email thread '$($thread.Title)': $($_.Exception.Message)" -Level Error
+            if ($previous.Count -gt 0) {
+                Write-InstallLogAction -Message "Removed $($previous.Count - $stillPresent.Count) previously imported message(s) for '$($thread.Title)'."
             }
-            finally {
-                # Save the IDs even after a partial failure so a re-run / cleanup can still delete what was delivered.
-                if ($null -ne $recorded) {
-                    $thread | Add-Member -NotePropertyName Messages -NotePropertyValue @($recorded) -Force
-                    $contentConfig | ConvertTo-Json -Depth 20 | Set-Content -Path $ContentPath
+            $recorded = @($stillPresent)
+
+            $firstDay = $today.AddDays([int]$thread.CreatedOffset)
+            $lastDay = $today.AddDays([int]$thread.ModifiedOffset)
+            $span = ($lastDay - $firstDay).TotalDays
+
+            $topic = if ($messages.Count -gt 0) { ($messages[0].Subject -replace '^\s*((RE|FW|FWD):\s*)+', '').Trim() } else { '' }
+            $indexBytes = New-Object byte[] 22
+            [System.Random]::new().NextBytes($indexBytes)
+            $indexBytes[0] = 1
+            $parentMessageId = $null
+            $references = @()
+
+            $imported = 0
+            for ($i = 0; $i -lt $messages.Count; $i++) {
+                $message = $messages[$i]
+                $fraction = if ($messages.Count -gt 1) { $i / ($messages.Count - 1) } else { 0 }
+                $sentDate = $firstDay.AddDays([math]::Round($span * $fraction)).Add($message.Time)
+
+                $sender = Find-EmailUser $message.From
+                $recipients = @($message.To | ForEach-Object { Find-EmailUser $_ } | Where-Object { $_ })
+                if (-not $sender -or $recipients.Count -eq 0) {
+                    Write-InstallLogAction -Message "Skipped '$($message.Subject)' in '$($thread.Title)': could not match sender '$($message.From)' or recipients '$($message.To -join ', ')' to a user." -Level Warning
+                    continue
                 }
+
+                $bodyHtml = ConvertTo-EmailHtml -Text $message.Body
+
+                $internetMessageId = "<$([guid]::NewGuid().ToString('N'))@workiqstarterpack.local>"
+                # Conversation index: 22-byte thread header, plus a 5-byte child block per reply.
+                if ($i -gt 0) {
+                    $indexBytes += [byte[]]@(0, 0, 0, 0, [byte]($i -band 0xFF))
+                }
+                $inReplyTo = $parentMessageId
+                $referenceChain = $references -join ' '
+
+                foreach ($recipient in $recipients) {
+                    $messageId = Add-InboxMessage -MailboxEmail $recipient.Email -From $sender -Recipients $recipients `
+                        -Subject $message.Subject -BodyHtml $bodyHtml -SentDate $sentDate -MailHeaders $MailHeaders `
+                        -InternetMessageId $internetMessageId -InReplyTo $inReplyTo -References $referenceChain `
+                        -ConversationTopic $topic -ConversationIndex ([Convert]::ToBase64String($indexBytes))
+                    $recorded += [PSCustomObject]@{ Mailbox = $recipient.Email; MessageId = $messageId }
+                    Write-InstallLogAction -Message "Delivered '$($message.Subject)' from $($sender.Email) to $($recipient.Email) (sent $($sentDate.ToString('yyyy-MM-dd HH:mm')))."
+                    $imported++
+                }
+
+                $parentMessageId = $internetMessageId
+                $references += $internetMessageId
+            }
+            Write-InstallLogAction -Message "Imported email thread '$($thread.Title)' ($($messages.Count) messages, $imported inbox deliveries)." -Level Success
+        }
+        catch {
+            Write-InstallLogAction -Message "Failed to import email thread '$($thread.Title)': $($_.Exception.Message)" -Level Error
+        }
+        finally {
+            # Save the IDs even after a partial failure so a re-run / cleanup can still delete what was delivered.
+            if ($null -ne $recorded) {
+                $thread | Add-Member -NotePropertyName Messages -NotePropertyValue @($recorded) -Force
+                $ContentConfig | ConvertTo-Json -Depth 20 | Set-Content -Path $ContentPath
             }
         }
     }
