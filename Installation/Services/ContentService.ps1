@@ -147,7 +147,7 @@ function Import-SiteDocument {
 
     #Upload the file save the object so we can update metadata later
     $uploadedFile = Add-PnPFile -Path $localPath -Folder $destinationFolder.ServerRelativeUrl -Connection $Connection
-    $null = Get-PnPProperty -ClientObject $uploadedFile -Property ListItemAllFields -Connection $Connection
+    $null = Get-PnPProperty -ClientObject $uploadedFile -Property ListItemAllFields, UniqueId -Connection $Connection
     $itemId = $uploadedFile.ListItemAllFields.Id
 
     # Ensure the users exist in the current site
@@ -184,7 +184,7 @@ function Import-SiteDocument {
             Accept         = "application/json;odata=verbose"
         }
         $response = Invoke-RestMethod -Method Post -Uri $url -Headers $headers -Body $body
-        [PSCustomObject]@{ Response = $response; ServerRelativeUrl = $uploadedFile.ServerRelativeUrl }
+        [PSCustomObject]@{ Response = $response; ServerRelativeUrl = $uploadedFile.ServerRelativeUrl; UniqueId = $uploadedFile.UniqueId }
     }
     catch {
         Write-Host "URL: $url" -ForegroundColor Yellow

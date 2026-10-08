@@ -159,7 +159,18 @@ function Add-TeamMeetings {
                 finally {
                     Remove-Item -Path $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
                 }
-                $transcriptUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com$($uploaded.ServerRelativeUrl)"
+                $fileUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com$($uploaded.ServerRelativeUrl)"
+                # A Teams file deep link opens the document inside Teams; a raw .docx URL downloads in the browser.
+                $tenantId = try { Get-PnPTenantId -Connection $siteConnection } catch { $null }
+                if ($uploaded.UniqueId -and $tenantId) {
+                    $transcriptUrl = "https://teams.microsoft.com/l/file/$($uploaded.UniqueId)" +
+                    "?tenantId=$tenantId&fileType=docx&objectUrl=$([uri]::EscapeDataString($fileUrl))" +
+                    "&baseUrl=$([uri]::EscapeDataString($siteUrl))&serviceName=teams&groupId=$groupId"
+                }
+                else {
+                    Write-InstallLogAction -Message "Could not build a Teams deep link for '$($meeting.Title)' - falling back to the SharePoint URL." -Level Warning
+                    $transcriptUrl = $fileUrl -replace ' ', '%20'
+                }
 
                 # 2. The meeting itself, on the team's calendar.
                 $attendees = @(foreach ($name in $transcript.Attendees) {
