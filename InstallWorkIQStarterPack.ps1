@@ -45,7 +45,7 @@ try {
     $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
     $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
-    # Load the installtion settings file from file system
+    # Load the installation settings file from file system
     $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
     $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
 
@@ -54,7 +54,7 @@ try {
         $user.Email = $user.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
     }
 
-    # settings.json's Users list and Content/content.json always stay the pristine demo data. When
+    # settings.json's Users list and Content/content.json always stay pristine demo data. When
     # InstallDemoUsers is false, the real users' resolved identities and the persona-swapped
     # content live in these separate "custom" files instead, so the demo definitions are never
     # overwritten.
@@ -65,13 +65,11 @@ try {
     #Load App Registration Service file
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegistrationService.ps1")
 
-    # Load the install log service and start recording this run's inputs/actions/passwords so
+    # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/InstallLogService.ps1")
     Initialize-InstallLog
 
-    # Ask for the tenant prefix once up front - both the existing and new app registration paths need it.
-    # Pressing Enter keeps the value already in config.json.
     $currentTenant = $config.Settings.TenantPrefix
     if ($UseConfig) {
         if ([string]::IsNullOrWhiteSpace($currentTenant)) {
@@ -207,10 +205,6 @@ try {
 
         Write-InstallLogAction -Message "Client ID saved to $configPath" -Level Success
 
-        # Make sure the existing app registration has every permission the installer needs, adding any
-        # that are missing and prompting for admin consent.
-        # Always sign in fresh here (-Force) - a connection left over from an earlier run or session would
-        # otherwise be reused without prompting.
         Connect-WorkIQPnP -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $clientId -Force
         Update-AppRegistrationPermissions -ClientId $clientId -TenantPrefix $config.Settings.TenantPrefix | Out-Null
     }
@@ -241,15 +235,11 @@ try {
         throw "No application registration client ID was found in config.json."
     }
 
-    # If the admin opted out of the demo users, look up each supplied UPN's real profile in
-    # Entra ID now that Connect-WorkIQGraph has established a Graph connection. The resolved
-    # identities go into Configuration/users.custom.json and the persona-swapped content into
-    # Content/content.custom.json - settings.json's Users and Content/content.json are never
-    # touched, so the demo definitions stay intact no matter how many times this runs.
+    # If the installer opted out of the demo users, look up each supplied UPN's real profile in
+    # Entra ID. Resolved users go into Configuration/users.custom.json and the persona-swapped content into
+    # Content/content.custom.json - settings.json's
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
     if ($null -eq $realUserUpns) {
-        # Demo users: no persona swap, but content.custom.json is still generated so the
-        # <TENANTPREFIX> token in content.json is resolved from config.json.
         Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -TenantPrefix $config.Settings.TenantPrefix
     }
     else {
@@ -264,6 +254,7 @@ try {
     }
 
     # ---------------------Start App Configuration------------------------------------
+    
     # You need to install one of the content packs to proceed.
     if ($config.Settings.InstallM365Content -eq $true -or $config.Settings.InstallDynamicsContent -eq $true) {
         #L oad services files
@@ -274,6 +265,7 @@ try {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/SharePointService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/MeetingService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PermissionsService.ps1")
 
         # Teams chat history import uses Microsoft Graph's message migration API, which only supports
@@ -319,20 +311,33 @@ try {
                 Add-UserPhotos -Settings $provisioningSettings
             }
 
-            # TODO: each of these re-reads and re-parses $activeContentPath from disk independently.
-            # Fine for this small one-time install script, but if the content file grows or these
-            # calls move into a hotter path, parse it once here and pass the object through instead.
-            Add-TeamSite -ContentPath $activeContentPath -Config $config
-            Import-SiteDocuments -ContentPath $activeContentPath -Config $config
-            Add-SiteListsAndLibraries -ContentPath $activeContentPath -Config $config
-            Add-TeamsChatMessages -ContentPath $activeContentPath -Settings $provisioningSettings -MigrationHeaders $migrationHeaders
+            # Parse the content file once and provision it one site at a time: each site gets its team,
+            # documents, lists/libraries, chats and emails before moving on to the next.
+            $contentConfig = Get-Content -Path $activeContentPath -Raw | ConvertFrom-Json
+            $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
+
             # The same certificate token carries Mail.ReadWrite, so it also serves the inbox import.
             # $settings.Users are always the demo personas the email markdown is written with.
-            if ($config.Settings.ProvisionUserEmails) {
-                Import-UserEmails -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
-            }
-            else {
+            if (-not $config.Settings.ProvisionUserEmails) {
                 Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
+            }
+
+            foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
+                Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
+
+                if (-not (Add-TeamSite -Site $site -Config $config)) {
+                    Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
+                    continue
+                }
+
+                Import-SiteDocuments -Site $site -Config $config
+                Add-SiteListsAndLibraries -Site $site -Config $config
+                # The meeting posts are imported with the chats: a channel can only be migrated once.
+                $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
+                Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
+                if ($config.Settings.ProvisionUserEmails) {
+                    Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
+                }
             }
         }
         else {
@@ -351,8 +356,6 @@ finally {
     # Always drop the PnP connection, whether the install succeeded or failed
     Disconnect-PnPOnline -ErrorAction SilentlyContinue
 
-    # Always write the install log, even on failure, so any inputs/actions/passwords captured
-    # before an exception (e.g. already-created demo user passwords) are never lost.
     Save-InstallLog -Success ($installSucceeded -eq $true)
 
     if (Test-Path $script:installLogPath) {
