@@ -5,6 +5,7 @@ param(
 
 try {
     if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
+        Write-Host "PnP.PowerShell module was not found. It will now be installed for the current user."
         Install-Module -Name PnP.PowerShell -Scope CurrentUser -Force
     }
     Import-Module PnP.PowerShell
@@ -266,7 +267,7 @@ try {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/MeetingService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PermissionsService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1")
 
         # Teams chat history import uses Microsoft Graph's message migration API, which only supports
         # application permissions (Teamwork.Migrate.All) - need a seprate connection specifically for migration using a cert.
@@ -324,6 +325,8 @@ try {
 
             foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
                 Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
+
+                Add-Groups -Site $site -Settings $provisioningSettings
 
                 if (-not (Add-TeamSite -Site $site -Config $config)) {
                     Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning

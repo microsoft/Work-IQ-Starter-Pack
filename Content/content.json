@@ -16,6 +16,9 @@
                 "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com",
                 "david.power@<TENANTPREFIX>.onmicrosoft.com"
             ],
+            "Groups": [
+                "Caldova Sales Security Group"
+            ],
             "Channels": [
                 {
                     "Title": "Launch Readiness",
