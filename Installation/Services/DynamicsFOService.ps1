@@ -38,7 +38,7 @@ function Add-DynamicsFOContent {
         [Parameter(Mandatory = $true)]$Config,
         [Parameter(Mandatory = $true)]$Settings,
         [string]$ConfigPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Configuration/config.json')),
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')),
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')),
         [switch]$UseConfig
     )
     $environmentUri = $null
@@ -155,7 +155,7 @@ function Add-DynamicsFOContent {
 
 function Remove-DynamicsFOContent {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     $environmentUri = $null
     if (-not [Uri]::TryCreate($Config.Settings.DynamicsFOEnvironmentUrl, [UriKind]::Absolute, [ref]$environmentUri) -or
         $environmentUri.Scheme -ne 'https' -or $environmentUri.UserInfo -or

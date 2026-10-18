@@ -66,7 +66,7 @@ try {
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/InstallLogService.ps1")
     Initialize-InstallLog -Title "WorkIQ Starter Pack Mini Installation Log" -FileName "InstallMiniLog.md"
 
-    Write-Host "Mini installer: provisions users, security groups, and Dynamics leads, accounts, contacts, price lists, and published products when selected. M365 content and mailbox emails are not installed."
+    Write-Host "Mini installer: provisions users and Dynamics leads, accounts, contacts, price lists, and published products when selected. M365 content and mailbox emails are not installed."
     $currentTenant = $config.Settings.TenantPrefix
     if ($UseConfig) {
         if ([string]::IsNullOrWhiteSpace($currentTenant)) {
@@ -154,11 +154,14 @@ try {
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
 
     # Prompt for each environment immediately after selecting its content pack.
-    $installM365Content = if ($UseConfig) { [bool]$config.Settings.InstallM365Content } else { Read-YesNo "Do you want to install the M365 WorkIQ Starter Pack Content?" -Default $true }
-    Write-InstallLogInput -Prompt "Install the M365 WorkIQ Starter Pack Content?" -Response $(if ($installM365Content) { "Yes" } else { "No" })
     $installDynamicsContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsContent } else { Read-YesNo "Do you want to install the Dynamics WorkIQ Starter Pack Content?" -Default $true }
     Write-InstallLogInput -Prompt "Install the Dynamics WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsContent) { "Yes" } else { "No" })
+    $createDynamicsEnvironment = $false
     if ($installDynamicsContent) {
+        # Automated installs keep using the configured environment.
+        $createDynamicsEnvironment = if ($UseConfig) { $false } else { Read-YesNo 'Do you want to create a new Dataverse environment?' -Default $false }
+        Write-InstallLogInput -Prompt 'Create a new Dataverse environment?' -Response $(if ($createDynamicsEnvironment) { 'Yes' } else { 'No' })
+        if (-not $createDynamicsEnvironment) {
         $environmentUrl = $config.Settings.DynamicsEnvironmentUrl
         if (-not $UseConfig) {
             do {
@@ -179,6 +182,7 @@ try {
         $environmentUrl = $environmentUri.GetLeftPart([UriPartial]::Authority)
         $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentUrl -NotePropertyValue $environmentUrl -Force
         Write-InstallLogInput -Prompt "Dynamics 365 Sales & Customer Service environment URL" -Response $environmentUrl
+        }
     }
     $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 F&O WorkIQ Starter Pack Content?" -Default $false }
     Write-InstallLogInput -Prompt "Install the Dynamics 365 F&O WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsFOContent) { "Yes" } else { "No" })
@@ -204,10 +208,9 @@ try {
         $config.Settings | Add-Member -NotePropertyName DynamicsFOEnvironmentUrl -NotePropertyValue $foEnvironmentUrl -Force
         Write-InstallLogInput -Prompt "Dynamics 365 F&O environment URL" -Response $foEnvironmentUrl
     }
-    if (-not $installM365Content -and -not $installDynamicsContent -and -not $installDynamicsFOContent) {
-        throw 'You must select at least one of the M365, Dynamics, or Dynamics F&O Content options to proceed.'
+    if (-not $installDynamicsContent -and -not $installDynamicsFOContent) {
+        throw 'You must select Dynamics or Dynamics F&O Content to proceed.'
     }
-    $config.Settings.InstallM365Content = $installM365Content
     $config.Settings.InstallDynamicsContent = $installDynamicsContent
     $config.Settings | Add-Member -NotePropertyName InstallDynamicsFOContent -NotePropertyValue $installDynamicsFOContent -Force
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
@@ -291,7 +294,7 @@ try {
     }
 
     # Mini installation uses the same configuration and identity resolution as the
-    # full installer, with users, security groups, and selected Dynamics provisioning.
+    # full installer, with users and selected Dynamics provisioning.
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1")
 
@@ -309,13 +312,42 @@ try {
     }
 
     if ($config.Settings.InstallDynamicsContent -eq $true) {
+        if ($createDynamicsEnvironment) {
+            # Authentication and prerequisite checks are complete before provisioning.
+            $environmentOptions = @{}
+            foreach ($option in @(
+                @{ Name = 'DisplayName'; Prompt = 'Environment display name'; Default = 'Caldova Demo' },
+                @{ Name = 'Location'; Prompt = 'Environment location code'; Default = 'unitedstates' },
+                @{ Name = 'EnvironmentType'; Prompt = 'Environment type (Sandbox, Production, Trial, Developer)'; Default = 'Sandbox' },
+                @{ Name = 'BaseLanguage'; Prompt = 'Base language LCID'; Default = '1033' },
+                @{ Name = 'CurrencyCode'; Prompt = 'Currency code'; Default = 'USD' }
+            )) {
+                $answer = (Read-Host "$($option.Prompt) (default: $($option.Default))").Trim()
+                if (-not $answer) { $answer = $option.Default }
+                $environmentOptions[$option.Name] = $answer
+                Write-InstallLogInput -Prompt $option.Prompt -Response $answer
+            }
+            $environmentOptions.BaseLanguage = [int]$environmentOptions.BaseLanguage
+            $environmentOptions.CurrencyCode = $environmentOptions.CurrencyCode.ToUpperInvariant()
+            $environmentOptions.SecurityGroupId = (Read-Host 'Security group object ID (leave blank for none)').Trim()
+            Write-InstallLogInput -Prompt 'Environment security group object ID' -Response $(if ($environmentOptions.SecurityGroupId) { $environmentOptions.SecurityGroupId } else { 'None' })
+            $newEnvironment = New-PowerPlatformDataverseEnvironment @environmentOptions
+            $newEnvironmentUri = $null
+            if (-not [Uri]::TryCreate([string]$newEnvironment.dataverseOrganizationUrl, [UriKind]::Absolute, [ref]$newEnvironmentUri) -or
+                $newEnvironmentUri.Scheme -ne 'https' -or $newEnvironmentUri.UserInfo -or
+                $newEnvironmentUri.AbsolutePath -ne '/' -or $newEnvironmentUri.Query -or $newEnvironmentUri.Fragment -or
+                -not $newEnvironment.environmentId) {
+                throw 'Environment creation did not return a valid Dataverse root URL and environment ID.'
+            }
+            $environmentUrl = $newEnvironmentUri.GetLeftPart([UriPartial]::Authority)
+            $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentId -NotePropertyValue $newEnvironment.environmentId -Force
+            $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentUrl -NotePropertyValue $environmentUrl -Force
+            $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+            Write-InstallLogAction -Message "Using new Dataverse environment '$($newEnvironment.environmentId)' at $environmentUrl. Configuration saved." -Level Success
+        }
         $dynamicsEnvironment = Show-DynamicsEnvironmentSecurityGroup -Config $config
     }
     Add-Users -Settings $provisioningSettings -SkipLicenses
-    $contentConfig = Get-Content -Path $customContentPath -Raw | ConvertFrom-Json
-    foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
-        Add-Groups -Site $site -Settings $provisioningSettings
-    }
 
     if ($config.Settings.InstallDynamicsContent -eq $true) {
         Initialize-PowerPlatformUsers -Config $config -Settings $provisioningSettings -Environment $dynamicsEnvironment
@@ -323,13 +355,6 @@ try {
         Install-DynamicsFieldEngagementSolution -Config $config
         Set-PowerPlatformUserSecurityRoles -Config $config -Settings $provisioningSettings
         Initialize-DynamicsIdentityMap -Config $config -Settings $provisioningSettings
-        $continueDeployment = Read-YesNo 'Environment user checks are complete. Do you want to continue with demo data deployment?' -Default $false
-        Write-InstallLogInput -Prompt 'Continue with demo data deployment?' -Response $(if ($continueDeployment) { 'Yes' } else { 'No' })
-        if (-not $continueDeployment) {
-            Write-InstallLogAction -Message 'Demo data deployment stopped at the user confirmation step.'
-            $installSucceeded = $true
-            return
-        }
         Add-DynamicsLeads -Config $config
         Add-DynamicsAccounts -Config $config
         Add-DynamicsContacts -Config $config
@@ -344,6 +369,13 @@ try {
         Add-DynamicsEmails -Config $config
         Add-DynamicsFieldEngagements -Config $config
         Set-DynamicsDemoOwners -Config $config
+        $deployDynamicsDocuments = Read-YesNo 'Do you want to deploy the SharePoint documents connected to Dynamics 365 Sales?' -Default $false
+        Write-InstallLogInput -Prompt 'Deploy SharePoint documents connected to Dynamics 365 Sales?' -Response $(if ($deployDynamicsDocuments) { 'Yes' } else { 'No' })
+        if ($deployDynamicsDocuments) {
+            . (Join-Path $PSScriptRoot 'Installation/Services/DynamicsSharePointService.ps1')
+            Wait-DynamicsSharePointAccountIntegration -Config $config
+            Initialize-DynamicsSharePointDocuments -Config $config
+        }
     }
 
     if ($config.Settings.InstallDynamicsFOContent -eq $true) {

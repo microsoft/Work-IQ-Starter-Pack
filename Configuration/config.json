@@ -3,7 +3,7 @@
     "SkipPreReqCheck": true,
     "InstallM365Content": true,
     "InstallDynamicsContent": true,
-    "InstallDemoUsers": false,
+    "InstallDemoUsers": true,
     "DynamicsFOProductTemplateCompany": "ITCO",
     "DynamicsFOProductTemplateItemNumber": "ITEM",
     "DynamicsFOEnvironmentUrl": "https://finance2026oct.operations.ch.dynamics.com",
@@ -13,11 +13,12 @@
     "DynamicsFOShippingCompany": "ITCO",
     "DynamicsFOShippingWarehouseId": "58",
     "DynamicsFOShippingSiteId": "5",
-    "AppRegistrationName": "lk5",
-    "ProvisionUserEmails": false,
-    "InstallDynamicsFOContent": false,
+    "AppRegistrationName": "ATESTGP",
+    "DynamicsEnvironmentId": "f94ff2b1-c247-e991-8cbb-fc2e471a8f0b",
     "TenantPrefix": "testiq2026oct",
-    "ClientId": "96a12c71-258a-4916-b05e-c9024e89f743",
-    "DynamicsEnvironmentUrl": "https://finance2026oct.crm17.dynamics.com"
+    "ClientId": "9cd485f3-70ec-4c44-b874-a0c316b5c39c",
+    "ProvisionUserEmails": true,
+    "DynamicsEnvironmentUrl": "https://finance2026oct.crm17.dynamics.com",
+    "InstallDynamicsFOContent": false
   }
 }

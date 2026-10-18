@@ -2239,7 +2239,7 @@
                        "Email":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
                    },
                    {
-                       "Email":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                    }
                ],
         "Cc":  [
@@ -2265,7 +2265,7 @@
                        "Email":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
                    },
                    {
-                       "Email":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                    }
                ],
         "Cc":  [
@@ -2291,7 +2291,7 @@
                        "Email":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
                    },
                    {
-                       "Email":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                    }
                ],
         "Cc":  [
@@ -2314,7 +2314,7 @@
         "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
         "To":  [
                    {
-                       "Email":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                    }
                ],
         "Cc":  [
@@ -2323,7 +2323,7 @@
         "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
         "RegardingTable":  "Accounts",
         "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
-        "Body":  "Serena,\n\nPlanning the Meridian Health Alliance renewal. Can you share formulary timing and adoption data?\n\nDavid",
+        "Body":  "Babak,\n\nPlanning the Meridian Health Alliance renewal. Can you share formulary timing and adoption data?\n\nDavid",
         "Date":  "2026-09-22 09:00",
         "Direction":  "Outgoing",
         "Status":  "Sent",
@@ -2334,7 +2334,7 @@
     {
         "Id":  "53f19882-8f14-4375-98ac-eacd7701d61a",
         "Subject":  "RE: Meridian renewal plan",
-        "From":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+        "From":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
         "To":  [
                    {
                        "Email":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
@@ -2346,13 +2346,13 @@
         "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
         "RegardingTable":  "Accounts",
         "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
-        "Body":  "Formulary committee meets in October. Adoption data from Lakeshore Regional Health is a useful comparator.\n\nSerena",
+        "Body":  "Formulary committee meets in October. Adoption data from Lakeshore Regional Health is a useful comparator.\n\nBabak",
         "Date":  "2026-09-23 11:10",
         "Direction":  "Outgoing",
         "Status":  "Sent",
         "CreatedOffset":  -7,
         "SentOffset":  -7,
-        "Owner":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+        "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
     },
     {
         "Id":  "18392e60-93ec-4751-ae7b-42fb427c61d8",
@@ -2360,7 +2360,7 @@
         "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
         "To":  [
                    {
-                       "Email":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                    }
                ],
         "Cc":  [
@@ -2380,7 +2380,7 @@
     {
         "Id":  "74709555-d19a-4bfa-90b0-a4ec392ff895",
         "Subject":  "ALLER-10 adoption at Lakeshore Regional Health",
-        "From":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com",
+        "From":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
         "To":  [
                    {
                        "Email":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
@@ -2392,13 +2392,13 @@
         "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
         "RegardingTable":  "Accounts",
         "RegardingId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
-        "Body":  "David,\n\nLakeshore Regional Health\u0027s evaluation of ALLER-10 is complete. Clinicians liked the starter dose. They want more education on ALLER-20 titration.\n\nSerena",
+        "Body":  "David,\n\nLakeshore Regional Health\u0027s evaluation of ALLER-10 is complete. Clinicians liked the starter dose. They want more education on ALLER-20 titration.\n\nBabak",
         "Date":  "2026-09-17 10:00",
         "Direction":  "Outgoing",
         "Status":  "Sent",
         "CreatedOffset":  -13,
         "SentOffset":  -13,
-        "Owner":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+        "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
     },
     {
         "Id":  "576817a4-6b7f-4dff-b014-5c26a60a6cbc",
@@ -2406,7 +2406,7 @@
         "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
         "To":  [
                    {
-                       "Email":  "serena.ribeiro@<TENANTPREFIX>.onmicrosoft.com"
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
                    }
                ],
         "Cc":  [

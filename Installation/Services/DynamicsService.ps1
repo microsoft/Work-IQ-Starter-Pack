@@ -27,7 +27,7 @@ function Resolve-DynamicsUserId {
 }
 
 function Set-DynamicsDemoOwners {
-    param($Config, [string]$ContentPath = (Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+    param($Config, [string]$ContentPath = (Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     $content = Get-Content $ContentPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $context = Get-DynamicsRequestContext -Config $Config
     $sets = @{Accounts='accounts';Contacts='contacts';Leads='leads';Opportunities='opportunities';Quotes='quotes';Orders='salesorders';Invoices='invoices';Incidents='incidents';Emails='emails';FieldEngagements='cal_fieldengagements'}
@@ -108,10 +108,25 @@ function Install-DynamicsFieldEngagementSolution {
         # Omit ComponentParameters when there are no component overrides.
         # An empty crmbaseentity collection can fail Dataverse deserialization.
     } | ConvertTo-Json -Depth 5
-    $result = Invoke-DynamicsSolutionRequest -Step 'Submit ImportSolutionAsync' -Request @{
+    $synchronousImport = $false
+    try {
+        $result = Invoke-DynamicsSolutionRequest -Step 'Submit ImportSolutionAsync' -Request @{
         Uri="$($context.BaseUrl)/ImportSolutionAsync";Headers=$context.Headers;Method='Post'
         ContentType='application/json; charset=utf-8';Body=[Text.Encoding]::UTF8.GetBytes($body)
+        }
     }
+    catch {
+        # Retry only an explicitly rejected async submission, never an ambiguous failure.
+        if ($_.Exception.Message -notmatch '0x80040315') { throw }
+        Write-InstallLogAction -Message 'Async operations are disabled in this organization. Importing the solution synchronously; this may take several minutes.' -Level Warning
+        Invoke-DynamicsSolutionRequest -Step 'Submit ImportSolution' -Request @{
+            Uri="$($context.BaseUrl)/ImportSolution";Headers=$context.Headers;Method='Post'
+            ContentType='application/json; charset=utf-8';Body=[Text.Encoding]::UTF8.GetBytes($body)
+            TimeoutSec=1800
+        } | Out-Null
+        $synchronousImport = $true
+    }
+    if (-not $synchronousImport) {
     if ($result.ImportJobKey) { $jobId = [Guid]::Parse($result.ImportJobKey).ToString() }
     if (-not $result.AsyncOperationId) { throw 'ImportSolutionAsync returned no AsyncOperationId; demo provisioning has been stopped.' }
     $asyncId = [Guid]::Parse($result.AsyncOperationId).ToString()
@@ -135,6 +150,8 @@ function Install-DynamicsFieldEngagementSolution {
         Write-InstallLogAction -Message $message
     } while ([int]$job.statecode -ne 3)
     if ([int]$job.statuscode -ne 30) { throw "Solution '$name' import failed or was canceled (job $asyncId): $($job.message) $($job.friendlymessage)" }
+    }
+    $context = Get-DynamicsRequestContext -Config $Config
     $found = Invoke-DynamicsSolutionRequest -Step 'Verify imported solution' -Request @{Uri=$solutionUrl;Headers=$context.Headers;Method='Get'}
     if (-not @($found.value).Count) { throw "Import job succeeded but solution '$name' could not be found." }
     Write-InstallLogAction -Message "Solution '$name' installation completed successfully. Starting Dynamics demo data provisioning." -Level Success
@@ -163,7 +180,7 @@ function Remove-DynamicsFieldEngagementSolution {
 
 function Add-DynamicsFieldEngagements {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = (Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = (Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     $content = Get-Content -LiteralPath $ContentPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $context = Get-DynamicsRequestContext -Config $Config
     $failed = 0
@@ -198,7 +215,7 @@ function Add-DynamicsFieldEngagements {
 
 function Remove-DynamicsFieldEngagements {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = (Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = (Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     $content = Get-Content -LiteralPath $ContentPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $ids = @($content.FieldEngagements | Where-Object { $_ } | ForEach-Object { [Guid]::Parse($_.Id).ToString() })
     if (-not $ids.Count) { return }
@@ -215,7 +232,7 @@ function Remove-DynamicsLeads {
     param(
         [Parameter(Mandatory = $true)]
         $Config,
-        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/content_dynamics.json"))
+        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/contentDynamics.json"))
     )
 
     $environmentUri = $null
@@ -265,7 +282,7 @@ function Remove-DynamicsAccounts {
     param(
         [Parameter(Mandatory = $true)]
         $Config,
-        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/content_dynamics.json"))
+        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/contentDynamics.json"))
     )
 
     $environmentUri = $null
@@ -315,7 +332,7 @@ function Add-DynamicsAccounts {
     param(
         [Parameter(Mandatory = $true)]
         $Config,
-        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/content_dynamics.json"))
+        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/contentDynamics.json"))
     )
 
     $environmentUri = $null
@@ -409,7 +426,7 @@ function Add-DynamicsContacts {
     param(
         [Parameter(Mandatory = $true)]
         $Config,
-        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/content_dynamics.json"))
+        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/contentDynamics.json"))
     )
 
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
@@ -458,7 +475,7 @@ function Update-DynamicsAccountPrimaryContacts {
     param(
         [Parameter(Mandatory = $true)]
         $Config,
-        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/content_dynamics.json"))
+        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/contentDynamics.json"))
     )
 
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
@@ -535,7 +552,7 @@ function Get-DynamicsDefaultCurrencyId {
 function Add-DynamicsPriceLists {
     param(
         [Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     )
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if (-not $content.PriceLists) { return }
@@ -595,7 +612,7 @@ function Get-DynamicsProductUnit {
 function Add-DynamicsProducts {
     param(
         [Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     )
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if (-not $content.Products) { return }
@@ -700,7 +717,7 @@ function Add-DynamicsProducts {
 function Remove-DynamicsProductCatalog {
     param(
         [Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     )
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     # Validate all IDs before deleting anything; children must be deleted first.
@@ -735,7 +752,7 @@ function Add-DynamicsLeads {
     param(
         [Parameter(Mandatory = $true)]
         $Config,
-        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/content_dynamics.json"))
+        [string]$ContentPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Content/contentDynamics.json"))
     )
 
     $environmentUri = $null
@@ -826,7 +843,7 @@ function Add-DynamicsLeads {
 function Add-DynamicsOpportunities {
     param(
         [Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     )
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if (-not $content.Opportunities) { return }
@@ -891,7 +908,7 @@ function Add-DynamicsOpportunities {
 function Remove-DynamicsOpportunities {
     param(
         [Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     )
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $ids = @($content.Opportunities | Where-Object { $_ } | ForEach-Object { [Guid]::Parse($_.Id).ToString() } | Select-Object -Unique)
@@ -962,7 +979,7 @@ function Add-DynamicsSalesLines {
 function Add-DynamicsQuotes {
     param(
         [Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     )
     $content = Get-Content $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if (-not $content.Quotes) { return }
@@ -1008,7 +1025,7 @@ function Add-DynamicsQuotes {
 function Remove-DynamicsQuotes {
     param(
         [Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json'))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json'))
     )
     $content = Get-Content $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $ids = @($content.Quotes | ForEach-Object { [Guid]::Parse($_.Id) })
@@ -1032,13 +1049,13 @@ function Remove-DynamicsQuotes {
 
 function Add-DynamicsOrders {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     Add-DynamicsOrderInvoiceRecords -Config $Config -ContentPath $ContentPath -Collection Orders
 }
 
 function Add-DynamicsInvoices {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     Add-DynamicsOrderInvoiceRecords -Config $Config -ContentPath $ContentPath -Collection Invoices
 }
 
@@ -1144,13 +1161,13 @@ function Add-DynamicsOrderInvoiceRecords {
 
 function Remove-DynamicsOrders {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     Remove-DynamicsOrderInvoiceRecords -Config $Config -ContentPath $ContentPath -Collection Orders
 }
 
 function Remove-DynamicsInvoices {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     Remove-DynamicsOrderInvoiceRecords -Config $Config -ContentPath $ContentPath -Collection Invoices
 }
 
@@ -1181,7 +1198,7 @@ function Remove-DynamicsOrderInvoiceRecords {
 
 function Add-DynamicsIncidents {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     $content = Get-Content $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if (-not $content.Incidents) { return }
     $context = Get-DynamicsRequestContext -Config $Config
@@ -1231,7 +1248,7 @@ function Add-DynamicsIncidents {
 
 function Remove-DynamicsIncidents {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     $content = Get-Content $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $ids = @($content.Incidents | Where-Object { $_ } | ForEach-Object { [Guid]::Parse($_.Id) } | Select-Object -Unique)
     if (-not $ids.Count) { return }
@@ -1253,7 +1270,7 @@ function Remove-DynamicsIncidents {
 
 function Add-DynamicsEmails {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     $content = Get-Content $ContentPath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     if (-not $content.Emails) { return }
     $context = Get-DynamicsRequestContext -Config $Config
@@ -1318,7 +1335,7 @@ function Add-DynamicsEmails {
 
 function Remove-DynamicsEmails {
     param([Parameter(Mandatory = $true)]$Config,
-        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/content_dynamics.json')))
+        [string]$ContentPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Content/contentDynamics.json')))
     $content = Get-Content $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $ids = @($content.Emails | Where-Object { $_ } | ForEach-Object { [Guid]::Parse($_.Id) } | Select-Object -Unique)
     if (-not $ids.Count) { return }

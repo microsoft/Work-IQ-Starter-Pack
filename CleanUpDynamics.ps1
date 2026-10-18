@@ -18,20 +18,21 @@ function Read-MiniCleanupChoice {
 try {
     $configPath = Join-Path $PSScriptRoot 'Configuration/config.json'
     $config = Get-Content -LiteralPath $configPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
-    $contentPath = Join-Path $PSScriptRoot 'Content/content_dynamics.json'
+    $contentPath = Join-Path $PSScriptRoot 'Content/contentDynamics.json'
     $content = Get-Content -LiteralPath $contentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
-    Write-Host "Dynamics cleanup deletes demo emails, cases, invoices, orders, quotes, opportunities, leads, accounts, and product catalog records by their IDs in Content/content_dynamics.json from $($config.Settings.DynamicsEnvironmentUrl)."
+    Write-Host "Dynamics cleanup deletes demo emails, cases, invoices, orders, quotes, opportunities, leads, accounts, and product catalog records by their IDs in Content/contentDynamics.json from $($config.Settings.DynamicsEnvironmentUrl)."
     $deleteDynamics = Read-MiniCleanupChoice 'Do you want to delete the Dynamics demo data?'
     Write-Host "F&O cleanup deletes $(@($content.Orders).Count) demo sales orders and their lines, $(@($content.Accounts).Count) demo customers by account code in company '$($config.Settings.DynamicsFOLegalEntityId)' and $(@($content.Products).Count) shared products by product number from $($config.Settings.DynamicsFOEnvironmentUrl). Shared products apply across companies."
     $deleteFO = Read-MiniCleanupChoice 'Do you want to delete the Dynamics F&O demo data?'
-    if (-not $deleteDynamics -and -not $deleteFO) {
+    $deleteSharePoint = Read-MiniCleanupChoice 'Do you want to remove the uploaded Dynamics SharePoint integration files?'
+    if (-not $deleteDynamics -and -not $deleteFO -and -not $deleteSharePoint) {
         Write-InstallLogAction -Message 'No cleanup selected.'
         $cleanupSucceeded = $true
         return
     }
     $requiredSettings = @('TenantPrefix','ClientId')
-    if ($deleteDynamics) { $requiredSettings += 'DynamicsEnvironmentUrl' }
+    if ($deleteDynamics -or $deleteSharePoint) { $requiredSettings += 'DynamicsEnvironmentUrl' }
     if ($deleteFO) { $requiredSettings += @('DynamicsFOEnvironmentUrl','DynamicsFOLegalEntityId') }
     foreach ($setting in $requiredSettings) {
         if ([string]::IsNullOrWhiteSpace($config.Settings.$setting)) { throw "Settings.$setting is required in Configuration/config.json." }
@@ -43,6 +44,16 @@ try {
     Connect-PnPOnline -Url "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId -Interactive -ErrorAction Stop
 
     $failures = @()
+    if ($deleteSharePoint) {
+        try {
+            . (Join-Path $PSScriptRoot 'Installation/Services/DynamicsSharePointService.ps1')
+            Initialize-DynamicsSharePointDocuments -Config $config -ContentPath $contentPath -RemoveDocuments
+        }
+        catch {
+            $failures += "Dynamics SharePoint: $($_.Exception.Message)"
+            Write-InstallLogAction -Message $failures[-1] -Level Error
+        }
+    }
     if ($deleteDynamics) {
         try {
             . (Join-Path $PSScriptRoot 'Installation/Services/DynamicsService.ps1')

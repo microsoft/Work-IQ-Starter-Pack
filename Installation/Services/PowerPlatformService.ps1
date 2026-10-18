@@ -234,6 +234,77 @@ function Sync-PowerPlatformUser {
     if ($null -ne $result) { Write-Output $result }
 }
 
+function New-PowerPlatformDataverseEnvironment {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string]$DisplayName,
+        [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string]$Location,
+        [ValidateSet('Sandbox','Production','Trial','Developer')][string]$EnvironmentType = 'Sandbox',
+        [ValidateRange(1,65535)][int]$BaseLanguage = 1033,
+        [ValidatePattern('^[A-Z]{3}$')][string]$CurrencyCode = 'USD',
+        [string]$SecurityGroupId
+    )
+    $prefix = [regex]::Replace($DisplayName.ToLowerInvariant(), '[^a-z0-9]', '')
+    if (-not $prefix) { throw 'Display name must contain at least one ASCII letter or digit for the environment domain.' }
+    $prefix = $prefix.Substring(0, [Math]::Min(30, $prefix.Length))
+    $domainName = "$prefix-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))"
+    # The current API uses baseLanguageCode and a flat request body instead of
+    # the legacy BAP API's properties wrapper and baseLanguage field.
+    $metadata = @{baseLanguageCode=$BaseLanguage;currency=@{code=$CurrencyCode};domainName=$domainName;templates=@('D365_DeveloperEdition')}
+    if ($SecurityGroupId) { $metadata.securityGroupId = [Guid]::Parse($SecurityGroupId).ToString() }
+    $body = @{displayName=$DisplayName;location=$Location;environmentSku=$EnvironmentType;databaseType='CommonDataService';linkedEnvironmentMetadata=$metadata} | ConvertTo-Json -Depth 6
+    $apiRoot = 'https://api.powerplatform.com'
+    $token = Get-PnPAccessToken -Scopes "$apiRoot/.default" -ErrorAction Stop
+    $requestHeaders = @{Authorization="Bearer $token";Accept='application/json'}
+    # Reject an existing name before creating, so readiness cannot match an older environment.
+    $listToken = Get-PnPAccessToken -Scopes 'https://api.powerplatform.com/.default' -ErrorAction Stop
+    $preflightUrl = 'https://api.powerplatform.com/environmentmanagement/environments?api-version=2024-10-01'
+    do {
+        $preflightUri = [Uri]::new([Uri]'https://api.powerplatform.com/', $preflightUrl)
+        if ($preflightUri.Scheme -ne 'https' -or $preflightUri.Host -ne 'api.powerplatform.com') { throw 'Unexpected environment-list origin.' }
+        $existingList = Invoke-RestMethod -Uri $preflightUri.AbsoluteUri -Headers @{Authorization="Bearer $listToken"} -Method Get -ErrorAction Stop
+        if (@($existingList.value | Where-Object { $_.displayName -eq $DisplayName }).Count) { throw "An environment named '$DisplayName' already exists. Choose a unique display name." }
+        $preflightUrl = $existingList.nextLink
+        if (-not $preflightUrl) { $preflightUrl = $existingList.'@odata.nextLink' }
+    } while ($preflightUrl)
+    Write-InstallLogAction -Message "Submitting Dataverse environment creation for domain '$domainName' with template 'D365_DeveloperEdition'..."
+    $response = Invoke-WebRequest -Uri "$apiRoot/environmentmanagement/provisioning/environments?api-version=2024-10-01" -Method Post -Headers $requestHeaders -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) -ErrorAction Stop
+    # Readiness is determined from the environment list, not operation headers.
+    while ($true) {
+        Write-InstallLogAction -Message "Checking if the environment '$DisplayName' is ready... ($(Get-Date -Format 'HH:mm:ss'))"
+        $listToken = Get-PnPAccessToken -Scopes 'https://api.powerplatform.com/.default' -ErrorAction Stop
+        $listHeaders = @{Authorization="Bearer $listToken";Accept='application/json'}
+        $nextUrl = 'https://api.powerplatform.com/environmentmanagement/environments?api-version=2024-10-01'
+        $matches = @()
+        do {
+            $listUri = [Uri]::new([Uri]'https://api.powerplatform.com/', $nextUrl)
+            if ($listUri.Scheme -ne 'https' -or $listUri.Host -ne 'api.powerplatform.com') { throw 'Environment list pagination URL has an unexpected origin.' }
+            $list = Invoke-RestMethod -Uri $listUri.AbsoluteUri -Headers $listHeaders -Method Get -ErrorAction Stop
+            $matches += @($list.value | Where-Object { $_.displayName -eq $DisplayName })
+            $nextUrl = $list.nextLink
+            if (-not $nextUrl) { $nextUrl = $list.'@odata.nextLink' }
+        } while ($nextUrl)
+        if ($matches.Count -gt 1) { throw "Multiple environments named '$DisplayName' were found. Check the admin center before retrying to avoid selecting the wrong environment." }
+        if ($matches.Count -eq 1) {
+            $environment = $matches[0]
+            $state = [string]$environment.state
+            Write-InstallLogAction -Message "Environment '$DisplayName' state: $state."
+            # The environment API reports Enabled for an available environment.
+            # Require Dataverse metadata as well before completing setup.
+            if ($state -in @('Enabled','Succeeded','Ready') -and $environment.url -and $environment.dataverseId) {
+                $environmentId = [string]$environment.id
+                if (-not $environmentId) { throw 'Ready environment returned no environment ID.' }
+                $environmentUrl = [string]$environment.url
+                Write-InstallLogAction -Message 'Environment is now Ready' -Level Success
+                return [PSCustomObject]@{environmentId=$environmentId;dataverseOrganizationUrl=$environmentUrl}
+            }
+            if ($state -in @('Failed','Canceled','Cancelled','Deleted')) { throw "Environment provisioning ended with state '$state'." }
+        }
+        else { Write-InstallLogAction -Message "Environment '$DisplayName' is not listed yet." }
+        Start-Sleep -Seconds 60
+    }
+}
+
 function Test-PowerPlatformEnvironmentPermissions {
     param(
         [Parameter(Mandatory = $false)]

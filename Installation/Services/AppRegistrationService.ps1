@@ -86,7 +86,7 @@ function Connect-WorkIQPnP {
 }
 
 function Add-DynamicsAppRegistrationPermissions {
-    param([string]$ClientId)
+    param([string]$ClientId, [string]$TenantPrefix)
     $token = Get-PnPAccessToken -Scopes 'https://graph.microsoft.com/.default' -ErrorAction Stop
     $graphHeaders = @{ Authorization = "Bearer $token" }
     $graphUrl = 'https://graph.microsoft.com/v1.0'
@@ -125,6 +125,13 @@ function Add-DynamicsAppRegistrationPermissions {
         Invoke-RestMethod -Uri "$graphUrl/applications/$($application.id)" -Headers $graphHeaders -Method Patch -ContentType 'application/json' -Body $body -ErrorAction Stop | Out-Null
         $added | ForEach-Object { Write-InstallLogAction -Message "Added API permission after admin grant: $_" }
         Write-InstallLogAction -Message 'The newly added Dynamics and Power Platform permissions require a subsequent admin consent grant before use.' -Level Warning
+        if ($TenantPrefix) {
+            $consentUrl = "https://login.microsoftonline.com/$TenantPrefix.onmicrosoft.com/adminconsent?client_id=$ClientId"
+            Write-InstallLogAction -Message "Grant admin consent for the Dynamics and Power Platform permissions: $consentUrl" -Level Warning
+            if ($UseConfig) { throw "API permissions have been added. Grant admin consent at $consentUrl and rerun the installer." }
+            try { Start-Process $consentUrl } catch { }
+            Read-Host 'Press Enter once admin consent for Dynamics and Power Platform has been granted' | Out-Null
+        }
     }
     else { Write-InstallLogAction -Message 'All Dynamics and Power Platform API permissions are already configured.' }
 }
@@ -221,7 +228,7 @@ function Update-AppRegistrationPermissions {
         # Permissions that are configured but not yet consented also need the admin consent step.
         $unconsentedScopes = $WorkIQGraphDelegatePermissions | Where-Object { $_ -notin $grantedScopes }
         if (-not $added -and -not $unconsentedScopes) {
-            Add-DynamicsAppRegistrationPermissions -ClientId $ClientId
+              Add-DynamicsAppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
             return $false
         }
 
@@ -239,8 +246,10 @@ function Update-AppRegistrationPermissions {
         }
         else {
             Read-Host "Press Enter once admin consent has been granted" | Out-Null
-            Add-DynamicsAppRegistrationPermissions -ClientId $ClientId
         }
+          # Always configure these resources, including when -UseConfig skips
+          # the first consent wait. Previously that path never added them.
+          Add-DynamicsAppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
 
         return $true
     }
