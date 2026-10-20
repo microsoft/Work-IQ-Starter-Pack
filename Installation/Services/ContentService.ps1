@@ -19,13 +19,27 @@ function Update-ContentPersonas {
         $RealUserUpns = @{}
     }
 
-    foreach ($index in $RealUserUpns.Keys) {
-        $demoEmail = $DemoUsers[$index].Email
+    $upnReplacements = @{}
+    $selectedUpns = @(foreach ($index in ($RealUserUpns.Keys | Sort-Object { [int]$_ })) {
+        $demoEmail = $DemoUsers[$index].Email.Replace('<TENANTPREFIX>', $TenantPrefix)
         $realEmail = $RealUsers[$index].Email
-        if (-not [string]::IsNullOrWhiteSpace($demoEmail) -and -not [string]::IsNullOrWhiteSpace($realEmail)) {
-            $contentText = $contentText.Replace($demoEmail, $realEmail)
+        if ([string]::IsNullOrWhiteSpace($demoEmail) -or [string]::IsNullOrWhiteSpace($realEmail)) {
+            throw "A demo identity and a resolved user UPN are required for role index $index."
         }
+        $upnReplacements[$demoEmail] = $realEmail
+        $realEmail
+    })
+    if ($upnReplacements.Count) {
+        # Replace all role identities in one pass so selecting another demo user's
+        # UPN cannot cause cascading replacements between role slots.
+        $upnPattern = ($upnReplacements.Keys | Sort-Object Length -Descending | ForEach-Object { [regex]::Escape($_) }) -join '|'
+        $contentText = [regex]::Replace($contentText, $upnPattern, {
+            param($match)
+            $upnReplacements[$match.Value]
+        }, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+    }
 
+    foreach ($index in $RealUserUpns.Keys) {
         $demoFullName = "$($DemoUsers[$index].FirstName) $($DemoUsers[$index].LastName)"
         $realFullName = "$($RealUsers[$index].FirstName) $($RealUsers[$index].LastName)"
         if (-not [string]::IsNullOrWhiteSpace($DemoUsers[$index].FirstName) -and -not [string]::IsNullOrWhiteSpace($RealUsers[$index].FirstName)) {
@@ -43,6 +57,8 @@ function Update-ContentPersonas {
 
     # Validate the result is still well-formed JSON before writing it out.
     $newContent = $contentText | ConvertFrom-Json
+    # Store the resolved UPNs in role order; demo-user runs reset this to [].
+    $newContent | Add-Member -NotePropertyName RealUserUpns -NotePropertyValue @($selectedUpns) -Force
 
     $previousIds = @{}
     if (Test-Path $OutputPath) {
@@ -65,10 +81,10 @@ function Update-ContentPersonas {
                 }
             }
         }
-        $contentText = $newContent | ConvertTo-Json -Depth 20
     }
 
-    Set-Content -Path $OutputPath -Value $contentText
+    $contentText = $newContent | ConvertTo-Json -Depth 20
+    Set-Content -Path $OutputPath -Value $contentText -Encoding UTF8
 }
 
 function Get-EligibleSites {

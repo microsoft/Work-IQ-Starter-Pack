@@ -1,4 +1,4 @@
-function Resolve-RealUsers {
+﻿function Resolve-RealUsers {
     param(
         [Parameter(Mandatory = $true)]
         $Settings,

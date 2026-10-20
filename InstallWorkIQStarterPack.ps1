@@ -1,4 +1,4 @@
-param(
+﻿param(
     # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
     [switch]$UseConfig
 )
@@ -133,6 +133,14 @@ try {
             throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
         }
 
+        $savedContentUpns = @()
+        if (-not $UseConfig -and (Test-Path -LiteralPath $customContentPath)) {
+            try {
+                $savedContent = Get-Content -LiteralPath $customContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+                $savedContentUpns = @($savedContent.RealUserUpns)
+            }
+            catch { Write-Verbose "Could not load saved UPN defaults: $($_.Exception.Message)" }
+        }
         $realUserUpns = @{}
         foreach ($role in $demoRoles) {
             if ($UseConfig) {
@@ -140,13 +148,23 @@ try {
             }
             else {
                 do {
-                    $upn = (Read-Host "Enter the UPN for the $($role.Label)").Trim()
+                    $defaultUpn = if ($role.Index -lt $configUpns.Count -and -not [string]::IsNullOrWhiteSpace($configUpns[$role.Index])) {
+                        ([string]$configUpns[$role.Index]).Trim()
+                    }
+                    elseif ($role.Index -lt $savedContentUpns.Count) { ([string]$savedContentUpns[$role.Index]).Trim() }
+                    else { '' }
+                    $prompt = "Enter the UPN for the $($role.Label)"
+                    if (-not [string]::IsNullOrWhiteSpace($defaultUpn)) { $prompt += " (default: $defaultUpn)" }
+                    $upn = (Read-Host $prompt).Trim()
+                    if ([string]::IsNullOrWhiteSpace($upn)) { $upn = $defaultUpn }
                 } while ([string]::IsNullOrWhiteSpace($upn))
             }
 
             $realUserUpns[$role.Index] = $upn
             Write-InstallLogInput -Prompt "UPN for the $($role.Label)" -Response $upn
         }
+        $selectedUpns = @($demoRoles | ForEach-Object { $realUserUpns[$_.Index] })
+        $config.Settings | Add-Member -NotePropertyName RealUserUpns -NotePropertyValue $selectedUpns -Force
     }
 
     # Add-Member -Force so configs that predate this setting still work.
@@ -368,4 +386,3 @@ finally {
         Write-Host "Installation log (including any demo user passwords): $logLink" -ForegroundColor Cyan
     }
 }
-

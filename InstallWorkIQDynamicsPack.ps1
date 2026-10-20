@@ -1,18 +1,7 @@
-param(
+﻿param(
     # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
     [switch]$UseConfig
 )
-
-try {
-    if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
-        Write-Host "PnP.PowerShell module was not found. It will now be installed for the current user."
-        Install-Module -Name PnP.PowerShell -Scope CurrentUser -Force
-    }
-    Import-Module PnP.PowerShell
-}
-catch {
-    throw "Failed to install or import the PnP.PowerShell module: $($_.Exception.Message)"
-}
 
 # Ask the user a yes/no question for configuration. Pass -Default to let a blank
 # response (pressing Enter) accept that default instead of re-prompting.
@@ -54,19 +43,19 @@ try {
     # InstallDemoUsers is false, the real users' resolved identities and the persona-swapped
     # content live in these separate "custom" files instead, so the demo definitions are never
     # overwritten.
-    $customUsersPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/users.custom.json"
+    $customUsersPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/Users.custom.json"
     $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.json"
     $customContentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
 
     #Load App Registration Service file
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegistrationService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegService.ps1")
 
     # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/InstallLogService.ps1")
     Initialize-InstallLog -Title "WorkIQ Starter Pack Mini Installation Log" -FileName "InstallMiniLog.md"
 
-    Write-Host "Mini installer: provisions users and Dynamics leads, accounts, contacts, price lists, and published products when selected. M365 content and mailbox emails are not installed."
+    Write-Host "Mini installer: provisions Users and D365 Sales & CS Leads, Accounts, Contacts, Price Lists, and Published Products when selected. M365 content and mailbox Emails are not installed."
     $currentTenant = $config.Settings.TenantPrefix
     if ($UseConfig) {
         if ([string]::IsNullOrWhiteSpace($currentTenant)) {
@@ -98,11 +87,11 @@ try {
     # Ask whether to provision the built-in demo users, or point the starter pack's 5 role
     # slots at real, existing users instead. The UPNs are collected here (upfront, alongside
     # the other one-time setup questions); the actual Entra ID lookup happens later, once
-    # Connect-WorkIQGraph has established a Graph connection.
-    $provisionDemoUsers = if ($UseConfig) { [bool]$config.Settings.InstallDemoUsers } else { Read-YesNo "Do you want to provision the built-in demo users?" -Default $true }
+    # Browser authentication has established access to Microsoft Graph.
+    $provisionDemoUsers = if ($UseConfig) { [bool]$config.Settings.InstallDemoUsers } else { Read-YesNo "Do you want to provision the built-in demo Users?" -Default $true }
     $config.Settings.InstallDemoUsers = $provisionDemoUsers
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
-    Write-InstallLogInput -Prompt "Provision the built-in demo users?" -Response $(if ($provisionDemoUsers) { "Yes" } else { "No" })
+    Write-InstallLogInput -Prompt "Provision the built-in demo Users?" -Response $(if ($provisionDemoUsers) { "Yes" } else { "No" })
 
     # Persisted so the email import step can be gated on it later. Demo users always get emails.
     $provisionEmails = $true
@@ -113,12 +102,12 @@ try {
         }
         else {
             Write-Host ""
-            Write-Host "NOTICE: This starter pack will provision emails in the users' inboxes." -ForegroundColor Yellow
+            Write-Host "NOTICE: This starter pack will provision Emails in the Users' inboxes." -ForegroundColor Yellow
             Write-Host "        It should NOT be used in a production tenant." -ForegroundColor Yellow
             Write-Host ""
-            $provisionEmails = Read-YesNo "Do you want to provision emails in the users' inboxes?" -Default $false
+            $provisionEmails = Read-YesNo "Do you want to provision Emails in the Users' inboxes?" -Default $false
         }
-        Write-InstallLogInput -Prompt "Provision emails in the users' inboxes?" -Response $(if ($provisionEmails) { "Yes" } else { "No" })
+        Write-InstallLogInput -Prompt "Provision Emails in the Users' inboxes?" -Response $(if ($provisionEmails) { "Yes" } else { "No" })
 
         $demoRoles = @(
             @{ Label = "Marketing user"; Index = 0 },
@@ -133,6 +122,14 @@ try {
             throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
         }
 
+        $savedContentUpns = @()
+        if (-not $UseConfig -and (Test-Path -LiteralPath $customContentPath)) {
+            try {
+                $savedContent = Get-Content -LiteralPath $customContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+                $savedContentUpns = @($savedContent.RealUserUpns)
+            }
+            catch { Write-Verbose "Could not load saved UPN defaults: $($_.Exception.Message)" }
+        }
         $realUserUpns = @{}
         foreach ($role in $demoRoles) {
             if ($UseConfig) {
@@ -140,13 +137,23 @@ try {
             }
             else {
                 do {
-                    $upn = (Read-Host "Enter the UPN for the $($role.Label)").Trim()
+                    $defaultUpn = if ($role.Index -lt $configUpns.Count -and -not [string]::IsNullOrWhiteSpace($configUpns[$role.Index])) {
+                        ([string]$configUpns[$role.Index]).Trim()
+                    }
+                    elseif ($role.Index -lt $savedContentUpns.Count) { ([string]$savedContentUpns[$role.Index]).Trim() }
+                    else { '' }
+                    $prompt = "Enter the UPN for the $($role.Label)"
+                    if (-not [string]::IsNullOrWhiteSpace($defaultUpn)) { $prompt += " (default: $defaultUpn)" }
+                    $upn = (Read-Host $prompt).Trim()
+                    if ([string]::IsNullOrWhiteSpace($upn)) { $upn = $defaultUpn }
                 } while ([string]::IsNullOrWhiteSpace($upn))
             }
 
             $realUserUpns[$role.Index] = $upn
             Write-InstallLogInput -Prompt "UPN for the $($role.Label)" -Response $upn
         }
+        $selectedUpns = @($demoRoles | ForEach-Object { $realUserUpns[$_.Index] })
+        $config.Settings | Add-Member -NotePropertyName RealUserUpns -NotePropertyValue $selectedUpns -Force
     }
 
     # Add-Member -Force so configs that predate this setting still work.
@@ -154,8 +161,8 @@ try {
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
 
     # Prompt for each environment immediately after selecting its content pack.
-    $installDynamicsContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsContent } else { Read-YesNo "Do you want to install the Dynamics WorkIQ Starter Pack Content?" -Default $true }
-    Write-InstallLogInput -Prompt "Install the Dynamics WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsContent) { "Yes" } else { "No" })
+    $installDynamicsContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsContent } else { Read-YesNo "Do you want to install the Dynamics 365 Sales and Customer Service (D365 Sales & CS) WorkIQ Starter Pack Content?" -Default $true }
+    Write-InstallLogInput -Prompt "Install the D365 Sales & CS WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsContent) { "Yes" } else { "No" })
     $createDynamicsEnvironment = $false
     if ($installDynamicsContent) {
         # Automated installs keep using the configured environment.
@@ -165,7 +172,7 @@ try {
         $environmentUrl = $config.Settings.DynamicsEnvironmentUrl
         if (-not $UseConfig) {
             do {
-                $prompt = "Enter the Dynamics 365 Sales & Customer Service environment URL (e.g. https://contoso.crm.dynamics.com)"
+                $prompt = "Enter the D365 Sales & CS environment URL (e.g. https://contoso.crm.dynamics.com)"
                 if (-not [string]::IsNullOrWhiteSpace($environmentUrl)) {
                     $prompt += " (default: $environmentUrl)"
                 }
@@ -181,16 +188,16 @@ try {
         }
         $environmentUrl = $environmentUri.GetLeftPart([UriPartial]::Authority)
         $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentUrl -NotePropertyValue $environmentUrl -Force
-        Write-InstallLogInput -Prompt "Dynamics 365 Sales & Customer Service environment URL" -Response $environmentUrl
+        Write-InstallLogInput -Prompt "D365 Sales & CS environment URL" -Response $environmentUrl
         }
     }
-    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 F&O WorkIQ Starter Pack Content?" -Default $false }
-    Write-InstallLogInput -Prompt "Install the Dynamics 365 F&O WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsFOContent) { "Yes" } else { "No" })
+    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
+    Write-InstallLogInput -Prompt "Install the D365 F&O WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsFOContent) { "Yes" } else { "No" })
     if ($installDynamicsFOContent) {
         $foEnvironmentUrl = $config.Settings.DynamicsFOEnvironmentUrl
         if (-not $UseConfig) {
             do {
-                $prompt = "Enter the Dynamics 365 F&O environment URL (e.g. https://contoso.operations.dynamics.com)"
+                $prompt = "Enter the D365 F&O environment URL (e.g. https://contoso.operations.dynamics.com)"
                 if (-not [string]::IsNullOrWhiteSpace($foEnvironmentUrl)) {
                     $prompt += " (default: $foEnvironmentUrl)"
                 }
@@ -206,10 +213,10 @@ try {
         }
         $foEnvironmentUrl = $foEnvironmentUri.GetLeftPart([UriPartial]::Authority)
         $config.Settings | Add-Member -NotePropertyName DynamicsFOEnvironmentUrl -NotePropertyValue $foEnvironmentUrl -Force
-        Write-InstallLogInput -Prompt "Dynamics 365 F&O environment URL" -Response $foEnvironmentUrl
+        Write-InstallLogInput -Prompt "D365 F&O environment URL" -Response $foEnvironmentUrl
     }
     if (-not $installDynamicsContent -and -not $installDynamicsFOContent) {
-        throw 'You must select Dynamics or Dynamics F&O Content to proceed.'
+        throw 'You must select D365 Sales & CS or D365 F&O Content to proceed.'
     }
     $config.Settings.InstallDynamicsContent = $installDynamicsContent
     $config.Settings | Add-Member -NotePropertyName InstallDynamicsFOContent -NotePropertyValue $installDynamicsFOContent -Force
@@ -246,7 +253,6 @@ try {
 
         Write-InstallLogAction -Message "Client ID saved to $configPath" -Level Success
 
-        Connect-WorkIQPnP -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $clientId -Force
         Update-AppRegistrationPermissions -ClientId $clientId -TenantPrefix $config.Settings.TenantPrefix | Out-Null
     }
     else {
@@ -259,15 +265,40 @@ try {
 
         $registration = New-AppRegistration -Tenant $config.Settings.TenantPrefix -AppName $appName
         Set-AppRegistrationConfig -ClientId $registration.ClientId -TenantPrefix $registration.TenantPrefix -ConfigPath $configPath | Out-Null
-        Connect-WorkIQPnP -SharePointUrl $registration.SharePointUrl -ClientId $registration.ClientId -Force
-        Update-AppRegistrationPermissions -ClientId $registration.ClientId -TenantPrefix $registration.TenantPrefix | Out-Null
+        # New-AppRegistration has already configured and consented all JSON permissions.
 
         # Reload configuration in case Set-AppRegistrationConfig updated config.json.
         $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
     }
 
-    # Connect to SharePoint Online using PnP PowerShell. This is done once here and the resulting
-    Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
+    # One browser sign-in for the registered app; reuse its refresh token for APIs.
+    $installerTenant = "$($config.Settings.TenantPrefix).onmicrosoft.com"
+    $installerClientId = [guid]$config.Settings.ClientId
+    $installerSignIn = Get-AppRegBrowserAccessToken -Tenant $installerTenant -AuthenticationClientId $installerClientId -Scope 'https://graph.microsoft.com/.default offline_access' -ReturnTokenResponse
+    if (-not $installerSignIn.refresh_token) { throw 'Sign-in did not return a refresh token for the selected APIs.' }
+    $installerAuthentication = @{ RefreshToken = $installerSignIn.refresh_token }
+    $installerTokens = @{
+        'https://graph.microsoft.com' = @{ Token = $installerSignIn.access_token; Expires = [DateTime]::UtcNow.AddSeconds([Math]::Max(0, [int]$installerSignIn.expires_in - 120)) }
+    }
+    $installerSignIn = $null
+    $installerTokenProvider = {
+        param([string]$Scope)
+        $resource = $Scope.Substring(0, $Scope.LastIndexOf('/'))
+        if (-not $installerTokens.ContainsKey($resource) -or $installerTokens[$resource].Expires -lt [DateTime]::UtcNow) {
+            $response = Invoke-RestMethod -Method Post -Uri "https://login.microsoftonline.com/$installerTenant/oauth2/v2.0/token" -Body @{
+                client_id = $installerClientId.ToString()
+                grant_type = 'refresh_token'
+                refresh_token = $installerAuthentication.RefreshToken
+                scope = "$resource/.default"
+            } -ErrorAction Stop
+            if (-not $response.access_token) { throw "No token returned for '$resource'. Check admin consent for this API." }
+            if ($response.refresh_token) { $installerAuthentication.RefreshToken = $response.refresh_token }
+            $installerTokens[$resource] = @{ Token = $response.access_token; Expires = [DateTime]::UtcNow.AddSeconds([Math]::Max(0, [int]$response.expires_in - 120)) }
+        }
+        return $installerTokens[$resource].Token
+    }
+    $global:graphBaseUrl = 'https://graph.microsoft.com/v1.0'
+    $global:headers = @{ Authorization = "Bearer $(& $installerTokenProvider 'https://graph.microsoft.com/.default')" }
 
     # end app reg creation
 
@@ -296,8 +327,7 @@ try {
     # Mini installation uses the same configuration and identity resolution as the
     # full installer, with users and selected Dynamics provisioning.
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1")
-
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1") -AccessTokenProvider $installerTokenProvider
     $provisioningSettings = $settings
     if (-not $config.Settings.InstallDemoUsers) {
         $provisioningSettings = $settings.PSObject.Copy()
@@ -331,7 +361,7 @@ try {
             $environmentOptions.CurrencyCode = $environmentOptions.CurrencyCode.ToUpperInvariant()
             $environmentOptions.SecurityGroupId = (Read-Host 'Security group object ID (leave blank for none)').Trim()
             Write-InstallLogInput -Prompt 'Environment security group object ID' -Response $(if ($environmentOptions.SecurityGroupId) { $environmentOptions.SecurityGroupId } else { 'None' })
-            $newEnvironment = New-PowerPlatformDataverseEnvironment @environmentOptions
+            $newEnvironment = Invoke-InstallStep -Description 'Creating the Dataverse Environment' -Action { New-PowerPlatformDataverseEnvironment @environmentOptions }
             $newEnvironmentUri = $null
             if (-not [Uri]::TryCreate([string]$newEnvironment.dataverseOrganizationUrl, [UriKind]::Absolute, [ref]$newEnvironmentUri) -or
                 $newEnvironmentUri.Scheme -ne 'https' -or $newEnvironmentUri.UserInfo -or
@@ -347,45 +377,92 @@ try {
         }
         $dynamicsEnvironment = Show-DynamicsEnvironmentSecurityGroup -Config $config
     }
-    Add-Users -Settings $provisioningSettings -SkipLicenses
+    Invoke-InstallStep -Description 'Provisioning Demo Users' -Action {
+        Add-Users -Settings $provisioningSettings -SkipLicenses
+    }
 
     if ($config.Settings.InstallDynamicsContent -eq $true) {
-        Initialize-PowerPlatformUsers -Config $config -Settings $provisioningSettings -Environment $dynamicsEnvironment
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/DynamicsService.ps1")
-        Install-DynamicsFieldEngagementSolution -Config $config
-        Set-PowerPlatformUserSecurityRoles -Config $config -Settings $provisioningSettings
-        Initialize-DynamicsIdentityMap -Config $config -Settings $provisioningSettings
-        Add-DynamicsLeads -Config $config
-        Add-DynamicsAccounts -Config $config
-        Add-DynamicsContacts -Config $config
-        Update-DynamicsAccountPrimaryContacts -Config $config
-        Add-DynamicsPriceLists -Config $config
-        Add-DynamicsProducts -Config $config
-        Add-DynamicsOpportunities -Config $config
-        Add-DynamicsQuotes -Config $config
-        Add-DynamicsOrders -Config $config
-        Add-DynamicsInvoices -Config $config
-        Add-DynamicsIncidents -Config $config
-        Add-DynamicsEmails -Config $config
-        Add-DynamicsFieldEngagements -Config $config
-        Set-DynamicsDemoOwners -Config $config
-        $deployDynamicsDocuments = Read-YesNo 'Do you want to deploy the SharePoint documents connected to Dynamics 365 Sales?' -Default $false
-        Write-InstallLogInput -Prompt 'Deploy SharePoint documents connected to Dynamics 365 Sales?' -Response $(if ($deployDynamicsDocuments) { 'Yes' } else { 'No' })
+        Invoke-InstallStep -Description 'Synchronizing Users with Dataverse' -Action {
+            Initialize-PowerPlatformUsers -Config $config -Settings $provisioningSettings -Environment $dynamicsEnvironment
+        }
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/DynamicsService.ps1") -AccessTokenProvider $installerTokenProvider
+        Invoke-InstallStep -Description 'Installing the D365 Sales & CS Field Engagement Solution' -Action {
+            Install-DynamicsFieldEngagementSolution -Config $config
+        }
+        Invoke-InstallStep -Description 'Assigning Dataverse User Security Roles' -Action {
+            Set-PowerPlatformUserSecurityRoles -Config $config -Settings $provisioningSettings
+        }
+        Invoke-InstallStep -Description 'Preparing D365 Sales & CS User Identities' -Action {
+            Initialize-DynamicsIdentityMap -Config $config -Settings $provisioningSettings
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Leads' -Action {
+            Add-DynamicsLeads -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Accounts' -Action {
+            Add-DynamicsAccounts -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Contacts' -Action {
+            Add-DynamicsContacts -Config $config
+        }
+        Invoke-InstallStep -Description 'Updating D365 Sales & CS Account Primary Contacts' -Action {
+            Update-DynamicsAccountPrimaryContacts -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Price Lists' -Action {
+            Add-DynamicsPriceLists -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Products' -Action {
+            Add-DynamicsProducts -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Opportunities' -Action {
+            Add-DynamicsOpportunities -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Quotes' -Action {
+            Add-DynamicsQuotes -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Sales Orders' -Action {
+            Add-DynamicsOrders -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Invoices' -Action {
+            Add-DynamicsInvoices -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Cases' -Action {
+            Add-DynamicsIncidents -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Emails' -Action {
+            Add-DynamicsEmails -Config $config
+        }
+        Invoke-InstallStep -Description 'Creating D365 Sales & CS Field Engagements' -Action {
+            Add-DynamicsFieldEngagements -Config $config
+        }
+        Invoke-InstallStep -Description 'Assigning D365 Sales & CS Record Owners' -Action {
+            Set-DynamicsDemoOwners -Config $config
+        }
+        $deployDynamicsDocuments = Read-YesNo 'Do you want to deploy the SharePoint Documents connected to D365 Sales & CS?' -Default $false
+        Write-InstallLogInput -Prompt 'Deploy SharePoint Documents connected to D365 Sales & CS?' -Response $(if ($deployDynamicsDocuments) { 'Yes' } else { 'No' })
         if ($deployDynamicsDocuments) {
-            . (Join-Path $PSScriptRoot 'Installation/Services/DynamicsSharePointService.ps1')
-            Wait-DynamicsSharePointAccountIntegration -Config $config
-            Initialize-DynamicsSharePointDocuments -Config $config
+            . (Join-Path $PSScriptRoot 'Installation/Services/DynamicsSharePointService.ps1') -AccessTokenProvider $installerTokenProvider
+            $integrationReady = Invoke-InstallStep -Description 'Checking D365 Sales & CS SharePoint Integration' -Action {
+                Wait-DynamicsSharePointAccountIntegration -Config $config
+            }
+            if ($integrationReady) {
+                Invoke-InstallStep -Description 'Deploying D365 Sales & CS SharePoint Documents' -Action {
+                    Initialize-DynamicsSharePointDocuments -Config $config
+                }
+            }
         }
     }
 
     if ($config.Settings.InstallDynamicsFOContent -eq $true) {
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/DynamicsFOService.ps1")
-        Add-DynamicsFOContent -Config $config -Settings $provisioningSettings -ConfigPath $configPath -UseConfig:$UseConfig
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/DynamicsFOService.ps1") -AccessTokenProvider $installerTokenProvider
+        Invoke-InstallStep -Description 'Provisioning D365 F&O Demo Data' -Action {
+            Add-DynamicsFOContent -Config $config -Settings $provisioningSettings -ConfigPath $configPath -UseConfig:$UseConfig
+        }
     }
 
     if (@($script:installLogActions | Where-Object { $_.Level -eq "Error" }).Count -gt 0) {
         throw "Mini installation finished with errors. Please review the installation log."
     }
+    Write-InstallLogAction -Message 'Completed all selected D365 Sales & CS installation steps.' -Level Success
     $installSucceeded = $true
 }
 catch {
@@ -393,8 +470,11 @@ catch {
     exit 1
 }
 finally {
-    # Always drop the PnP connection, whether the install succeeded or failed
-    Disconnect-PnPOnline -ErrorAction SilentlyContinue
+    # Clear API credentials after the installation.
+    if (Get-Variable installerTokens -ErrorAction SilentlyContinue) { $installerTokens.Clear() }
+    if (Get-Variable installerAuthentication -ErrorAction SilentlyContinue) { $installerAuthentication.Clear() }
+    $installerSignIn = $null
+    $global:headers = $null
 
     Save-InstallLog -Success ($installSucceeded -eq $true)
 
@@ -405,5 +485,3 @@ finally {
         Write-Host "Installation log (including any demo user passwords): $logLink" -ForegroundColor Cyan
     }
 }
-
-

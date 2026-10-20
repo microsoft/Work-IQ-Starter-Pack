@@ -1,3 +1,5 @@
+﻿param([scriptblock]$AccessTokenProvider)
+
 function Initialize-DynamicsIdentityMap {
     param($Config, $Settings)
     $script:dynamicsIdentityAliases = @{}
@@ -10,10 +12,16 @@ function Initialize-DynamicsIdentityMap {
     $script:dynamicsTenantPrefix = $Config.Settings.TenantPrefix
 }
 
-function Resolve-DynamicsUserId {
-    param($Context, [Parameter(Mandatory = $true)][string]$Email)
+function Resolve-DynamicsUserUpn {
+    param([Parameter(Mandatory = $true)][string]$Email)
     $upn = $Email.Replace('<TENANTPREFIX>', [string]$script:dynamicsTenantPrefix)
     if ($script:dynamicsIdentityAliases -and $script:dynamicsIdentityAliases.ContainsKey($upn)) { $upn = $script:dynamicsIdentityAliases[$upn] }
+    return $upn.Replace('<TENANTPREFIX>', [string]$script:dynamicsTenantPrefix)
+}
+
+function Resolve-DynamicsUserId {
+    param($Context, [Parameter(Mandatory = $true)][string]$Email)
+    $upn = Resolve-DynamicsUserUpn -Email $Email
     $key = "$($Context.BaseUrl)|$upn"
     if (-not $script:dynamicsUserIds) { $script:dynamicsUserIds = @{} }
     if ($script:dynamicsUserIds.ContainsKey($key)) { return $script:dynamicsUserIds[$key] }
@@ -42,7 +50,8 @@ function Set-DynamicsDemoOwners {
             $body = @{'ownerid@odata.bind'="/systemusers($ownerId)"} | ConvertTo-Json
             $requestHeaders = $context.Headers.Clone(); $requestHeaders['If-Match']='*'
             Invoke-RestMethod -Uri $uri -Headers $requestHeaders -Method Patch -ContentType 'application/json' -Body $body -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Assigned $collection record '$id' to '$($record.Owner)'." -Level Success
+            $ownerUpn = Resolve-DynamicsUserUpn -Email $record.Owner
+            Write-InstallLogAction -Message "Assigned $collection record '$id' to '$ownerUpn'." -Level Success
         }
     }
 }
@@ -50,7 +59,7 @@ function Set-DynamicsDemoOwners {
 function New-DynamicsEmailParty {
     param($Context, $Participant, [int]$Mask)
     $address = if ($Participant -is [string]) { $Participant } else { $Participant.Email }
-    if ([string]::IsNullOrWhiteSpace($address)) { throw 'Email participant requires an email address.' }
+    if ([string]::IsNullOrWhiteSpace($address)) { throw 'Email participant requires an Email address.' }
     if ($Participant -isnot [string] -and $Participant.ContactId) {
         return @{participationtypemask=$Mask;'partyid_contact@odata.bind'="/contacts($([Guid]::Parse($Participant.ContactId)))";addressused=$address}
     }
@@ -67,7 +76,7 @@ function Invoke-DynamicsSolutionRequest {
         if ([string]::IsNullOrWhiteSpace($details) -and $_.Exception.Response.Content) {
             try { $details = $_.Exception.Response.Content.ReadAsStringAsync().GetAwaiter().GetResult() } catch { }
         }
-        throw "Dynamics solution step '$Step' failed: $($_.Exception.Message) Dataverse response: $details"
+        throw "D365 Sales & CS solution step '$Step' failed: $($_.Exception.Message) Dataverse response: $details"
     }
 }
 
@@ -92,7 +101,7 @@ function Install-DynamicsFieldEngagementSolution {
     $context = Get-DynamicsRequestContext -Config $Config
     $filter = [Uri]::EscapeDataString("uniquename eq '$($name.Replace("'","''"))'")
     $solutionUrl = "$($context.BaseUrl)/solutions?`$select=solutionid,uniquename,version&`$filter=$filter"
-    Write-InstallLogAction -Message "Checking whether Dynamics solution '$name' is installed..."
+    Write-InstallLogAction -Message "Checking whether D365 Sales & CS solution '$name' is installed..."
     $found = Invoke-DynamicsSolutionRequest -Step 'Check installed solution' -Request @{Uri=$solutionUrl;Headers=$context.Headers;Method='Get'}
     if (@($found.value).Count) {
         $message = "Solution '$name' is installed (version $($found.value[0].version)); skipping import."
@@ -130,51 +139,86 @@ function Install-DynamicsFieldEngagementSolution {
     if ($result.ImportJobKey) { $jobId = [Guid]::Parse($result.ImportJobKey).ToString() }
     if (-not $result.AsyncOperationId) { throw 'ImportSolutionAsync returned no AsyncOperationId; demo provisioning has been stopped.' }
     $asyncId = [Guid]::Parse($result.AsyncOperationId).ToString()
-    $message = "Solution import started. Async job: $asyncId; import job: $jobId. Checking progress every minute."
+    $message = "Solution import started. Async job: $asyncId; import job: $jobId. Checking progress every 30 seconds."
     Write-InstallLogAction -Message $message
+    try {
     do {
-        Start-Sleep -Seconds 60
+        Wait-InstallPollingInterval -Activity 'Waiting for D365 Sales & CS Solution Import' -Seconds 30
         # Refresh the token during long imports.
         $context = Get-DynamicsRequestContext -Config $Config
         $job = Invoke-DynamicsSolutionRequest -Step "Monitor async job $asyncId" -Request @{
             Uri="$($context.BaseUrl)/asyncoperations($asyncId)?`$select=statecode,statuscode,message,friendlymessage";Headers=$context.Headers;Method='Get'
         }
         $progress = 'not yet available'
+        $importPercent = -1
         try {
             $import = Invoke-RestMethod -Uri "$($context.BaseUrl)/importjobs($jobId)?`$select=progress" -Headers $context.Headers -Method Get -ErrorAction Stop
             $progress = "$($import.progress)%"
+            $importPercent = [int][Math]::Min(100, [Math]::Max(0, [double]$import.progress))
         } catch { if (-not $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw "Failed to retrieve import job ${jobId}: $($_.Exception.Message) $($_.ErrorDetails.Message)" } }
         $statusLabels = @{0='Waiting for resources';10='Waiting';20='In progress';21='Pausing';22='Canceling';30='Succeeded';31='Failed';32='Canceled'}
         $statusLabel = $statusLabels[[int]$job.statuscode]
+        Write-Progress -Id 40 -Activity "Installing D365 Sales & CS Solution '$name'" -Status "$progress; $statusLabel" -PercentComplete $importPercent
         $message = "Solution '$name' import progress: $progress; $statusLabel (status $($job.statuscode))."
         Write-InstallLogAction -Message $message
     } while ([int]$job.statecode -ne 3)
+    } finally { Write-Progress -Id 40 -Activity "Installing D365 Sales & CS Solution '$name'" -Completed }
     if ([int]$job.statuscode -ne 30) { throw "Solution '$name' import failed or was canceled (job $asyncId): $($job.message) $($job.friendlymessage)" }
     }
     $context = Get-DynamicsRequestContext -Config $Config
     $found = Invoke-DynamicsSolutionRequest -Step 'Verify imported solution' -Request @{Uri=$solutionUrl;Headers=$context.Headers;Method='Get'}
     if (-not @($found.value).Count) { throw "Import job succeeded but solution '$name' could not be found." }
-    Write-InstallLogAction -Message "Solution '$name' installation completed successfully. Starting Dynamics demo data provisioning." -Level Success
+    Write-InstallLogAction -Message "Solution '$name' installation completed successfully. Starting D365 Sales & CS demo data provisioning." -Level Success
 }
 
 function Remove-DynamicsFieldEngagementSolution {
-    param([Parameter(Mandatory = $true)]$Config)
+    param([Parameter(Mandatory = $true)]$Config,
+        [ValidateRange(1, 240)][int]$TimeoutMinutes = 30)
     $name = 'CaldovaFieldEngagamentSolution'
     $context = Get-DynamicsRequestContext -Config $Config
-    Write-Host "Checking Dynamics solution '$name' for removal..."
+    Write-Host "Checking D365 Sales & CS solution '$name' for removal..."
     $filter = [Uri]::EscapeDataString("uniquename eq '$name'")
     $response = Invoke-RestMethod -Uri "$($context.BaseUrl)/solutions?`$select=solutionid&`$filter=$filter" -Headers $context.Headers -Method Get -ErrorAction Stop
     $solutions = @($response.value)
     if (-not $solutions.Count) {
-        Write-Host "Solution '$name' is not installed; skipping removal."
         Write-InstallLogAction -Message "Solution '$name' is not installed; skipping removal."
         return
     }
     if ($solutions.Count -ne 1) { throw "Expected exactly one solution named '$name'." }
     $id = [Guid]::Parse($solutions[0].solutionid).ToString()
-    Write-Host "Removing Dynamics solution '$name'..."
-    Invoke-RestMethod -Uri "$($context.BaseUrl)/solutions($id)" -Headers $context.Headers -Method Delete -ErrorAction Stop | Out-Null
-    Write-Host "Solution '$name' removed successfully."
+    Write-Host "Removing D365 Sales & CS solution '$name'..."
+    $result = Invoke-RestMethod -Uri "$($context.BaseUrl)/UninstallSolutionAsync" -Headers $context.Headers -Method Post `
+        -ContentType 'application/json' -Body (@{ SolutionUniqueName = $name } | ConvertTo-Json) -ErrorAction Stop
+    if (-not $result.AsyncOperationId) { throw 'Solution uninstall returned no async job ID. Check the solution history before retrying.' }
+    $asyncId = [guid]::Parse($result.AsyncOperationId).ToString()
+    $deadline = [DateTime]::UtcNow.AddMinutes($TimeoutMinutes)
+    Write-InstallLogAction -Message "Solution uninstall started (job $asyncId). Checking every 30 seconds..."
+    try {
+        do {
+            if ([DateTime]::UtcNow -ge $deadline) { throw "Solution uninstall timed out after $TimeoutMinutes minutes. Job $asyncId may still be running; check solution history before retrying." }
+            $context = Get-DynamicsRequestContext -Config $Config
+            $job = Invoke-RestMethod -Uri "$($context.BaseUrl)/asyncoperations($asyncId)?`$select=statecode,statuscode,message,friendlymessage" -Headers $context.Headers -Method Get -ErrorAction Stop
+            $labels = @{ 0='Waiting for Resources'; 10='Waiting'; 20='In Progress'; 21='Pausing'; 22='Canceling'; 30='Succeeded'; 31='Failed'; 32='Canceled' }
+            $status = $labels[[int]$job.statuscode]
+            if (-not $status) { $status = "Status $($job.statuscode)" }
+            Write-Progress -Id 42 -Activity 'Uninstalling the Caldova Field Engagement Solution' -Status $status -PercentComplete -1
+            Write-InstallLogAction -Message "Solution '$name' uninstall: $status."
+            if ([int]$job.statecode -eq 3) {
+                if ([int]$job.statuscode -ne 30) { throw "Solution uninstall failed or was canceled (job ${asyncId}): $($job.message) $($job.friendlymessage)" }
+                break
+            }
+            Wait-InstallPollingInterval -Activity 'Waiting for Solution Uninstall' -Seconds 30
+        } while ($true)
+        # Verify the solution itself is gone before reporting success.
+        do {
+            $context = Get-DynamicsRequestContext -Config $Config
+            $remaining = Invoke-RestMethod -Uri "$($context.BaseUrl)/solutions?`$select=solutionid&`$filter=$filter" -Headers $context.Headers -Method Get -ErrorAction Stop
+            if (-not @($remaining.value).Count) { break }
+            if ([DateTime]::UtcNow -ge $deadline) { throw "Uninstall job $asyncId succeeded, but solution '$name' is still present after $TimeoutMinutes minutes." }
+            Wait-InstallPollingInterval -Activity 'Verifying Solution Removal' -Seconds 30
+        } while ($true)
+    }
+    finally { Write-Progress -Id 42 -Activity 'Uninstalling the Caldova Field Engagement Solution' -Completed }
     Write-InstallLogAction -Message "Solution '$name' removed successfully." -Level Success
 }
 
@@ -184,7 +228,7 @@ function Add-DynamicsFieldEngagements {
     $content = Get-Content -LiteralPath $ContentPath -Raw -Encoding UTF8 | ConvertFrom-Json
     $context = Get-DynamicsRequestContext -Config $Config
     $failed = 0
-    Write-Host 'Creating Dynamics Field Engagement demo records...'
+    Write-Host 'Creating D365 Sales & CS Field Engagement demo records...'
     foreach ($engagement in $content.FieldEngagements) {
         try {
             $id = [Guid]::Parse($engagement.Id)
@@ -246,10 +290,10 @@ function Remove-DynamicsLeads {
     # Validate every ID before issuing any delete requests.
     $leadIds = @($content.Leads | Where-Object { $_ } | ForEach-Object { [Guid]::Parse($_.Id).ToString() } | Select-Object -Unique)
     if ($leadIds.Count -eq 0) {
-        Write-InstallLogAction -Message "No Dynamics lead IDs found in $ContentPath."
+        Write-InstallLogAction -Message "No D365 Sales & CS Lead IDs found in $ContentPath."
         return
     }
-    $token = Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop
+    $token = if ($AccessTokenProvider) { & $AccessTokenProvider "$environmentUrl/user_impersonation" } else { Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop }
     $dynamicsHeaders = @{
         Authorization = "Bearer $token"
         Accept = "application/json"
@@ -260,21 +304,20 @@ function Remove-DynamicsLeads {
     foreach ($leadId in $leadIds) {
         try {
             Invoke-RestMethod -Uri "$environmentUrl/api/data/v9.2/leads($leadId)" -Headers $dynamicsHeaders -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics lead $leadId." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS Lead $leadId." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) {
-                Write-InstallLogAction -Message "Dynamics lead $leadId was not found, skipping."
                 continue
             }
             $failed++
-            $message = "Failed to delete Dynamics lead ${leadId}: $($_.Exception.Message)"
+            $message = "Failed to delete D365 Sales & CS Lead ${leadId}: $($_.Exception.Message)"
             if ($_.ErrorDetails.Message) { $message += " Dataverse response: $($_.ErrorDetails.Message)" }
             Write-InstallLogAction -Message $message -Level Error
         }
     }
     if ($failed -gt 0) {
-        throw "Could not delete $failed Dynamics lead(s). Review the cleanup log."
+        throw "Could not delete $failed D365 Sales & CS Lead(s). Review the cleanup log."
     }
 }
 
@@ -296,10 +339,10 @@ function Remove-DynamicsAccounts {
     # Validate every ID before issuing any delete requests.
     $accountIds = @($content.Accounts | Where-Object { $_ } | ForEach-Object { [Guid]::Parse($_.Id).ToString() } | Select-Object -Unique)
     if ($accountIds.Count -eq 0) {
-        Write-InstallLogAction -Message "No Dynamics account IDs found in $ContentPath."
+        Write-InstallLogAction -Message "No D365 Sales & CS Account IDs found in $ContentPath."
         return
     }
-    $token = Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop
+    $token = if ($AccessTokenProvider) { & $AccessTokenProvider "$environmentUrl/user_impersonation" } else { Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop }
     $dynamicsHeaders = @{
         Authorization = "Bearer $token"
         Accept = "application/json"
@@ -310,21 +353,20 @@ function Remove-DynamicsAccounts {
     foreach ($accountId in $accountIds) {
         try {
             Invoke-RestMethod -Uri "$environmentUrl/api/data/v9.2/accounts($accountId)" -Headers $dynamicsHeaders -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics account $accountId." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS Account $accountId." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) {
-                Write-InstallLogAction -Message "Dynamics account $accountId was not found, skipping."
                 continue
             }
             $failed++
-            $message = "Failed to delete Dynamics account ${accountId}: $($_.Exception.Message)"
+            $message = "Failed to delete D365 Sales & CS Account ${accountId}: $($_.Exception.Message)"
             if ($_.ErrorDetails.Message) { $message += " Dataverse response: $($_.ErrorDetails.Message)" }
             Write-InstallLogAction -Message $message -Level Error
         }
     }
     if ($failed -gt 0) {
-        throw "Could not delete $failed Dynamics account(s). Review the cleanup log."
+        throw "Could not delete $failed D365 Sales & CS Account(s). Review the cleanup log."
     }
 }
 
@@ -345,10 +387,10 @@ function Add-DynamicsAccounts {
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $accounts = @($content.Accounts | Where-Object { $_ })
     if ($accounts.Count -eq 0) {
-        Write-InstallLogAction -Message "No Dynamics accounts found in $ContentPath."
+        Write-InstallLogAction -Message "No D365 Sales & CS Accounts found in $ContentPath."
         return
     }
-    $token = Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop
+    $token = if ($AccessTokenProvider) { & $AccessTokenProvider "$environmentUrl/user_impersonation" } else { Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop }
     $dynamicsHeaders = @{
         Authorization = "Bearer $token"
         Accept = "application/json"
@@ -361,7 +403,7 @@ function Add-DynamicsAccounts {
         try {
             $accountId = [Guid]::Parse($account.Id).ToString()
             if ([string]::IsNullOrWhiteSpace($account.Name)) {
-                throw "An account requires Name."
+                throw "An Account requires Name."
             }
             $body = @{
                 name                  = $account.Name
@@ -383,14 +425,14 @@ function Add-DynamicsAccounts {
             $json = $body | ConvertTo-Json -Depth 5
             Invoke-RestMethod -Uri "$environmentUrl/api/data/v9.2/accounts($accountId)" -Headers $dynamicsHeaders -Method Patch `
                 -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Created Dynamics account '$($account.Name)' ($accountId)." -Level Success
+            Write-InstallLogAction -Message "Created D365 Sales & CS Account '$($account.Name)' ($accountId)." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 412) {
-                Write-InstallLogAction -Message "Dynamics account '$($account.Name)' already exists, skipping creation."
+                Write-InstallLogAction -Message "D365 Sales & CS Account '$($account.Name)' already exists, skipping creation."
                 continue
             }
-            $message = "Failed to create Dynamics account '$($account.Name)': $($_.Exception.Message)"
+            $message = "Failed to create D365 Sales & CS Account '$($account.Name)': $($_.Exception.Message)"
             if ($_.ErrorDetails.Message) { $message += " Dataverse response: $($_.ErrorDetails.Message)" }
             Write-InstallLogAction -Message $message -Level Error
         }
@@ -410,7 +452,7 @@ function Get-DynamicsRequestContext {
         throw "DynamicsEnvironmentUrl must be an HTTPS environment root URL."
     }
     $environmentUrl = $environmentUri.GetLeftPart([UriPartial]::Authority)
-    $token = Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop
+    $token = if ($AccessTokenProvider) { & $AccessTokenProvider "$environmentUrl/user_impersonation" } else { Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop }
     return @{
         BaseUrl = "$environmentUrl/api/data/v9.2"
         Headers = @{
@@ -437,7 +479,7 @@ function Add-DynamicsContacts {
     foreach ($contact in $contacts) {
         try {
             $contactId = [Guid]::Parse($contact.Id).ToString()
-            if ([string]::IsNullOrWhiteSpace($contact.LastName)) { throw "A contact requires LastName." }
+            if ([string]::IsNullOrWhiteSpace($contact.LastName)) { throw "A Contact requires LastName." }
             $body = @{
                 firstname = $contact.FirstName
                 lastname = $contact.LastName
@@ -457,14 +499,14 @@ function Add-DynamicsContacts {
             $json = $body | ConvertTo-Json -Depth 5
             Invoke-RestMethod -Uri "$($context.BaseUrl)/contacts($contactId)" -Headers $context.Headers -Method Patch `
                 -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Created Dynamics contact '$($contact.FirstName) $($contact.LastName)' ($contactId)." -Level Success
+            Write-InstallLogAction -Message "Created D365 Sales & CS Contact '$($contact.FirstName) $($contact.LastName)' ($contactId)." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 412) {
-                Write-InstallLogAction -Message "Dynamics contact '$($contact.FirstName) $($contact.LastName)' already exists, skipping creation."
+                Write-InstallLogAction -Message "D365 Sales & CS Contact '$($contact.FirstName) $($contact.LastName)' already exists, skipping creation."
                 continue
             }
-            $message = "Failed to create Dynamics contact '$($contact.FirstName) $($contact.LastName)': $($_.Exception.Message)"
+            $message = "Failed to create D365 Sales & CS Contact '$($contact.FirstName) $($contact.LastName)': $($_.Exception.Message)"
             if ($_.ErrorDetails.Message) { $message += " Dataverse response: $($_.ErrorDetails.Message)" }
             Write-InstallLogAction -Message $message -Level Error
         }
@@ -489,18 +531,35 @@ function Update-DynamicsAccountPrimaryContacts {
             $accountId = [Guid]::Parse($account.Id).ToString()
             $contactId = [Guid]::Parse($account.PrimaryContactId).ToString()
             $contact = @($content.Contacts | Where-Object { $_.Id -eq $contactId -and $_.AccountId -eq $accountId })
-            if ($contact.Count -ne 1) { throw "PrimaryContactId must reference a demo contact belonging to this account." }
+            if ($contact.Count -ne 1) { throw "PrimaryContactId must reference a demo Contact belonging to this Account." }
             $json = @{ 'primarycontactid@odata.bind' = "/contacts($contactId)" } | ConvertTo-Json
             Invoke-RestMethod -Uri "$($context.BaseUrl)/accounts($accountId)" -Headers $context.Headers -Method Patch `
                 -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Set primary contact $contactId on Dynamics account '$($account.Name)'." -Level Success
+            Write-InstallLogAction -Message "Set primary Contact $contactId on D365 Sales & CS Account '$($account.Name)'." -Level Success
         }
         catch {
-            $message = "Failed to set primary contact on Dynamics account '$($account.Name)': $($_.Exception.Message)"
+            $message = "Failed to set primary Contact on D365 Sales & CS Account '$($account.Name)': $($_.Exception.Message)"
             if ($_.ErrorDetails.Message) { $message += " Dataverse response: $($_.ErrorDetails.Message)" }
             Write-InstallLogAction -Message $message -Level Error
         }
     }
+}
+
+function Get-DynamicsTableDisplayName {
+    param([Parameter(Mandatory = $true)][string]$EntitySet)
+    $names = @{
+        products = 'Products'; uoms = 'Units'; uomschedules = 'Unit Groups'
+        pricelevels = 'Price Lists'; productpricelevels = 'Price List Items'
+        accounts = 'Accounts'; contacts = 'Contacts'; leads = 'Leads'
+        opportunities = 'Opportunities'; opportunityproducts = 'Opportunity Products'
+        quotes = 'Quotes'; quotedetails = 'Quote Products'
+        salesorders = 'Orders'; salesorderdetails = 'Order Products'
+        invoices = 'Invoices'; invoicedetails = 'Invoice Products'
+        incidents = 'Cases'; emails = 'Email Messages'
+        cal_fieldengagements = 'Field Engagements'
+    }
+    if ($names.ContainsKey($EntitySet)) { return $names[$EntitySet] }
+    return $EntitySet
 }
 
 function Invoke-DynamicsCreateRecord {
@@ -516,7 +575,7 @@ function Invoke-DynamicsCreateRecord {
     # Read first to avoid duplicate-name and read-only-parent errors on reruns.
     try {
         Invoke-RestMethod -Uri "$($Context.BaseUrl)/$EntitySet($Id)" -Headers $Context.Headers -Method Get -ErrorAction Stop | Out-Null
-        Write-InstallLogAction -Message "Dynamics $EntitySet record $Id already exists, skipping creation."
+        Write-InstallLogAction -Message "D365 Sales & CS $(Get-DynamicsTableDisplayName $EntitySet): record $Id already exists, skipping creation."
         return
     }
     catch {
@@ -526,11 +585,11 @@ function Invoke-DynamicsCreateRecord {
         $json = $Body | ConvertTo-Json -Depth 6
         Invoke-RestMethod -Uri "$($Context.BaseUrl)/$EntitySet($Id)" -Headers $requestHeaders -Method Patch `
             -ContentType "application/json; charset=utf-8" -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
-        Write-InstallLogAction -Message "Created Dynamics $EntitySet record $Id." -Level Success
+        Write-InstallLogAction -Message "Created D365 Sales & CS $(Get-DynamicsTableDisplayName $EntitySet): record $Id." -Level Success
     }
     catch {
         if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 412) {
-            Write-InstallLogAction -Message "Dynamics $EntitySet record $Id already exists, skipping creation."
+            Write-InstallLogAction -Message "D365 Sales & CS $(Get-DynamicsTableDisplayName $EntitySet): record $Id already exists, skipping creation."
             return
         }
         throw
@@ -544,7 +603,7 @@ function Get-DynamicsDefaultCurrencyId {
     $uri = "$($Context.BaseUrl)/organizations?`$select=_basecurrencyid_value&`$top=2"
     $organizations = @((Invoke-RestMethod -Uri $uri -Headers $Context.Headers -Method Get -ErrorAction Stop).value)
     if ($organizations.Count -ne 1 -or [string]::IsNullOrWhiteSpace($organizations[0]._basecurrencyid_value)) {
-        throw 'Could not retrieve the Dynamics environment base currency. Catalog import cannot continue.'
+        throw 'Could not retrieve the D365 Sales & CS environment base currency. Catalog import cannot continue.'
     }
     return [Guid]::Parse($organizations[0]._basecurrencyid_value).ToString()
 }
@@ -560,11 +619,11 @@ function Add-DynamicsPriceLists {
     $currencyId = Get-DynamicsDefaultCurrencyId -Context $context
     foreach ($priceList in $content.PriceLists) {
         try {
-            if ([string]::IsNullOrWhiteSpace($priceList.Name)) { throw 'A price list requires Name.' }
+            if ([string]::IsNullOrWhiteSpace($priceList.Name)) { throw 'A Price List requires Name.' }
             $nameFilter = [Uri]::EscapeDataString("name eq '$($priceList.Name.Replace("'", "''"))'")
             $matches = @((Invoke-RestMethod -Uri "$($context.BaseUrl)/pricelevels?`$select=pricelevelid&`$filter=$nameFilter" -Headers $context.Headers -Method Get -ErrorAction Stop).value)
             if (@($matches | Where-Object { $_.pricelevelid -ne $priceList.Id }).Count) {
-                throw "Price list name '$($priceList.Name)' exists under a different GUID ($($matches[0].pricelevelid)); configured GUID is $($priceList.Id). Align the content price list ID and all references."
+                throw "Price List name '$($priceList.Name)' exists under a different GUID ($($matches[0].pricelevelid)); configured GUID is $($priceList.Id). Align the content Price List ID and all references."
             }
             $body = @{
                 name = $priceList.Name
@@ -574,7 +633,7 @@ function Add-DynamicsPriceLists {
             Invoke-DynamicsCreateRecord -Context $context -EntitySet 'pricelevels' -Id ([Guid]::Parse($priceList.Id)) -Body $body
         }
         catch {
-            Write-InstallLogAction -Message "Failed to create Dynamics price list '$($priceList.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to create D365 Sales & CS Price List '$($priceList.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
 }
@@ -590,7 +649,7 @@ function Get-DynamicsProductUnit {
     $groups = @($Content.UnitGroups | Where-Object { $_.Id -eq $groupId })
     $units = @($Content.Units | Where-Object { $_.Id -eq $unitId -and $_.UnitGroupId -eq $groupId })
     if ($groups.Count -ne 1 -or $units.Count -ne 1) {
-        throw 'Product must reference a defined unit and its unit group.'
+        throw 'Product must reference a defined Unit and its Unit Group.'
     }
     $group = $groups[0]
     $unit = $units[0]
@@ -600,7 +659,7 @@ function Get-DynamicsProductUnit {
     }
     $uri = "$($Context.BaseUrl)/uoms?`$filter=_uomscheduleid_value eq $groupId and isschedulebaseuom eq true&`$select=uomid&`$top=2"
     $baseUnits = @((Invoke-RestMethod -Uri $uri -Headers $Context.Headers -Method Get -ErrorAction Stop).value)
-    if ($baseUnits.Count -ne 1) { throw "Could not resolve base unit for '$($group.Name)'." }
+    if ($baseUnits.Count -ne 1) { throw "Could not resolve base Unit for '$($group.Name)'." }
     Invoke-DynamicsCreateRecord -Context $Context -EntitySet 'uoms' -Id $unitId -Body @{
         name = $unit.Name
         quantity = [decimal]$unit.Quantity
@@ -624,7 +683,7 @@ function Add-DynamicsProducts {
             $productId = [Guid]::Parse($product.Id).ToString()
             $priceListId = [Guid]::Parse($product.PriceListId).ToString()
             $priceList = @($content.PriceLists | Where-Object { $_.Id -eq $priceListId })
-            if ($priceList.Count -ne 1) { throw 'Product must reference a price list defined in the content file.' }
+            if ($priceList.Count -ne 1) { throw 'Product must reference a Price List defined in the content file.' }
             if ([string]::IsNullOrWhiteSpace($product.Name) -or [string]::IsNullOrWhiteSpace($product.ProductNumber)) { throw 'Product requires Name and ProductNumber.' }
             if ([decimal]$product.UnitPrice -lt 0) { throw 'UnitPrice cannot be negative.' }
             # Read first: product validation can report duplicate product numbers before
@@ -637,7 +696,7 @@ function Add-DynamicsProducts {
                 if (-not $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw }
             }
             if ($existing -and $existing.productnumber -ne $product.ProductNumber) {
-                throw "Configured product GUID belongs to product number '$($existing.productnumber)'."
+                throw "Configured Product GUID belongs to Product number '$($existing.productnumber)'."
             }
             if (-not $existing) {
                 $numberFilter = [Uri]::EscapeDataString("productnumber eq '$($product.ProductNumber.Replace("'", "''"))'")
@@ -667,14 +726,14 @@ function Add-DynamicsProducts {
                 $existing = Invoke-RestMethod -Uri "$($context.BaseUrl)/products($productId)?`$select=statecode,_defaultuomid_value,_defaultuomscheduleid_value,_pricelevelid_value" -Headers $context.Headers -Method Get -ErrorAction Stop
             }
             else {
-                Write-InstallLogAction -Message "Dynamics product '$($product.Name)' already exists (state $($existing.statecode)); reusing it."
+                Write-InstallLogAction -Message "D365 Sales & CS Product '$($product.Name)' already exists (state $($existing.statecode)); reusing it."
             }
             $requestHeaders = $context.Headers.Clone()
             $requestHeaders['If-Match'] = '*'
             # Reconcile catalog records created by earlier imports with generated unit IDs.
             if ($existing._defaultuomid_value -ne $unit.UnitId -or $existing._defaultuomscheduleid_value -ne $unit.GroupId) {
                 if ($existing.statecode -eq 0) {
-                    throw 'Active product has different units than the content file. Revise its units or align the content before importing.'
+                    throw 'Active Product has different Units than the content file. Revise its Units or align the content before importing.'
                 }
                 $json = @{
                     'defaultuomscheduleid@odata.bind' = "/uomschedules($($unit.GroupId))"
@@ -698,18 +757,18 @@ function Add-DynamicsProducts {
             Invoke-RestMethod -Uri "$($context.BaseUrl)/products($productId)" -Headers $requestHeaders -Method Patch -ContentType 'application/json' -Body $json -ErrorAction Stop | Out-Null
             $verified = Invoke-RestMethod -Uri "$($context.BaseUrl)/products($productId)?`$select=_pricelevelid_value,_defaultuomid_value,_defaultuomscheduleid_value" -Headers $context.Headers -Method Get -ErrorAction Stop
             if ($verified._pricelevelid_value -ne $priceListId -or $verified._defaultuomid_value -ne $unit.UnitId -or $verified._defaultuomscheduleid_value -ne $unit.GroupId) {
-                throw "Product catalog assignment did not persist: price list '$($verified._pricelevelid_value)', unit '$($verified._defaultuomid_value)', unit group '$($verified._defaultuomscheduleid_value)'."
+                throw "Product catalog assignment did not persist: Price List '$($verified._pricelevelid_value)', Unit '$($verified._defaultuomid_value)', Unit Group '$($verified._defaultuomscheduleid_value)'."
             }
             if ($existing.statecode -ne 0) {
                 $requestHeaders = $context.Headers.Clone()
                 $requestHeaders['If-Match'] = '*'
                 $json = @{ statecode = 0; statuscode = 1 } | ConvertTo-Json
                 Invoke-RestMethod -Uri "$($context.BaseUrl)/products($productId)" -Headers $requestHeaders -Method Patch -ContentType 'application/json' -Body $json -ErrorAction Stop | Out-Null
-                Write-InstallLogAction -Message "Published Dynamics product '$($product.Name)'." -Level Success
+                Write-InstallLogAction -Message "Published D365 Sales & CS Product '$($product.Name)'." -Level Success
             }
         }
         catch {
-            Write-InstallLogAction -Message "Failed to provision Dynamics product '$($product.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to provision D365 Sales & CS Product '$($product.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
 }
@@ -737,15 +796,15 @@ function Remove-DynamicsProductCatalog {
     foreach ($record in $records) {
         try {
             Invoke-RestMethod -Uri "$($context.BaseUrl)/$($record.EntitySet)($($record.Id))" -Headers $context.Headers -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics $($record.EntitySet) record $($record.Id)." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS $(Get-DynamicsTableDisplayName $record.EntitySet) record $($record.Id)." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) { continue }
             $failed++
-            Write-InstallLogAction -Message "Failed to delete Dynamics $($record.EntitySet) record $($record.Id): $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to delete D365 Sales & CS $(Get-DynamicsTableDisplayName $record.EntitySet) record $($record.Id): $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
-    if ($failed -gt 0) { throw "Could not delete $failed product catalog record(s). Review the cleanup log." }
+    if ($failed -gt 0) { throw "Could not delete $failed Product catalog record(s). Review the cleanup log." }
 }
 
 function Add-DynamicsLeads {
@@ -765,17 +824,17 @@ function Add-DynamicsLeads {
     $content = Get-Content -Path $ContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $leads = @($content.Leads | Where-Object { $_ })
     if ($leads.Count -eq 0) {
-        Write-InstallLogAction -Message "No Dynamics leads found in $ContentPath."
+        Write-InstallLogAction -Message "No D365 Sales & CS Leads found in $ContentPath."
         return
     }
 
     try {
         # Request the environment-specific scope directly. Older PnP versions
         # do not allow -ResourceUrl and -Scopes in the same parameter set.
-        $token = Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop
+        $token = if ($AccessTokenProvider) { & $AccessTokenProvider "$environmentUrl/user_impersonation" } else { Get-PnPAccessToken -Scopes "$environmentUrl/user_impersonation" -ErrorAction Stop }
     }
     catch {
-        throw "Could not obtain a Dataverse token for $environmentUrl. Ensure the app registration has Dynamics CRM delegated user_impersonation permission with consent and the signed-in user has access to the environment. $($_.Exception.Message)"
+        throw "Could not obtain a Dataverse token for $environmentUrl. Ensure the app registration has D365 Sales & CS CRM delegated user_impersonation permission with consent and the signed-in user has access to the environment. $($_.Exception.Message)"
     }
     $dynamicsHeaders = @{
         Authorization      = "Bearer $token"
@@ -796,10 +855,10 @@ function Add-DynamicsLeads {
         try {
             $leadId = [Guid]::Parse($lead.Id).ToString()
             if ([string]::IsNullOrWhiteSpace($lead.Subject) -or [string]::IsNullOrWhiteSpace($lead.LastName)) {
-                throw "A lead requires Subject and LastName."
+                throw "A Lead requires Subject and LastName."
             }
             if ($lead.Status -and $lead.Status -ne 'Open') {
-                throw "Only Open demo leads are supported at this stage."
+                throw "Only Open demo Leads are supported at this stage."
             }
             $body = @{
                 subject       = $lead.Subject
@@ -810,11 +869,11 @@ function Add-DynamicsLeads {
                 description   = $lead.Description
             }
             if ($lead.Rating) {
-                if (-not $ratings.ContainsKey($lead.Rating)) { throw "Unknown lead rating '$($lead.Rating)'." }
+                if (-not $ratings.ContainsKey($lead.Rating)) { throw "Unknown Lead rating '$($lead.Rating)'." }
                 $body.leadqualitycode = $ratings[$lead.Rating]
             }
             if ($lead.LeadSource) {
-                if (-not $sources.ContainsKey($lead.LeadSource)) { throw "Unknown lead source '$($lead.LeadSource)'." }
+                if (-not $sources.ContainsKey($lead.LeadSource)) { throw "Unknown Lead source '$($lead.LeadSource)'." }
                 $body.leadsourcecode = $sources[$lead.LeadSource]
             }
             if ($null -ne $lead.CreatedOffset) {
@@ -826,14 +885,14 @@ function Add-DynamicsLeads {
             $json = $body | ConvertTo-Json -Depth 5
             Invoke-RestMethod -Uri "$environmentUrl/api/data/v9.2/leads($leadId)" -Headers $dynamicsHeaders -Method Patch `
                 -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Created Dynamics lead '$($lead.Subject)' ($leadId)." -Level Success
+            Write-InstallLogAction -Message "Created D365 Sales & CS Lead '$($lead.Subject)' ($leadId)." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 412) {
-                Write-InstallLogAction -Message "Dynamics lead '$($lead.Subject)' already exists, skipping creation."
+                Write-InstallLogAction -Message "D365 Sales & CS Lead '$($lead.Subject)' already exists, skipping creation."
                 continue
             }
-            $message = "Failed to create Dynamics lead '$($lead.Subject)': $($_.Exception.Message)"
+            $message = "Failed to create D365 Sales & CS Lead '$($lead.Subject)': $($_.Exception.Message)"
             if ($_.ErrorDetails.Message) { $message += " Dataverse response: $($_.ErrorDetails.Message)" }
             Write-InstallLogAction -Message $message -Level Error
         }
@@ -851,12 +910,12 @@ function Add-DynamicsOpportunities {
     $currencyId = Get-DynamicsDefaultCurrencyId -Context $context
     foreach ($opportunity in $content.Opportunities) {
         try {
-            if ($opportunity.Status -notin @('Open', 'Won', 'Lost')) { throw 'Supported opportunity statuses are Open, Won, and Lost.' }
+            if ($opportunity.Status -notin @('Open', 'Won', 'Lost')) { throw 'Supported Opportunity statuses are Open, Won, and Lost.' }
             $id = [Guid]::Parse($opportunity.Id).ToString()
             $accountId = [Guid]::Parse($opportunity.AccountId).ToString()
             $contactId = [Guid]::Parse($opportunity.ContactId).ToString()
             if (@($content.Contacts | Where-Object { $_.Id -eq $contactId -and $_.AccountId -eq $accountId }).Count -ne 1) {
-                throw 'Opportunity contact must belong to its account.'
+                throw 'Opportunity Contact must belong to its Account.'
             }
             $body = @{
                 name = $opportunity.Name
@@ -895,12 +954,12 @@ function Add-DynamicsOpportunities {
                     $json = @{ OpportunityClose = $close; Status = -1 } | ConvertTo-Json -Depth 6
                     $action = if ($opportunity.Status -eq 'Won') { 'WinOpportunity' } else { 'LoseOpportunity' }
                     Invoke-RestMethod -Uri "$($context.BaseUrl)/$action" -Headers $context.Headers -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
-                    Write-InstallLogAction -Message "Closed Dynamics opportunity '$($opportunity.Name)' as $($opportunity.Status.ToLowerInvariant())." -Level Success
+                    Write-InstallLogAction -Message "Closed D365 Sales & CS Opportunity '$($opportunity.Name)' as $($opportunity.Status.ToLowerInvariant())." -Level Success
                 }
             }
         }
         catch {
-            Write-InstallLogAction -Message "Failed to provision Dynamics opportunity '$($opportunity.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to provision D365 Sales & CS Opportunity '$($opportunity.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
 }
@@ -918,15 +977,15 @@ function Remove-DynamicsOpportunities {
     foreach ($id in $ids) {
         try {
             Invoke-RestMethod -Uri "$($context.BaseUrl)/opportunities($id)" -Headers $context.Headers -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics opportunity $id." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS Opportunity $id." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) { continue }
             $failed++
-            Write-InstallLogAction -Message "Failed to delete Dynamics opportunity ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to delete D365 Sales & CS Opportunity ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
-    if ($failed) { throw "Could not delete $failed opportunity record(s). Review the cleanup log." }
+    if ($failed) { throw "Could not delete $failed Opportunity record(s). Review the cleanup log." }
 }
 function Add-DynamicsSalesLines {
     param($Context, $Content, $Record, [string]$EntitySet, [string]$CurrencyId)
@@ -987,7 +1046,7 @@ function Add-DynamicsQuotes {
     $currencyId = Get-DynamicsDefaultCurrencyId -Context $context
     foreach ($quote in $content.Quotes) {
         try {
-            if ($quote.Status -notin @('Draft', 'Active', 'Won')) { throw 'Unsupported quote status.' }
+            if ($quote.Status -notin @('Draft', 'Active', 'Won')) { throw 'Unsupported Quote status.' }
             $id = [Guid]::Parse($quote.Id).ToString()
             $body = @{
                 name = $quote.Name; quotenumber = $quote.QuoteNumber; description = $quote.Description
@@ -1016,9 +1075,9 @@ function Add-DynamicsQuotes {
                 } | ConvertTo-Json -Depth 5
                 Invoke-RestMethod -Uri "$($context.BaseUrl)/WinQuote" -Headers $context.Headers -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
             }
-            Write-InstallLogAction -Message "Provisioned Dynamics quote '$($quote.Name)'." -Level Success
+            Write-InstallLogAction -Message "Provisioned D365 Sales & CS Quote '$($quote.Name)'." -Level Success
         }
-        catch { Write-InstallLogAction -Message "Failed to provision Dynamics quote '$($quote.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
+        catch { Write-InstallLogAction -Message "Failed to provision D365 Sales & CS Quote '$($quote.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
     }
 }
 
@@ -1036,15 +1095,15 @@ function Remove-DynamicsQuotes {
         try {
             # Quote details are deleted with their parent quote.
             Invoke-RestMethod -Uri "$($context.BaseUrl)/quotes($id)" -Headers $context.Headers -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics quote $id." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS Quote $id." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) { continue }
             $failed++
-            Write-InstallLogAction -Message "Failed to delete quote ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to delete Quote ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
-    if ($failed) { throw "Could not delete $failed quote(s)." }
+    if ($failed) { throw "Could not delete $failed Quote(s)." }
 }
 
 function Add-DynamicsOrders {
@@ -1071,13 +1130,13 @@ function Add-DynamicsOrderInvoiceRecords {
     $entitySet = if ($isOrder) { 'salesorders' } else { 'invoices' }
     foreach ($record in $content.$Collection) {
         try {
-            if ($isOrder -and $record.Status -notin @('Active', 'Fulfilled', 'Canceled')) { throw 'Supported order statuses are Active, Fulfilled, and Canceled.' }
-            if (-not $isOrder -and $record.Status -notin @('Active', 'Paid', 'Canceled')) { throw 'Supported invoice statuses are Active, Paid, and Canceled.' }
+            if ($isOrder -and $record.Status -notin @('Active', 'Fulfilled', 'Canceled')) { throw 'Supported Order statuses are Active, Fulfilled, and Canceled.' }
+            if (-not $isOrder -and $record.Status -notin @('Active', 'Paid', 'Canceled')) { throw 'Supported Invoice statuses are Active, Paid, and Canceled.' }
             $invoiceReason = $null
             if (-not $isOrder) {
                 $reasons = @{ New=1; 'Partially Shipped'=2; Billed=4; Complete=100001; Partial=100002; Canceled=100003 }
                 $reasonName = if ($record.StatusReason) { $record.StatusReason } elseif ($record.Status -eq 'Paid') { 'Complete' } elseif ($record.Status -eq 'Canceled') { 'Canceled' } else { 'New' }
-                if (-not $reasons.ContainsKey($reasonName)) { throw "Unsupported invoice status reason '$reasonName'." }
+                if (-not $reasons.ContainsKey($reasonName)) { throw "Unsupported Invoice status reason '$reasonName'." }
                 $invoiceReason = $reasons[$reasonName]
                 $reasonState = if ($invoiceReason -ge 100003) { 'Canceled' } elseif ($invoiceReason -ge 100001) { 'Paid' } else { 'Active' }
                 if ($reasonState -ne $record.Status) { throw "Invoice reason '$reasonName' requires status $reasonState." }
@@ -1094,7 +1153,7 @@ function Add-DynamicsOrderInvoiceRecords {
             }
             if ($isOrder) {
                 $quote = @($content.Quotes | Where-Object { $_.Id -eq $record.QuoteId -and $_.AccountId -eq $accountId -and $_.OpportunityId -eq $record.OpportunityId })
-                if ($quote.Count -ne 1) { throw 'Order must reference a quote for its account and opportunity.' }
+                if ($quote.Count -ne 1) { throw 'Order must reference a Quote for its Account and Opportunity.' }
                 $body.ordernumber = $record.OrderNumber
                 $body['quoteid@odata.bind'] = "/quotes($([Guid]::Parse($record.QuoteId)))"
                 $body['opportunityid@odata.bind'] = "/opportunities($([Guid]::Parse($record.OpportunityId)))"
@@ -1102,7 +1161,7 @@ function Add-DynamicsOrderInvoiceRecords {
             }
             else {
                 $order = @($content.Orders | Where-Object { $_.Id -eq $record.OrderId -and $_.AccountId -eq $accountId })
-                if ($order.Count -ne 1) { throw 'Invoice must reference an order for its account.' }
+                if ($order.Count -ne 1) { throw 'Invoice must reference an Order for its Account.' }
                 $body.invoicenumber = $record.InvoiceNumber
                 $body['salesorderid@odata.bind'] = "/salesorders($([Guid]::Parse($record.OrderId)))"
                 $body.paymenttermscode = 1 # Net 30
@@ -1119,14 +1178,14 @@ function Add-DynamicsOrderInvoiceRecords {
             }
             if ($existing -and $existing.statecode -ne 0) {
                 if (-not $isOrder -and (($record.Status -eq 'Paid' -and $existing.statecode -eq 2) -or ($record.Status -eq 'Canceled' -and $existing.statecode -eq 3))) {
-                    Write-InstallLogAction -Message "Dynamics invoice '$($record.Name)' is already $($record.Status), skipping."
+                    Write-InstallLogAction -Message "D365 Sales & CS Invoice '$($record.Name)' is already $($record.Status), skipping."
                     continue
                 }
                 if ($isOrder -and (($record.Status -eq 'Fulfilled' -and $existing.statecode -eq 3) -or ($record.Status -eq 'Canceled' -and $existing.statecode -eq 2))) {
-                    Write-InstallLogAction -Message "Dynamics order '$($record.Name)' is already $($record.Status), skipping."
+                    Write-InstallLogAction -Message "D365 Sales & CS Order '$($record.Name)' is already $($record.Status), skipping."
                     continue
                 }
-                throw "Existing $entitySet record has unexpected state $($existing.statecode)."
+                throw "Existing $(Get-DynamicsTableDisplayName $entitySet) record has unexpected state $($existing.statecode)."
             }
             if ($record.Owner) { $body['ownerid@odata.bind'] = "/systemusers($(Resolve-DynamicsUserId -Context $context -Email $record.Owner))" }
             if (-not $existing) { Invoke-DynamicsCreateRecord -Context $context -EntitySet $entitySet -Id $id -Body $body }
@@ -1153,9 +1212,9 @@ function Add-DynamicsOrderInvoiceRecords {
                 $headers = $context.Headers.Clone(); $headers['If-Match'] = '*'
                 Invoke-RestMethod -Uri "$($context.BaseUrl)/invoices($id)" -Headers $headers -Method Patch -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
             }
-            Write-InstallLogAction -Message "Provisioned Dynamics $entitySet record '$($record.Name)'." -Level Success
+            Write-InstallLogAction -Message "Provisioned D365 Sales & CS $(Get-DynamicsTableDisplayName $entitySet) record '$($record.Name)'." -Level Success
         }
-        catch { Write-InstallLogAction -Message "Failed to provision Dynamics $entitySet record '$($record.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
+        catch { Write-InstallLogAction -Message "Failed to provision D365 Sales & CS $(Get-DynamicsTableDisplayName $entitySet) record '$($record.Name)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
     }
 }
 
@@ -1185,12 +1244,12 @@ function Remove-DynamicsOrderInvoiceRecords {
         try {
             # Dataverse cascades deletion to the parent's product lines.
             Invoke-RestMethod -Uri "$($context.BaseUrl)/$entitySet($id)" -Headers $context.Headers -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics $entitySet record $id." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS $(Get-DynamicsTableDisplayName $entitySet) record $id." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) { continue }
             $failed++
-            Write-InstallLogAction -Message "Failed to delete $entitySet ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to delete $(Get-DynamicsTableDisplayName $entitySet) ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
     if ($failed) { throw "Could not delete $failed $entitySet record(s)." }
@@ -1210,7 +1269,7 @@ function Add-DynamicsIncidents {
             if (-not $priorities.ContainsKey($incident.Priority) -or -not $origins.ContainsKey($incident.Origin)) { throw 'Unsupported incident priority or origin.' }
             $id = [Guid]::Parse($incident.Id).ToString()
             $accountId = [Guid]::Parse($incident.AccountId).ToString()
-            if (@($content.Contacts | Where-Object { $_.Id -eq $incident.ContactId -and $_.AccountId -eq $accountId }).Count -ne 1) { throw 'Incident contact must belong to its account.' }
+            if (@($content.Contacts | Where-Object { $_.Id -eq $incident.ContactId -and $_.AccountId -eq $accountId }).Count -ne 1) { throw 'Incident Contact must belong to its Account.' }
             # Standard cases have no order/invoice lookup; retain their numbers in the description.
             $description = $incident.Description
             foreach ($relation in @(@{Field='OrderId';Table='Orders';Number='OrderNumber'}, @{Field='InvoiceId';Table='Invoices';Number='InvoiceNumber'})) {
@@ -1240,9 +1299,9 @@ function Add-DynamicsIncidents {
                 Invoke-RestMethod -Uri "$($context.BaseUrl)/CloseIncident" -Headers $context.Headers -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
             }
             elseif (($incident.Status -eq 'Resolved' -and $existing.statecode -ne 1) -or ($incident.Status -eq 'In Progress' -and $existing.statecode -ne 0)) { throw "Existing incident has unexpected state $($existing.statecode)." }
-            Write-InstallLogAction -Message "Provisioned Dynamics incident '$($incident.Title)' as $($incident.Status)." -Level Success
+            Write-InstallLogAction -Message "Provisioned D365 Sales & CS incident '$($incident.Title)' as $($incident.Status)." -Level Success
         }
-        catch { Write-InstallLogAction -Message "Failed to provision Dynamics incident '$($incident.Title)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
+        catch { Write-InstallLogAction -Message "Failed to provision D365 Sales & CS incident '$($incident.Title)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
     }
 }
 
@@ -1257,7 +1316,7 @@ function Remove-DynamicsIncidents {
     foreach ($id in $ids) {
         try {
             Invoke-RestMethod -Uri "$($context.BaseUrl)/incidents($id)" -Headers $context.Headers -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics incident $id." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS incident $id." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) { continue }
@@ -1278,8 +1337,8 @@ function Add-DynamicsEmails {
     foreach ($email in $content.Emails) {
         try {
             $id = [Guid]::Parse($email.Id).ToString()
-            if ($email.Status -notin @('Draft','Sent','Received')) { throw 'Unsupported email status.' }
-            if ($email.Direction -notin @('Outgoing','Incoming')) { throw 'Unsupported email direction.' }
+            if ($email.Status -notin @('Draft','Sent','Received')) { throw 'Unsupported Email status.' }
+            if ($email.Direction -notin @('Outgoing','Incoming')) { throw 'Unsupported Email direction.' }
             $existing = $null
             try { $existing = Invoke-RestMethod -Uri "$($context.BaseUrl)/emails($id)?`$select=statecode,statuscode" -Headers $context.Headers -Method Get -ErrorAction Stop }
             catch { if (-not $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw } }
@@ -1295,10 +1354,10 @@ function Add-DynamicsEmails {
                     "$($_.participationtypemask):$partyId"
                 } | Sort-Object)
                 $actualKeys = @($actualParties.value | Where-Object { $_.participationtypemask -in @(1,2,3) } | ForEach-Object { "$($_.participationtypemask):$($_._partyid_value)" } | Sort-Object)
-                if (($expectedKeys -join '|') -ne ($actualKeys -join '|')) { throw 'Existing demo email has different participants. Remove the old demo email with cleanup and redeploy to import the source From, To, and Cc.' }
+                if (($expectedKeys -join '|') -ne ($actualKeys -join '|')) { throw 'Existing demo Email has different participants. Remove the old demo Email with cleanup and redeploy to import the source From, To, and Cc.' }
             }
             if ($existing -and $existing.statuscode -eq $targetReason) { continue }
-            if ($existing -and $existing.statecode -ne 0) { throw 'Existing email is closed with a different status.' }
+            if ($existing -and $existing.statecode -ne 0) { throw 'Existing Email is closed with a different status.' }
             if (-not $existing) {
                 $parties = @(New-DynamicsEmailParty -Context $context -Participant $email.From -Mask 1)
                 foreach ($participant in $email.To) { $parties += New-DynamicsEmailParty -Context $context -Participant $participant -Mask 2 }
@@ -1307,8 +1366,8 @@ function Add-DynamicsEmails {
                 $body['ownerid@odata.bind'] = "/systemusers($(Resolve-DynamicsUserId -Context $context -Email $email.Owner))"
                 if ($email.RegardingId) {
                     $map = $regarding[$email.RegardingTable]
-                    if (-not $map) { throw 'Unsupported email regarding table.' }
-                    if (@($content.($email.RegardingTable) | Where-Object Id -eq $email.RegardingId).Count -ne 1) { throw 'Invalid email regarding reference.' }
+                    if (-not $map) { throw 'Unsupported Email regarding table.' }
+                    if (@($content.($email.RegardingTable) | Where-Object Id -eq $email.RegardingId).Count -ne 1) { throw 'Invalid Email regarding reference.' }
                     $body['regardingobjectid_' + $map.Type + '_email@odata.bind'] = "/$($map.Set)($([Guid]::Parse($email.RegardingId)))"
                 }
                 if ($null -ne $email.CreatedOffset) { $body.overriddencreatedon = (Get-Date).ToUniversalTime().AddDays([int]$email.CreatedOffset).ToString('yyyy-MM-ddTHH:mm:ssZ') }
@@ -1327,9 +1386,9 @@ function Add-DynamicsEmails {
                 $headers = $context.Headers.Clone(); $headers['If-Match']='*'
                 Invoke-RestMethod -Uri "$($context.BaseUrl)/emails($id)" -Headers $headers -Method Patch -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
             }
-            Write-InstallLogAction -Message "Imported Dynamics email '$($email.Subject)' as $($email.Status)." -Level Success
+            Write-InstallLogAction -Message "Imported D365 Sales & CS Email '$($email.Subject)' as $($email.Status)." -Level Success
         }
-        catch { Write-InstallLogAction -Message "Failed to import Dynamics email '$($email.Subject)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
+        catch { Write-InstallLogAction -Message "Failed to import D365 Sales & CS Email '$($email.Subject)': $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error }
     }
 }
 
@@ -1344,13 +1403,13 @@ function Remove-DynamicsEmails {
     foreach ($id in $ids) {
         try {
             Invoke-RestMethod -Uri "$($context.BaseUrl)/emails($id)" -Headers $context.Headers -Method Delete -ErrorAction Stop | Out-Null
-            Write-InstallLogAction -Message "Deleted Dynamics email $id." -Level Success
+            Write-InstallLogAction -Message "Deleted D365 Sales & CS Email $id." -Level Success
         }
         catch {
             if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) { continue }
             $failed++
-            Write-InstallLogAction -Message "Failed to delete email ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
+            Write-InstallLogAction -Message "Failed to delete Email ${id}: $($_.Exception.Message) $($_.ErrorDetails.Message)" -Level Error
         }
     }
-    if ($failed) { throw "Could not delete $failed email(s)." }
+    if ($failed) { throw "Could not delete $failed Email(s)." }
 }
