@@ -1,10 +1,11 @@
-param(
+﻿param(
     # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
     [switch]$UseConfig
 )
 
 try {
     if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
+        Write-Host "PnP.PowerShell module was not found. It will now be installed for the current user."
         Install-Module -Name PnP.PowerShell -Scope CurrentUser -Force
     }
     Import-Module PnP.PowerShell
@@ -132,6 +133,14 @@ try {
             throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
         }
 
+        $savedContentUpns = @()
+        if (-not $UseConfig -and (Test-Path -LiteralPath $customContentPath)) {
+            try {
+                $savedContent = Get-Content -LiteralPath $customContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+                $savedContentUpns = @($savedContent.RealUserUpns)
+            }
+            catch { Write-Verbose "Could not load saved UPN defaults: $($_.Exception.Message)" }
+        }
         $realUserUpns = @{}
         foreach ($role in $demoRoles) {
             if ($UseConfig) {
@@ -139,13 +148,23 @@ try {
             }
             else {
                 do {
-                    $upn = (Read-Host "Enter the UPN for the $($role.Label)").Trim()
+                    $defaultUpn = if ($role.Index -lt $configUpns.Count -and -not [string]::IsNullOrWhiteSpace($configUpns[$role.Index])) {
+                        ([string]$configUpns[$role.Index]).Trim()
+                    }
+                    elseif ($role.Index -lt $savedContentUpns.Count) { ([string]$savedContentUpns[$role.Index]).Trim() }
+                    else { '' }
+                    $prompt = "Enter the UPN for the $($role.Label)"
+                    if (-not [string]::IsNullOrWhiteSpace($defaultUpn)) { $prompt += " (default: $defaultUpn)" }
+                    $upn = (Read-Host $prompt).Trim()
+                    if ([string]::IsNullOrWhiteSpace($upn)) { $upn = $defaultUpn }
                 } while ([string]::IsNullOrWhiteSpace($upn))
             }
 
             $realUserUpns[$role.Index] = $upn
             Write-InstallLogInput -Prompt "UPN for the $($role.Label)" -Response $upn
         }
+        $selectedUpns = @($demoRoles | ForEach-Object { $realUserUpns[$_.Index] })
+        $config.Settings | Add-Member -NotePropertyName RealUserUpns -NotePropertyValue $selectedUpns -Force
     }
 
     # Add-Member -Force so configs that predate this setting still work.
@@ -266,7 +285,7 @@ try {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/MeetingService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PermissionsService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1")
 
         # Teams chat history import uses Microsoft Graph's message migration API, which only supports
         # application permissions (Teamwork.Migrate.All) - need a seprate connection specifically for migration using a cert.
@@ -325,6 +344,8 @@ try {
             foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
                 Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
 
+                Add-Groups -Site $site -Settings $provisioningSettings
+
                 if (-not (Add-TeamSite -Site $site -Config $config)) {
                     Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
                     continue
@@ -365,4 +386,3 @@ finally {
         Write-Host "Installation log (including any demo user passwords): $logLink" -ForegroundColor Cyan
     }
 }
-

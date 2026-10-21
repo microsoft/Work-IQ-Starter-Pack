@@ -85,6 +85,57 @@ function Connect-WorkIQPnP {
     $global:workIQPnPClientId = $ClientId
 }
 
+function Add-DynamicsAppRegistrationPermissions {
+    param([string]$ClientId, [string]$TenantPrefix)
+    $token = Get-PnPAccessToken -Scopes 'https://graph.microsoft.com/.default' -ErrorAction Stop
+    $graphHeaders = @{ Authorization = "Bearer $token" }
+    $graphUrl = 'https://graph.microsoft.com/v1.0'
+    $application = Invoke-RestMethod -Uri "$graphUrl/applications(appId='$ClientId')?`$select=id,requiredResourceAccess" -Headers $graphHeaders -Method Get -ErrorAction Stop
+    $resourceAccessByApp = [ordered]@{}
+    foreach ($resource in @($application.requiredResourceAccess)) {
+        $resourceAccessByApp[$resource.resourceAppId] = [System.Collections.Generic.List[object]]@(
+            $resource.resourceAccess | ForEach-Object { @{ id = $_.id; type = $_.type } }
+        )
+    }
+    $added = @()
+        $dynamicsPermissions = @(
+            @{ ResourceAppId = '00000007-0000-0000-c000-000000000000'; ResourceName = 'Dynamics CRM'; Id = '78ce3f0f-a1ce-49c2-8cde-64b5c0896db4'; Name = 'user_impersonation' }
+            @{ ResourceAppId = '00000015-0000-0000-c000-000000000000'; ResourceName = 'Dynamics ERP'; Id = '6397893c-2260-496b-a41d-2f1f15b16ff3'; Name = 'Odata.FullAccess' }
+            @{ ResourceAppId = '8578e004-a5c6-46e7-913e-12f58912df43'; ResourceName = 'Power Platform API'; Id = '7a11470a-3968-43d4-af14-8fc4e6afcec1'; Name = 'EnvironmentManagement.Settings.ReadWrite' }
+            @{ ResourceAppId = '8578e004-a5c6-46e7-913e-12f58912df43'; ResourceName = 'Power Platform API'; Id = 'd8ed48a4-d90b-481c-b222-e9e342f38d58'; Name = 'EnvironmentManagement.Groups.ReadWrite' }
+            @{ ResourceAppId = '8578e004-a5c6-46e7-913e-12f58912df43'; ResourceName = 'Power Platform API'; Id = '177690ed-85f1-41d9-8dbf-2716e60ff46a'; Name = 'EnvironmentManagement.Environments.Read' }
+        )
+
+        foreach ($permission in $dynamicsPermissions) {
+            if (-not $resourceAccessByApp.Contains($permission.ResourceAppId)) {
+                $resourceAccessByApp[$permission.ResourceAppId] = [System.Collections.Generic.List[object]]::new()
+            }
+            $access = $resourceAccessByApp[$permission.ResourceAppId]
+            if (-not @($access | Where-Object { $_.id -eq $permission.Id -and $_.type -eq 'Scope' }).Count) {
+                $access.Add(@{ id = $permission.Id; type = 'Scope' })
+                $added += "$($permission.ResourceName) $($permission.Name) (Delegated)"
+            }
+        }
+
+    if ($added.Count) {
+        $resources = @(foreach ($key in $resourceAccessByApp.Keys) {
+            @{resourceAppId=$key;resourceAccess=@($resourceAccessByApp[$key])}
+        })
+        $body = @{requiredResourceAccess=$resources} | ConvertTo-Json -Depth 6
+        Invoke-RestMethod -Uri "$graphUrl/applications/$($application.id)" -Headers $graphHeaders -Method Patch -ContentType 'application/json' -Body $body -ErrorAction Stop | Out-Null
+        $added | ForEach-Object { Write-InstallLogAction -Message "Added API permission after admin grant: $_" }
+        Write-InstallLogAction -Message 'The newly added Dynamics and Power Platform permissions require a subsequent admin consent grant before use.' -Level Warning
+        if ($TenantPrefix) {
+            $consentUrl = "https://login.microsoftonline.com/$TenantPrefix.onmicrosoft.com/adminconsent?client_id=$ClientId"
+            Write-InstallLogAction -Message "Grant admin consent for the Dynamics and Power Platform permissions: $consentUrl" -Level Warning
+            if ($UseConfig) { throw "API permissions have been added. Grant admin consent at $consentUrl and rerun the installer." }
+            try { Start-Process $consentUrl } catch { }
+            Read-Host 'Press Enter once admin consent for Dynamics and Power Platform has been granted' | Out-Null
+        }
+    }
+    else { Write-InstallLogAction -Message 'All Dynamics and Power Platform API permissions are already configured.' }
+}
+
 function Update-AppRegistrationPermissions {
     param(
         [Parameter(Mandatory = $true)]
@@ -177,6 +228,7 @@ function Update-AppRegistrationPermissions {
         # Permissions that are configured but not yet consented also need the admin consent step.
         $unconsentedScopes = $WorkIQGraphDelegatePermissions | Where-Object { $_ -notin $grantedScopes }
         if (-not $added -and -not $unconsentedScopes) {
+              Add-DynamicsAppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
             return $false
         }
 
@@ -195,6 +247,9 @@ function Update-AppRegistrationPermissions {
         else {
             Read-Host "Press Enter once admin consent has been granted" | Out-Null
         }
+          # Always configure these resources, including when -UseConfig skips
+          # the first consent wait. Previously that path never added them.
+          Add-DynamicsAppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
 
         return $true
     }

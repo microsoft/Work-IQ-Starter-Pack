@@ -1,0 +1,2427 @@
+{
+    "Accounts":  [
+                     {
+                         "Id":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                         "Name":  "Meridian Health Alliance",
+                         "AccountNumber":  "CAL-ACC-001",
+                         "Description":  "Healthcare account evaluating and adopting Caldova ALLER products. Commercial planning follows the Healthcare Account Strategy and Territory Review.",
+                         "Industry":  "Healthcare",
+                         "Website":  "https://meridian.example",
+                         "Phone":  "+1-202-555-0110",
+                         "City":  "Boston",
+                         "State":  "MA",
+                         "Country":  "United States",
+                         "PrimaryContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                         "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -120
+                     },
+                     {
+                         "Id":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                         "Name":  "Lakeshore Regional Health",
+                         "AccountNumber":  "CAL-ACC-002",
+                         "Description":  "Healthcare account evaluating and adopting Caldova ALLER products. Commercial planning follows the Healthcare Account Strategy and Territory Review.",
+                         "Industry":  "Healthcare",
+                         "Website":  "https://lakeshore.example",
+                         "Phone":  "+1-202-555-0111",
+                         "City":  "Chicago",
+                         "State":  "IL",
+                         "Country":  "United States",
+                         "PrimaryContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                         "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -121
+                     },
+                     {
+                         "Id":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                         "Name":  "Northbridge Medical Network",
+                         "AccountNumber":  "CAL-ACC-003",
+                         "Description":  "Healthcare account evaluating and adopting Caldova ALLER products. Commercial planning follows the Healthcare Account Strategy and Territory Review.",
+                         "Industry":  "Healthcare",
+                         "Website":  "https://northbridge.example",
+                         "Phone":  "+1-202-555-0112",
+                         "City":  "Seattle",
+                         "State":  "WA",
+                         "Country":  "United States",
+                         "PrimaryContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                         "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -122
+                     },
+                     {
+                         "Id":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+                         "Name":  "Cedar Valley Healthcare",
+                         "AccountNumber":  "CAL-ACC-004",
+                         "Description":  "Healthcare account evaluating and adopting Caldova ALLER products. Commercial planning follows the Healthcare Account Strategy and Territory Review.",
+                         "Industry":  "Healthcare",
+                         "Website":  "https://cedarvalley.example",
+                         "Phone":  "+1-202-555-0113",
+                         "City":  "Denver",
+                         "State":  "CO",
+                         "Country":  "United States",
+                         "PrimaryContactId":  "e85d5626-0836-423f-bcc9-11acbcb8f151",
+                         "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -123
+                     },
+                     {
+                         "Id":  "3a057f3a-9d1e-49f1-b92c-fe75948f0b59",
+                         "Name":  "Harborview Clinical Group",
+                         "AccountNumber":  "CAL-ACC-005",
+                         "Description":  "Healthcare account evaluating and adopting Caldova ALLER products. Commercial planning follows the Healthcare Account Strategy and Territory Review.",
+                         "Industry":  "Healthcare",
+                         "Website":  "https://harborview.example",
+                         "Phone":  "+1-202-555-0114",
+                         "City":  "San Diego",
+                         "State":  "CA",
+                         "Country":  "United States",
+                         "PrimaryContactId":  "4e594bb8-e9f6-4910-97ef-ee6ab299aa9f",
+                         "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -124
+                     },
+                     {
+                         "Id":  "dd4554bb-e274-49c5-a38b-9283056184a8",
+                         "Name":  "Pinecrest Community Health",
+                         "AccountNumber":  "CAL-ACC-006",
+                         "Description":  "New regional healthcare customer planning Caldova ALLER adoption following the launch readiness review.",
+                         "Industry":  "Healthcare",
+                         "Website":  "https://pinecrest.example",
+                         "Phone":  "+1-202-555-0115",
+                         "City":  "Portland",
+                         "State":  "OR",
+                         "Country":  "United States",
+                         "PrimaryContactId":  "90de81fc-846b-427b-b66a-e27bafc60620",
+                         "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -126
+                     }
+                 ],
+    "Contacts":  [
+                     {
+                         "Id":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                         "FirstName":  "Amelia",
+                         "LastName":  "Brooks",
+                         "JobTitle":  "Director of Pharmacy",
+                         "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                         "Email":  "amelia.brooks@meridian.example",
+                         "Phone":  "+1-202-555-0120",
+                         "Description":  "Primary contact for ALLER-10 tablets adoption, purchasing, and customer engagement.",
+                         "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -110
+                     },
+                     {
+                         "Id":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                         "FirstName":  "Oliver",
+                         "LastName":  "Chen",
+                         "JobTitle":  "Clinical Education Lead",
+                         "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                         "Email":  "oliver.chen@lakeshore.example",
+                         "Phone":  "+1-202-555-0121",
+                         "Description":  "Primary contact for ALLER-20 tablets adoption, purchasing, and customer engagement.",
+                         "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -111
+                     },
+                     {
+                         "Id":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                         "FirstName":  "Priya",
+                         "LastName":  "Patel",
+                         "JobTitle":  "Procurement Manager",
+                         "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                         "Email":  "priya.patel@northbridge.example",
+                         "Phone":  "+1-202-555-0122",
+                         "Description":  "Primary contact for ALLER-INJ prefilled syringe adoption, purchasing, and customer engagement.",
+                         "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -112
+                     },
+                     {
+                         "Id":  "e85d5626-0836-423f-bcc9-11acbcb8f151",
+                         "FirstName":  "Marcus",
+                         "LastName":  "Reed",
+                         "JobTitle":  "Formulary Committee Chair",
+                         "AccountId":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+                         "Email":  "marcus.reed@cedarvalley.example",
+                         "Phone":  "+1-202-555-0123",
+                         "Description":  "Primary contact for ALLER-CAP 25 mg adoption, purchasing, and customer engagement.",
+                         "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -113
+                     },
+                     {
+                         "Id":  "4e594bb8-e9f6-4910-97ef-ee6ab299aa9f",
+                         "FirstName":  "Elena",
+                         "LastName":  "Rossi",
+                         "JobTitle":  "Accounts Payable Manager",
+                         "AccountId":  "3a057f3a-9d1e-49f1-b92c-fe75948f0b59",
+                         "Email":  "elena.rossi@harborview.example",
+                         "Phone":  "+1-202-555-0124",
+                         "Description":  "Primary contact for ALLER-CAP 50 mg adoption, purchasing, and customer engagement.",
+                         "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -114
+                     },
+                     {
+                         "Id":  "90de81fc-846b-427b-b66a-e27bafc60620",
+                         "FirstName":  "Sofia",
+                         "LastName":  "Morgan",
+                         "JobTitle":  "Pharmacy Procurement Director",
+                         "AccountId":  "dd4554bb-e274-49c5-a38b-9283056184a8",
+                         "Email":  "sofia.morgan@pinecrest.example",
+                         "Phone":  "+1-202-555-0125",
+                         "Description":  "Primary contact for Pinecrest Community Health ALLER adoption and formulary planning.",
+                         "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -116
+                     },
+                     {
+                         "Id":  "51a3b058-c3f6-4a15-867f-3f0cdaefc475",
+                         "FirstName":  "Daniel",
+                         "LastName":  "Kim",
+                         "JobTitle":  "Clinical Operations Manager",
+                         "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                         "Email":  "daniel.kim@lakeshore.example",
+                         "Phone":  "+1-202-555-0126",
+                         "Description":  "Additional customer contact coordinating ALLER training and departmental rollout.",
+                         "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -118
+                     },
+                     {
+                         "Id":  "246ae09b-8924-434c-800e-6605095f1828",
+                         "FirstName":  "Hannah",
+                         "LastName":  "Evans",
+                         "JobTitle":  "Clinical Operations Manager",
+                         "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                         "Email":  "hannah.evans@northbridge.example",
+                         "Phone":  "+1-202-555-0127",
+                         "Description":  "Additional customer contact coordinating ALLER training and departmental rollout.",
+                         "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                         "CreatedOffset":  -120
+                     }
+                 ],
+    "Leads":  [
+                  {
+                      "Id":  "29648461-bba1-45a7-a4d9-2fc5f0cd2745",
+                      "Subject":  "Meridian Health Alliance - ALLER expansion interest",
+                      "FirstName":  "Amelia",
+                      "LastName":  "Brooks",
+                      "CompanyName":  "Meridian Health Alliance",
+                      "Email":  "amelia.brooks@meridian.example",
+                      "Description":  "Additional department requested an ALLER adoption discussion after reviewing launch collateral and product availability.",
+                      "LeadSource":  "Customer referral",
+                      "Status":  "Open",
+                      "Rating":  "Hot",
+                      "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                      "CreatedOffset":  -14
+                  },
+                  {
+                      "Id":  "aa0575b5-5cc6-49ba-bd1d-2e2eb78c3e40",
+                      "Subject":  "Lakeshore Regional Health - ALLER expansion interest",
+                      "FirstName":  "Oliver",
+                      "LastName":  "Chen",
+                      "CompanyName":  "Lakeshore Regional Health",
+                      "Email":  "oliver.chen@lakeshore.example",
+                      "Description":  "Additional department requested an ALLER adoption discussion after reviewing launch collateral and product availability.",
+                      "LeadSource":  "Customer referral",
+                      "Status":  "Open",
+                      "Rating":  "Warm",
+                      "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                      "CreatedOffset":  -15
+                  },
+                  {
+                      "Id":  "b5926aa5-e2d6-4028-a458-e097281780b4",
+                      "Subject":  "Northbridge Medical Network - ALLER expansion interest",
+                      "FirstName":  "Priya",
+                      "LastName":  "Patel",
+                      "CompanyName":  "Northbridge Medical Network",
+                      "Email":  "priya.patel@northbridge.example",
+                      "Description":  "Additional department requested an ALLER adoption discussion after reviewing launch collateral and product availability.",
+                      "LeadSource":  "Customer referral",
+                      "Status":  "Open",
+                      "Rating":  "Warm",
+                      "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                      "CreatedOffset":  -16
+                  },
+                  {
+                      "Id":  "623d6b81-aeff-419f-8b89-b14b5889178d",
+                      "Subject":  "Cedar Valley Healthcare - ALLER expansion interest",
+                      "FirstName":  "Marcus",
+                      "LastName":  "Reed",
+                      "CompanyName":  "Cedar Valley Healthcare",
+                      "Email":  "marcus.reed@cedarvalley.example",
+                      "Description":  "Additional department requested an ALLER adoption discussion after reviewing launch collateral and product availability.",
+                      "LeadSource":  "Customer referral",
+                      "Status":  "Open",
+                      "Rating":  "Hot",
+                      "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                      "CreatedOffset":  -17
+                  },
+                  {
+                      "Id":  "c9803ce9-3614-4c98-925e-7e9f5701e55f",
+                      "Subject":  "Harborview Clinical Group - ALLER expansion interest",
+                      "FirstName":  "Elena",
+                      "LastName":  "Rossi",
+                      "CompanyName":  "Harborview Clinical Group",
+                      "Email":  "elena.rossi@harborview.example",
+                      "Description":  "Additional department requested an ALLER adoption discussion after reviewing launch collateral and product availability.",
+                      "LeadSource":  "Customer referral",
+                      "Status":  "Open",
+                      "Rating":  "Warm",
+                      "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                      "CreatedOffset":  -18
+                  }
+              ],
+    "UnitGroups":  [
+                       {
+                           "Name":  "Caldova Unit Group",
+                           "Id":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                           "BaseUnitName":  "Base Pack"
+                       }
+                   ],
+    "Units":  [
+                  {
+                      "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                      "Quantity":  1,
+                      "Name":  "Pack",
+                      "Id":  "a8a9df16-c3a2-4f98-840f-604edaf2665d"
+                  },
+                  {
+                      "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                      "Quantity":  1,
+                      "Name":  "Evaluation pack",
+                      "Id":  "f469b923-deab-473e-8e36-5232728cf0e6"
+                  }
+              ],
+    "PriceLists":  [
+                       {
+                           "Id":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                           "Name":  "Caldova Price List",
+                           "Description":  "Caldova ALLER demo product prices."
+                       }
+                   ],
+    "Products":  [
+                     {
+                         "Id":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                         "Name":  "ALLER-10 tablets",
+                         "ProductNumber":  "ALLER-10",
+                         "Description":  "Caldova ALLER portfolio demo product: ALLER-10 tablets.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                         "UnitPrice":  45,
+                         "Status":  "Active",
+                         "CreatedOffset":  -180,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "b31ca414-c036-4dd0-8746-4b29ac11a6b6"
+                     },
+                     {
+                         "Id":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                         "Name":  "ALLER-20 tablets",
+                         "ProductNumber":  "ALLER-20",
+                         "Description":  "Caldova ALLER portfolio demo product: ALLER-20 tablets.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                         "UnitPrice":  65,
+                         "Status":  "Active",
+                         "CreatedOffset":  -180,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "3b2b90bd-2868-4596-ae83-9d7d52623afd"
+                     },
+                     {
+                         "Id":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                         "Name":  "ALLER-INJ prefilled syringe",
+                         "ProductNumber":  "ALLER-INJ",
+                         "Description":  "Caldova ALLER portfolio demo product: ALLER-INJ prefilled syringe.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                         "UnitPrice":  120,
+                         "Status":  "Active",
+                         "CreatedOffset":  -180,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "655741a7-ffa4-42c8-8145-e8a04cb4fa1b"
+                     },
+                     {
+                         "Id":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                         "Name":  "ALLER-CAP 25 mg",
+                         "ProductNumber":  "ALLER-CAP-25",
+                         "Description":  "Caldova ALLER portfolio demo product: ALLER-CAP 25 mg.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                         "UnitPrice":  55,
+                         "Status":  "Active",
+                         "CreatedOffset":  -180,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "361b0047-6998-4a33-bb73-cdc6a8daa190"
+                     },
+                     {
+                         "Id":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                         "Name":  "ALLER-CAP 50 mg",
+                         "ProductNumber":  "ALLER-CAP-50",
+                         "Description":  "Caldova ALLER portfolio demo product: ALLER-CAP 50 mg.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                         "UnitPrice":  85,
+                         "Status":  "Active",
+                         "CreatedOffset":  -180,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "b4c7ad96-2d25-4166-a8b5-e53c6f8b7b6e"
+                     },
+                     {
+                         "Id":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                         "Name":  "ALLER-10 tablets - clinical evaluation pack",
+                         "ProductNumber":  "ALLER-10-EVAL",
+                         "Description":  "Clinical evaluation pack for ALLER-10 tablets, supporting healthcare account adoption reviews.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                         "UnitPrice":  45,
+                         "Status":  "Active",
+                         "CreatedOffset":  -186,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "0637c55e-eae9-47f7-b6af-3111db0336f9"
+                     },
+                     {
+                         "Id":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                         "Name":  "ALLER-20 tablets - clinical evaluation pack",
+                         "ProductNumber":  "ALLER-20-EVAL",
+                         "Description":  "Clinical evaluation pack for ALLER-20 tablets, supporting healthcare account adoption reviews.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                         "UnitPrice":  65,
+                         "Status":  "Active",
+                         "CreatedOffset":  -187,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "34d445ee-bdd8-44e6-afea-656a63321398"
+                     },
+                     {
+                         "Id":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                         "Name":  "ALLER-INJ prefilled syringe - clinical evaluation pack",
+                         "ProductNumber":  "ALLER-INJ-EVAL",
+                         "Description":  "Clinical evaluation pack for ALLER-INJ prefilled syringe, supporting healthcare account adoption reviews.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                         "UnitPrice":  120,
+                         "Status":  "Active",
+                         "CreatedOffset":  -188,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "2dd820c4-39fa-4057-8a35-66bbe2a1ef6f"
+                     },
+                     {
+                         "Id":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                         "Name":  "ALLER-CAP 25 mg - clinical evaluation pack",
+                         "ProductNumber":  "ALLER-CAP-25-EVAL",
+                         "Description":  "Clinical evaluation pack for ALLER-CAP 25 mg, supporting healthcare account adoption reviews.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                         "UnitPrice":  55,
+                         "Status":  "Active",
+                         "CreatedOffset":  -189,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "953786ba-7d3a-47a7-ac4d-651412c1b15a"
+                     },
+                     {
+                         "Id":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                         "Name":  "ALLER-CAP 50 mg - clinical evaluation pack",
+                         "ProductNumber":  "ALLER-CAP-50-EVAL",
+                         "Description":  "Clinical evaluation pack for ALLER-CAP 50 mg, supporting healthcare account adoption reviews.",
+                         "UnitGroupId":  "4c266b84-ea95-4f1d-b77c-533cb3bd8df1",
+                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                         "UnitPrice":  85,
+                         "Status":  "Active",
+                         "CreatedOffset":  -190,
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049",
+                         "PriceListItemId":  "fa43cc75-3c5d-461a-bd06-f1740e839bef"
+                     }
+                 ],
+    "Opportunities":  [
+                          {
+                              "Id":  "22fa01ec-4ccd-4ed4-b628-d5b9f7f4723a",
+                              "Name":  "Meridian Health Alliance - ALLER initial supply",
+                              "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                              "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                              "Description":  "Initial supply agreement following formulary review, parity pricing assessment, and launch readiness confirmation.",
+                              "EstimatedRevenue":  2850,
+                              "ActualRevenue":  2850,
+                              "Probability":  100,
+                              "Status":  "Won",
+                              "CreatedOffset":  -70,
+                              "EstimatedCloseOffset":  -45,
+                              "ActualCloseOffset":  -45,
+                              "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "64e80839-e24b-4069-b1e1-9e919eedfb48",
+                                                "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  20,
+                                                "UnitPrice":  45,
+                                                "Amount":  900
+                                            },
+                                            {
+                                                "Id":  "34651f4e-4354-4876-b850-cd7febdca623",
+                                                "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  30,
+                                                "UnitPrice":  65,
+                                                "Amount":  1950
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "d3dc80a8-d9b5-4ef7-a41a-f57232f80e17",
+                              "Name":  "Lakeshore Regional Health - ALLER initial supply",
+                              "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                              "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                              "Description":  "Initial supply agreement following formulary review, parity pricing assessment, and launch readiness confirmation.",
+                              "EstimatedRevenue":  7100,
+                              "ActualRevenue":  7100,
+                              "Probability":  100,
+                              "Status":  "Won",
+                              "CreatedOffset":  -71,
+                              "EstimatedCloseOffset":  -46,
+                              "ActualCloseOffset":  -46,
+                              "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "97563195-b61c-4b72-9689-5388c4885aef",
+                                                "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  20,
+                                                "UnitPrice":  65,
+                                                "Amount":  1300
+                                            },
+                                            {
+                                                "Id":  "62b88f8b-1853-4a78-9437-b30ebc259523",
+                                                "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  30,
+                                                "UnitPrice":  120,
+                                                "Amount":  3600
+                                            },
+                                            {
+                                                "Id":  "ef9580a1-31ab-44ff-89fc-e1d7e99f00de",
+                                                "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  40,
+                                                "UnitPrice":  55,
+                                                "Amount":  2200
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "4831eff9-a759-4b0e-99fd-9ec58ce5ba56",
+                              "Name":  "Northbridge Medical Network - ALLER initial supply",
+                              "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                              "ContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                              "Description":  "Initial supply agreement following formulary review, parity pricing assessment, and launch readiness confirmation.",
+                              "EstimatedRevenue":  9700,
+                              "ActualRevenue":  9700,
+                              "Probability":  100,
+                              "Status":  "Won",
+                              "CreatedOffset":  -72,
+                              "EstimatedCloseOffset":  -47,
+                              "ActualCloseOffset":  -47,
+                              "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "35814d16-fdb0-4e18-a910-c7fce21ab756",
+                                                "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  20,
+                                                "UnitPrice":  120,
+                                                "Amount":  2400
+                                            },
+                                            {
+                                                "Id":  "3d550e2a-2e05-4801-95ea-9595f53f8d1e",
+                                                "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  30,
+                                                "UnitPrice":  55,
+                                                "Amount":  1650
+                                            },
+                                            {
+                                                "Id":  "c2d063fa-4536-4d33-9369-ea1d16b2dfa0",
+                                                "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  40,
+                                                "UnitPrice":  85,
+                                                "Amount":  3400
+                                            },
+                                            {
+                                                "Id":  "da4c6a22-4c92-475c-b8e3-8412c601924f",
+                                                "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  50,
+                                                "UnitPrice":  45,
+                                                "Amount":  2250
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "9971af6f-09f4-4f7f-b1b3-c596cc0622cb",
+                              "Name":  "Cedar Valley Healthcare - ALLER initial supply",
+                              "AccountId":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+                              "ContactId":  "e85d5626-0836-423f-bcc9-11acbcb8f151",
+                              "Description":  "Initial supply agreement following formulary review, parity pricing assessment, and launch readiness confirmation.",
+                              "EstimatedRevenue":  15900,
+                              "ActualRevenue":  15900,
+                              "Probability":  100,
+                              "Status":  "Won",
+                              "CreatedOffset":  -73,
+                              "EstimatedCloseOffset":  -48,
+                              "ActualCloseOffset":  -48,
+                              "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "8f90e682-6047-4e16-b491-b7d68a66a046",
+                                                "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  20,
+                                                "UnitPrice":  55,
+                                                "Amount":  1100
+                                            },
+                                            {
+                                                "Id":  "a60c55b0-cc6e-4e09-8889-484160bc3e95",
+                                                "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  30,
+                                                "UnitPrice":  85,
+                                                "Amount":  2550
+                                            },
+                                            {
+                                                "Id":  "e8f9466c-ccdb-47db-82e4-ef43e444e0c0",
+                                                "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  40,
+                                                "UnitPrice":  45,
+                                                "Amount":  1800
+                                            },
+                                            {
+                                                "Id":  "2d612743-d8db-42a0-ab4c-f69320cbd6f3",
+                                                "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  50,
+                                                "UnitPrice":  65,
+                                                "Amount":  3250
+                                            },
+                                            {
+                                                "Id":  "ec7ff9ab-6527-4535-b2e5-21724b30c26b",
+                                                "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  60,
+                                                "UnitPrice":  120,
+                                                "Amount":  7200
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "aaef7f76-8cf5-45c8-87c2-13ef78871354",
+                              "Name":  "Harborview Clinical Group - ALLER initial supply",
+                              "AccountId":  "3a057f3a-9d1e-49f1-b92c-fe75948f0b59",
+                              "ContactId":  "4e594bb8-e9f6-4910-97ef-ee6ab299aa9f",
+                              "Description":  "Initial supply agreement following formulary review, parity pricing assessment, and launch readiness confirmation.",
+                              "EstimatedRevenue":  20900,
+                              "ActualRevenue":  20900,
+                              "Probability":  100,
+                              "Status":  "Won",
+                              "CreatedOffset":  -74,
+                              "EstimatedCloseOffset":  -49,
+                              "ActualCloseOffset":  -49,
+                              "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "f5da2341-5a72-4067-8899-34bb5c7c1e67",
+                                                "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  20,
+                                                "UnitPrice":  85,
+                                                "Amount":  1700
+                                            },
+                                            {
+                                                "Id":  "a89f94bf-4f83-439e-8739-55806330caeb",
+                                                "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  30,
+                                                "UnitPrice":  45,
+                                                "Amount":  1350
+                                            },
+                                            {
+                                                "Id":  "a468ff5d-5726-45a8-8d6e-ca68ac05e048",
+                                                "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  40,
+                                                "UnitPrice":  65,
+                                                "Amount":  2600
+                                            },
+                                            {
+                                                "Id":  "117985ba-86cd-4533-aba5-15e24bd2f27c",
+                                                "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  50,
+                                                "UnitPrice":  120,
+                                                "Amount":  6000
+                                            },
+                                            {
+                                                "Id":  "756d9f9b-e4a8-46a6-bc57-6a1a30b719b0",
+                                                "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  60,
+                                                "UnitPrice":  55,
+                                                "Amount":  3300
+                                            },
+                                            {
+                                                "Id":  "ff6f5722-9433-4148-a1c0-6475b0ab0d9d",
+                                                "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  70,
+                                                "UnitPrice":  85,
+                                                "Amount":  5950
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "d14c6480-0125-418c-97a9-5e9252f1f44f",
+                              "Name":  "Meridian Health Alliance - ALLER expansion",
+                              "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                              "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                              "Description":  "Additional department supply agreement following initial ALLER adoption and the customer product adoption review.",
+                              "EstimatedRevenue":  23850,
+                              "ActualRevenue":  23850,
+                              "Probability":  100,
+                              "Status":  "Won",
+                              "CreatedOffset":  -70,
+                              "EstimatedCloseOffset":  -45,
+                              "ActualCloseOffset":  -45,
+                              "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "08b73252-33f6-49d7-b875-29a5e5de06d7",
+                                                "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  20,
+                                                "UnitPrice":  45,
+                                                "Amount":  900
+                                            },
+                                            {
+                                                "Id":  "6ec5a8cd-17d9-4454-a3bf-994f3021b90f",
+                                                "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  30,
+                                                "UnitPrice":  65,
+                                                "Amount":  1950
+                                            },
+                                            {
+                                                "Id":  "79950795-b98e-4034-95d2-0cc2a126d44d",
+                                                "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  40,
+                                                "UnitPrice":  120,
+                                                "Amount":  4800
+                                            },
+                                            {
+                                                "Id":  "9c2e04d6-adbf-455f-a56d-ebec613015d3",
+                                                "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  50,
+                                                "UnitPrice":  55,
+                                                "Amount":  2750
+                                            },
+                                            {
+                                                "Id":  "768c86a6-6a16-4905-9a35-3cfa8cab8699",
+                                                "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  60,
+                                                "UnitPrice":  85,
+                                                "Amount":  5100
+                                            },
+                                            {
+                                                "Id":  "32ef28e7-1dfe-4d9b-88c1-d46c0a3c374f",
+                                                "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  70,
+                                                "UnitPrice":  45,
+                                                "Amount":  3150
+                                            },
+                                            {
+                                                "Id":  "c27fb4e2-1838-4ef8-a1a2-c5bc6a7add66",
+                                                "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  80,
+                                                "UnitPrice":  65,
+                                                "Amount":  5200
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "44ea6e08-9fc8-49a6-8a4b-8fdbdbca7a5d",
+                              "Name":  "Lakeshore Regional Health - ALLER expansion",
+                              "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                              "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                              "Description":  "Additional department supply agreement following initial ALLER adoption and the customer product adoption review.",
+                              "EstimatedRevenue":  4900,
+                              "ActualRevenue":  4900,
+                              "Probability":  100,
+                              "Status":  "Won",
+                              "CreatedOffset":  -71,
+                              "EstimatedCloseOffset":  -46,
+                              "ActualCloseOffset":  -46,
+                              "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "d28f22bf-ae3f-4464-8d23-8e456b7e42fd",
+                                                "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  20,
+                                                "UnitPrice":  65,
+                                                "Amount":  1300
+                                            },
+                                            {
+                                                "Id":  "55ce5445-163f-46bb-be6b-8e482fecf7d8",
+                                                "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  30,
+                                                "UnitPrice":  120,
+                                                "Amount":  3600
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "06a6f944-9553-402c-96ef-59ba509bcabb",
+                              "Name":  "Meridian Health Alliance - ALLER formulary review",
+                              "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                              "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                              "Description":  "Opportunity closed as lost after the customer deferred funding for the planned ALLER adoption.",
+                              "EstimatedRevenue":  7450,
+                              "ActualRevenue":  0,
+                              "ActualCloseOffset":  -1,
+                              "Probability":  0,
+                              "Status":  "Lost",
+                              "CreatedOffset":  -2,
+                              "EstimatedCloseOffset":  -1,
+                              "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "bc8d4eba-9664-4f8c-9849-ff41b55627f9",
+                                                "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  20,
+                                                "UnitPrice":  120,
+                                                "Amount":  2400
+                                            },
+                                            {
+                                                "Id":  "b600280e-68b5-4b66-99ad-49d6da79f2c8",
+                                                "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  30,
+                                                "UnitPrice":  55,
+                                                "Amount":  1650
+                                            },
+                                            {
+                                                "Id":  "6e8afa41-978e-4c6b-903a-64715cbc174b",
+                                                "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  40,
+                                                "UnitPrice":  85,
+                                                "Amount":  3400
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "4561ec8b-8ff2-4148-a58b-3d0e961f49df",
+                              "Name":  "Lakeshore Regional Health - ALLER rollout",
+                              "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                              "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                              "Description":  "Opportunity closed as lost after the customer deferred funding for the planned ALLER adoption.",
+                              "EstimatedRevenue":  8700,
+                              "ActualRevenue":  0,
+                              "ActualCloseOffset":  -1,
+                              "Probability":  0,
+                              "Status":  "Lost",
+                              "CreatedOffset":  -3,
+                              "EstimatedCloseOffset":  -1,
+                              "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "5761bb44-f2a7-4ad3-b9ac-807b8c6ec22e",
+                                                "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  20,
+                                                "UnitPrice":  55,
+                                                "Amount":  1100
+                                            },
+                                            {
+                                                "Id":  "a63b27c4-ca6c-4456-b628-a76c0059298d",
+                                                "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  30,
+                                                "UnitPrice":  85,
+                                                "Amount":  2550
+                                            },
+                                            {
+                                                "Id":  "d3f5be32-1d2c-4d69-9a08-2bf20dd62063",
+                                                "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  40,
+                                                "UnitPrice":  45,
+                                                "Amount":  1800
+                                            },
+                                            {
+                                                "Id":  "45198434-555a-4cc5-877d-494a89ded5da",
+                                                "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  50,
+                                                "UnitPrice":  65,
+                                                "Amount":  3250
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "e48aa434-5b74-400a-9802-729b52670de7",
+                              "Name":  "Northbridge Medical Network - ALLER clinic expansion",
+                              "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                              "ContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                              "Description":  "New opportunity at the initial discovery stage. Account needs, evaluation scope, and purchasing timeline are being discussed; no commercial commitment has been made.",
+                              "EstimatedRevenue":  14950,
+                              "Probability":  10,
+                              "Status":  "Open",
+                              "CreatedOffset":  -4,
+                              "EstimatedCloseOffset":  90,
+                              "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "8866d8f8-5c95-4d9f-8699-9fe1cf8955ed",
+                                                "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  20,
+                                                "UnitPrice":  85,
+                                                "Amount":  1700
+                                            },
+                                            {
+                                                "Id":  "29bc4ed0-6b16-4db1-896e-2b1b3dc06c54",
+                                                "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  30,
+                                                "UnitPrice":  45,
+                                                "Amount":  1350
+                                            },
+                                            {
+                                                "Id":  "58fe8a6f-53d0-4328-ad99-f34d324a1f50",
+                                                "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  40,
+                                                "UnitPrice":  65,
+                                                "Amount":  2600
+                                            },
+                                            {
+                                                "Id":  "4f9aa599-a13b-4adf-a05a-01fe34d1ee80",
+                                                "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  50,
+                                                "UnitPrice":  120,
+                                                "Amount":  6000
+                                            },
+                                            {
+                                                "Id":  "163c3a2b-ae29-4eb9-8323-199111805e2d",
+                                                "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  60,
+                                                "UnitPrice":  55,
+                                                "Amount":  3300
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          },
+                          {
+                              "Id":  "aa48f1fd-9095-4dc2-87f5-177f14e7bd5b",
+                              "Name":  "Pinecrest Community Health - ALLER adoption",
+                              "AccountId":  "dd4554bb-e274-49c5-a38b-9283056184a8",
+                              "ContactId":  "90de81fc-846b-427b-b66a-e27bafc60620",
+                              "Description":  "New opportunity at the initial discovery stage. Account needs, evaluation scope, and purchasing timeline are being discussed; no commercial commitment has been made.",
+                              "EstimatedRevenue":  18650,
+                              "Probability":  10,
+                              "Status":  "Open",
+                              "CreatedOffset":  -5,
+                              "EstimatedCloseOffset":  90,
+                              "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                              "Lines":  [
+                                            {
+                                                "Id":  "ad2c61e9-788f-42e6-a880-b86272d9794b",
+                                                "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  20,
+                                                "UnitPrice":  45,
+                                                "Amount":  900
+                                            },
+                                            {
+                                                "Id":  "ad43d722-f011-4749-a149-5f21ab8cad1a",
+                                                "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  30,
+                                                "UnitPrice":  65,
+                                                "Amount":  1950
+                                            },
+                                            {
+                                                "Id":  "25051d65-3d27-47c5-87eb-74f2bef891a1",
+                                                "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  40,
+                                                "UnitPrice":  120,
+                                                "Amount":  4800
+                                            },
+                                            {
+                                                "Id":  "f0188017-7976-4c0b-8623-0500d54df2a0",
+                                                "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  50,
+                                                "UnitPrice":  55,
+                                                "Amount":  2750
+                                            },
+                                            {
+                                                "Id":  "d41490f4-813f-495a-bc2e-2794297a68ff",
+                                                "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                                "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                                "Quantity":  60,
+                                                "UnitPrice":  85,
+                                                "Amount":  5100
+                                            },
+                                            {
+                                                "Id":  "1a610b91-402e-453e-8187-e56e44995a48",
+                                                "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                                "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                                "Quantity":  70,
+                                                "UnitPrice":  45,
+                                                "Amount":  3150
+                                            }
+                                        ],
+                              "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                          }
+                      ],
+    "Quotes":  [
+                   {
+                       "Id":  "3a596797-5b63-440c-b4e5-b4df76971ec1",
+                       "Name":  "Meridian Health Alliance - ALLER supply quote CAL-QUO-001",
+                       "QuoteNumber":  "CAL-QUO-001",
+                       "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                       "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                       "OpportunityId":  "22fa01ec-4ccd-4ed4-b628-d5b9f7f4723a",
+                       "Description":  "Accepted commercial quote using agreed launch pricing; shipping and tax are zero for this demo.",
+                       "TotalAmount":  2850,
+                       "Status":  "Won",
+                       "CreatedOffset":  -60,
+                       "ValidUntilOffset":  -40,
+                       "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "6e3f03f2-c929-4be7-96fe-34a4f868a4a7",
+                                         "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  45,
+                                         "Amount":  900
+                                     },
+                                     {
+                                         "Id":  "7cb92591-d94a-4ac5-b10b-e8bb40de0eaa",
+                                         "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  65,
+                                         "Amount":  1950
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "7c0dc028-64f4-4f49-b7e5-3fcdb89ddabb",
+                       "Name":  "Lakeshore Regional Health - ALLER supply quote CAL-QUO-002",
+                       "QuoteNumber":  "CAL-QUO-002",
+                       "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                       "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                       "OpportunityId":  "d3dc80a8-d9b5-4ef7-a41a-f57232f80e17",
+                       "Description":  "Accepted commercial quote using agreed launch pricing; shipping and tax are zero for this demo.",
+                       "TotalAmount":  7100,
+                       "Status":  "Won",
+                       "CreatedOffset":  -61,
+                       "ValidUntilOffset":  -41,
+                       "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "a56b1c3a-5ea6-4913-89e8-127c1da95927",
+                                         "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  65,
+                                         "Amount":  1300
+                                     },
+                                     {
+                                         "Id":  "6caf8f58-c0ed-4fa3-b57f-e086c33d9a4b",
+                                         "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  120,
+                                         "Amount":  3600
+                                     },
+                                     {
+                                         "Id":  "15e75a71-f309-4df1-9727-083ba66e5ff7",
+                                         "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  40,
+                                         "UnitPrice":  55,
+                                         "Amount":  2200
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "d2ff880b-4c91-480b-b6cf-c33b63aeccc2",
+                       "Name":  "Northbridge Medical Network - ALLER supply quote CAL-QUO-003",
+                       "QuoteNumber":  "CAL-QUO-003",
+                       "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                       "ContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                       "OpportunityId":  "4831eff9-a759-4b0e-99fd-9ec58ce5ba56",
+                       "Description":  "Accepted commercial quote using agreed launch pricing; shipping and tax are zero for this demo.",
+                       "TotalAmount":  9700,
+                       "Status":  "Won",
+                       "CreatedOffset":  -62,
+                       "ValidUntilOffset":  -42,
+                       "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "3b910cfe-0955-468a-bebf-3cf07d9a57fb",
+                                         "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  120,
+                                         "Amount":  2400
+                                     },
+                                     {
+                                         "Id":  "9a369b88-f7c8-472a-9e25-512291c87ccc",
+                                         "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  55,
+                                         "Amount":  1650
+                                     },
+                                     {
+                                         "Id":  "581731de-1cb3-45e8-b173-e90b75cae944",
+                                         "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  40,
+                                         "UnitPrice":  85,
+                                         "Amount":  3400
+                                     },
+                                     {
+                                         "Id":  "3fd7677f-72a1-4c32-9c36-79e2a03ca11f",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  45,
+                                         "Amount":  2250
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "2a7934e8-1593-4254-aecd-001b412fc95e",
+                       "Name":  "Cedar Valley Healthcare - ALLER supply quote CAL-QUO-004",
+                       "QuoteNumber":  "CAL-QUO-004",
+                       "AccountId":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+                       "ContactId":  "e85d5626-0836-423f-bcc9-11acbcb8f151",
+                       "OpportunityId":  "9971af6f-09f4-4f7f-b1b3-c596cc0622cb",
+                       "Description":  "Accepted commercial quote using agreed launch pricing; shipping and tax are zero for this demo.",
+                       "TotalAmount":  15900,
+                       "Status":  "Won",
+                       "CreatedOffset":  -63,
+                       "ValidUntilOffset":  -43,
+                       "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "51f653a7-0a0d-49bd-aacb-7f2871ba251d",
+                                         "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  55,
+                                         "Amount":  1100
+                                     },
+                                     {
+                                         "Id":  "752a9e48-266d-4a52-943e-aa5bc7daad89",
+                                         "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  85,
+                                         "Amount":  2550
+                                     },
+                                     {
+                                         "Id":  "ae910acc-890d-479d-bfe5-5f6e2b4eb8be",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  40,
+                                         "UnitPrice":  45,
+                                         "Amount":  1800
+                                     },
+                                     {
+                                         "Id":  "0a8610b9-06bc-4126-abf0-e797379d6576",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  65,
+                                         "Amount":  3250
+                                     },
+                                     {
+                                         "Id":  "3a20c7c5-b7bb-47bc-9cac-b88a02125782",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  60,
+                                         "UnitPrice":  120,
+                                         "Amount":  7200
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "bfc9b41b-eb2f-4f7f-a042-556d30318d01",
+                       "Name":  "Harborview Clinical Group - ALLER supply quote CAL-QUO-005",
+                       "QuoteNumber":  "CAL-QUO-005",
+                       "AccountId":  "3a057f3a-9d1e-49f1-b92c-fe75948f0b59",
+                       "ContactId":  "4e594bb8-e9f6-4910-97ef-ee6ab299aa9f",
+                       "OpportunityId":  "aaef7f76-8cf5-45c8-87c2-13ef78871354",
+                       "Description":  "Accepted commercial quote using agreed launch pricing; shipping and tax are zero for this demo.",
+                       "TotalAmount":  20900,
+                       "Status":  "Won",
+                       "CreatedOffset":  -64,
+                       "ValidUntilOffset":  -44,
+                       "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "9d34201e-b4a2-4cf7-80fd-ae9c94a9a60a",
+                                         "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  85,
+                                         "Amount":  1700
+                                     },
+                                     {
+                                         "Id":  "3fb5d53f-ecd2-46ec-b406-156492269765",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  30,
+                                         "UnitPrice":  45,
+                                         "Amount":  1350
+                                     },
+                                     {
+                                         "Id":  "1ca49536-31a2-4ef9-a191-94a961c2dfd2",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  40,
+                                         "UnitPrice":  65,
+                                         "Amount":  2600
+                                     },
+                                     {
+                                         "Id":  "12bff176-db88-4cba-aa0b-8f6eab45778b",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  120,
+                                         "Amount":  6000
+                                     },
+                                     {
+                                         "Id":  "2affd121-bed8-46f8-956a-4d6bc05948cf",
+                                         "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  60,
+                                         "UnitPrice":  55,
+                                         "Amount":  3300
+                                     },
+                                     {
+                                         "Id":  "c1d237f3-e460-4e0a-8b7e-569204947f17",
+                                         "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  70,
+                                         "UnitPrice":  85,
+                                         "Amount":  5950
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "7742195c-ec02-47e4-8d6c-a8ba60e81df7",
+                       "Name":  "Meridian Health Alliance - ALLER supply quote CAL-QUO-006",
+                       "QuoteNumber":  "CAL-QUO-006",
+                       "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                       "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                       "OpportunityId":  "d14c6480-0125-418c-97a9-5e9252f1f44f",
+                       "Description":  "Accepted commercial quote using agreed launch pricing; shipping and tax are zero for this demo.",
+                       "TotalAmount":  23850,
+                       "Status":  "Won",
+                       "CreatedOffset":  -60,
+                       "ValidUntilOffset":  -40,
+                       "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "d818a609-2358-4e76-befa-bfafe3ceac19",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  20,
+                                         "UnitPrice":  45,
+                                         "Amount":  900
+                                     },
+                                     {
+                                         "Id":  "9a02b049-a7de-4155-9ebb-0d5071448c8a",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  30,
+                                         "UnitPrice":  65,
+                                         "Amount":  1950
+                                     },
+                                     {
+                                         "Id":  "9d7c86c4-abb0-41e0-8a40-566c179ea9c7",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  40,
+                                         "UnitPrice":  120,
+                                         "Amount":  4800
+                                     },
+                                     {
+                                         "Id":  "2301eda2-2f57-4fc1-8152-e5173727b9dc",
+                                         "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  55,
+                                         "Amount":  2750
+                                     },
+                                     {
+                                         "Id":  "6eb09e2c-e4aa-471b-ab30-3f04cafa3aad",
+                                         "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  60,
+                                         "UnitPrice":  85,
+                                         "Amount":  5100
+                                     },
+                                     {
+                                         "Id":  "0278d8e3-f60d-40dc-9b8b-2898913c84db",
+                                         "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  70,
+                                         "UnitPrice":  45,
+                                         "Amount":  3150
+                                     },
+                                     {
+                                         "Id":  "3bc209ec-cc9f-4481-a78e-0a5e0e237611",
+                                         "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  80,
+                                         "UnitPrice":  65,
+                                         "Amount":  5200
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "07bc628c-bbff-45ec-a549-7d14856ab623",
+                       "Name":  "Lakeshore Regional Health - ALLER supply quote CAL-QUO-007",
+                       "QuoteNumber":  "CAL-QUO-007",
+                       "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                       "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                       "OpportunityId":  "44ea6e08-9fc8-49a6-8a4b-8fdbdbca7a5d",
+                       "Description":  "Accepted commercial quote using agreed launch pricing; shipping and tax are zero for this demo.",
+                       "TotalAmount":  4900,
+                       "Status":  "Won",
+                       "CreatedOffset":  -61,
+                       "ValidUntilOffset":  -41,
+                       "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "6de012cc-dfee-4f84-8dd3-9c8c5ea2c503",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  20,
+                                         "UnitPrice":  65,
+                                         "Amount":  1300
+                                     },
+                                     {
+                                         "Id":  "c2414b2a-6b33-4292-a41f-47677fa235cf",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  30,
+                                         "UnitPrice":  120,
+                                         "Amount":  3600
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "7b2dd1bd-657b-499f-83ba-e5b178b04eb2",
+                       "Name":  "Meridian Health Alliance - ALLER supply quote CAL-QUO-008",
+                       "QuoteNumber":  "CAL-QUO-008",
+                       "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                       "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                       "OpportunityId":  "22fa01ec-4ccd-4ed4-b628-d5b9f7f4723a",
+                       "Description":  "Draft commercial quote awaiting customer approval; no order or invoice has been created.",
+                       "TotalAmount":  2850,
+                       "Status":  "Draft",
+                       "CreatedOffset":  -62,
+                       "ValidUntilOffset":  -42,
+                       "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "eb205830-86ae-48f8-973c-9015d7e28a0e",
+                                         "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  45,
+                                         "Amount":  900
+                                     },
+                                     {
+                                         "Id":  "337f4041-8fe8-4835-93b3-6e3a55113a01",
+                                         "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  65,
+                                         "Amount":  1950
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   }
+               ],
+    "Orders":  [
+                   {
+                       "Id":  "a44c26f5-b76b-4cb5-99c5-0f7753c548fd",
+                       "Name":  "Meridian Health Alliance - ALLER supply order CAL-ORD-001",
+                       "OrderNumber":  "CAL-ORD-001",
+                       "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                       "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                       "OpportunityId":  "22fa01ec-4ccd-4ed4-b628-d5b9f7f4723a",
+                       "QuoteId":  "3a596797-5b63-440c-b4e5-b4df76971ec1",
+                       "Description":  "Commercial supply fulfilled after manufacturing and cold-chain readiness confirmation.",
+                       "TotalAmount":  2850,
+                       "Status":  "Fulfilled",
+                       "CreatedOffset":  -44,
+                       "RequestedDeliveryOffset":  -30,
+                       "FulfilledOffset":  -29,
+                       "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "3b1f2a20-af08-4910-80aa-89fac7511969",
+                                         "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  45,
+                                         "Amount":  900
+                                     },
+                                     {
+                                         "Id":  "b3920677-d1a2-4586-abbe-467042bb124e",
+                                         "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  65,
+                                         "Amount":  1950
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "b1313ebf-60f6-43e2-89a6-129f5e2221bd",
+                       "Name":  "Lakeshore Regional Health - ALLER supply order CAL-ORD-002",
+                       "OrderNumber":  "CAL-ORD-002",
+                       "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                       "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                       "OpportunityId":  "d3dc80a8-d9b5-4ef7-a41a-f57232f80e17",
+                       "QuoteId":  "7c0dc028-64f4-4f49-b7e5-3fcdb89ddabb",
+                       "Description":  "Commercial supply fulfilled after manufacturing and cold-chain readiness confirmation.",
+                       "TotalAmount":  7100,
+                       "Status":  "Fulfilled",
+                       "CreatedOffset":  -45,
+                       "RequestedDeliveryOffset":  -31,
+                       "FulfilledOffset":  -30,
+                       "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "793025d2-56ed-4aa3-8a7d-06842651e68f",
+                                         "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  65,
+                                         "Amount":  1300
+                                     },
+                                     {
+                                         "Id":  "3bc0d35c-3253-4cdd-8a9a-bab5ee50c26c",
+                                         "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  120,
+                                         "Amount":  3600
+                                     },
+                                     {
+                                         "Id":  "7f81d166-527c-4ea1-9428-e4d2a784be9e",
+                                         "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  40,
+                                         "UnitPrice":  55,
+                                         "Amount":  2200
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "91f68386-2888-41e7-b286-ea2bf771036a",
+                       "Name":  "Northbridge Medical Network - ALLER supply order CAL-ORD-003",
+                       "OrderNumber":  "CAL-ORD-003",
+                       "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                       "ContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                       "OpportunityId":  "4831eff9-a759-4b0e-99fd-9ec58ce5ba56",
+                       "QuoteId":  "d2ff880b-4c91-480b-b6cf-c33b63aeccc2",
+                       "Description":  "Commercial supply fulfilled after manufacturing and cold-chain readiness confirmation.",
+                       "TotalAmount":  9700,
+                       "Status":  "Fulfilled",
+                       "CreatedOffset":  -46,
+                       "RequestedDeliveryOffset":  -32,
+                       "FulfilledOffset":  -31,
+                       "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "7afa0403-4382-4946-b033-319c07a9a836",
+                                         "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  120,
+                                         "Amount":  2400
+                                     },
+                                     {
+                                         "Id":  "a4d9ebb6-c9b8-4c54-b7f4-260c05ce9b75",
+                                         "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  55,
+                                         "Amount":  1650
+                                     },
+                                     {
+                                         "Id":  "bb8a8254-ba47-4196-a950-389cf2813575",
+                                         "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  40,
+                                         "UnitPrice":  85,
+                                         "Amount":  3400
+                                     },
+                                     {
+                                         "Id":  "757166fe-5ea0-4f3d-bdf9-b65345e98847",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  45,
+                                         "Amount":  2250
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "c36fde66-5561-4fed-8dd7-1450d156933e",
+                       "Name":  "Cedar Valley Healthcare - ALLER supply order CAL-ORD-004",
+                       "OrderNumber":  "CAL-ORD-004",
+                       "AccountId":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+                       "ContactId":  "e85d5626-0836-423f-bcc9-11acbcb8f151",
+                       "OpportunityId":  "9971af6f-09f4-4f7f-b1b3-c596cc0622cb",
+                       "QuoteId":  "2a7934e8-1593-4254-aecd-001b412fc95e",
+                       "Description":  "Commercial supply fulfilled after manufacturing and cold-chain readiness confirmation.",
+                       "TotalAmount":  15900,
+                       "Status":  "Fulfilled",
+                       "CreatedOffset":  -47,
+                       "RequestedDeliveryOffset":  -33,
+                       "FulfilledOffset":  -32,
+                       "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "4b689564-866d-4501-ab14-8e3f9e9216e1",
+                                         "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  55,
+                                         "Amount":  1100
+                                     },
+                                     {
+                                         "Id":  "fb3a1a34-1353-4721-b68f-9f8e5f313e82",
+                                         "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  30,
+                                         "UnitPrice":  85,
+                                         "Amount":  2550
+                                     },
+                                     {
+                                         "Id":  "3628eb82-2638-4a75-ada2-5cdcf81be837",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  40,
+                                         "UnitPrice":  45,
+                                         "Amount":  1800
+                                     },
+                                     {
+                                         "Id":  "9e0bd843-4114-4bb6-b998-d423417874e2",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  65,
+                                         "Amount":  3250
+                                     },
+                                     {
+                                         "Id":  "5fe562ab-62c9-4d89-acfb-5be676fcfd1d",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  60,
+                                         "UnitPrice":  120,
+                                         "Amount":  7200
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "708e8ee3-e676-4c7a-8468-e77daa5283d3",
+                       "Name":  "Harborview Clinical Group - ALLER supply order CAL-ORD-005",
+                       "OrderNumber":  "CAL-ORD-005",
+                       "AccountId":  "3a057f3a-9d1e-49f1-b92c-fe75948f0b59",
+                       "ContactId":  "4e594bb8-e9f6-4910-97ef-ee6ab299aa9f",
+                       "OpportunityId":  "aaef7f76-8cf5-45c8-87c2-13ef78871354",
+                       "QuoteId":  "bfc9b41b-eb2f-4f7f-a042-556d30318d01",
+                       "Description":  "Customer canceled the ALLER supply order after funding was deferred; no goods were shipped or invoiced.",
+                       "TotalAmount":  20900,
+                       "Status":  "Canceled",
+                       "CreatedOffset":  -48,
+                       "RequestedDeliveryOffset":  -34,
+                       "CanceledOffset":  -33,
+                       "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "7beef92b-475b-44cf-8965-dc290bffd453",
+                                         "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  20,
+                                         "UnitPrice":  85,
+                                         "Amount":  1700
+                                     },
+                                     {
+                                         "Id":  "08299c64-3908-4a5c-aea4-30ab61b34263",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  30,
+                                         "UnitPrice":  45,
+                                         "Amount":  1350
+                                     },
+                                     {
+                                         "Id":  "acff184a-ea2e-44f3-a1b2-88b133b0f314",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  40,
+                                         "UnitPrice":  65,
+                                         "Amount":  2600
+                                     },
+                                     {
+                                         "Id":  "d7fee316-aca5-4f94-8022-67cfdc06f9af",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  120,
+                                         "Amount":  6000
+                                     },
+                                     {
+                                         "Id":  "00ac8a8d-880d-4d8a-b7bc-d8fa666017ec",
+                                         "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  60,
+                                         "UnitPrice":  55,
+                                         "Amount":  3300
+                                     },
+                                     {
+                                         "Id":  "ad6943eb-d1e7-4816-ac44-4de657173e99",
+                                         "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  70,
+                                         "UnitPrice":  85,
+                                         "Amount":  5950
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "582c7ee9-8eb0-4c47-925d-fa3a8f0a59c0",
+                       "Name":  "Meridian Health Alliance - ALLER supply order CAL-ORD-006",
+                       "OrderNumber":  "CAL-ORD-006",
+                       "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                       "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                       "OpportunityId":  "d14c6480-0125-418c-97a9-5e9252f1f44f",
+                       "QuoteId":  "7742195c-ec02-47e4-8d6c-a8ba60e81df7",
+                       "Description":  "Commercial supply fulfilled after manufacturing and cold-chain readiness confirmation.",
+                       "TotalAmount":  23850,
+                       "Status":  "Fulfilled",
+                       "CreatedOffset":  -44,
+                       "RequestedDeliveryOffset":  -30,
+                       "FulfilledOffset":  -29,
+                       "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "a8626223-2ce3-4d4e-ae7a-f431d259dc27",
+                                         "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  20,
+                                         "UnitPrice":  45,
+                                         "Amount":  900
+                                     },
+                                     {
+                                         "Id":  "249ac4dd-96b8-4388-b9af-4cdf9816052b",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  30,
+                                         "UnitPrice":  65,
+                                         "Amount":  1950
+                                     },
+                                     {
+                                         "Id":  "a589d63a-8fff-4c83-8deb-4f47417b7368",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  40,
+                                         "UnitPrice":  120,
+                                         "Amount":  4800
+                                     },
+                                     {
+                                         "Id":  "49e5436a-2942-4e39-a4c1-a53b5398850d",
+                                         "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  50,
+                                         "UnitPrice":  55,
+                                         "Amount":  2750
+                                     },
+                                     {
+                                         "Id":  "179fb4c7-b6c5-40d0-9d04-42d8591d2f4e",
+                                         "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  60,
+                                         "UnitPrice":  85,
+                                         "Amount":  5100
+                                     },
+                                     {
+                                         "Id":  "daf18720-f929-4e23-be8e-7d885ca3a094",
+                                         "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  70,
+                                         "UnitPrice":  45,
+                                         "Amount":  3150
+                                     },
+                                     {
+                                         "Id":  "8362274f-7c94-4339-94e2-4718aa05d966",
+                                         "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                         "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                         "Quantity":  80,
+                                         "UnitPrice":  65,
+                                         "Amount":  5200
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   },
+                   {
+                       "Id":  "adc24818-8a2c-45b1-99de-4bef67633184",
+                       "Name":  "Lakeshore Regional Health - ALLER supply order CAL-ORD-007",
+                       "OrderNumber":  "CAL-ORD-007",
+                       "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                       "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                       "OpportunityId":  "44ea6e08-9fc8-49a6-8a4b-8fdbdbca7a5d",
+                       "QuoteId":  "07bc628c-bbff-45ec-a549-7d14856ab623",
+                       "Description":  "Commercial supply fulfilled after manufacturing and cold-chain readiness confirmation.",
+                       "TotalAmount":  4900,
+                       "Status":  "Fulfilled",
+                       "CreatedOffset":  -45,
+                       "RequestedDeliveryOffset":  -31,
+                       "FulfilledOffset":  -30,
+                       "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                       "Lines":  [
+                                     {
+                                         "Id":  "f37b26e7-4ee4-484f-9b3b-5d0df30593fd",
+                                         "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  20,
+                                         "UnitPrice":  65,
+                                         "Amount":  1300
+                                     },
+                                     {
+                                         "Id":  "66fda836-e261-4499-909e-d4f50b2a7caa",
+                                         "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                         "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                         "Quantity":  30,
+                                         "UnitPrice":  120,
+                                         "Amount":  3600
+                                     }
+                                 ],
+                       "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                   }
+               ],
+    "Invoices":  [
+                     {
+                         "Id":  "81a52479-358c-47f9-bd0c-f359cce04b2f",
+                         "Name":  "Meridian Health Alliance - ALLER supply invoice CAL-INV-001",
+                         "InvoiceNumber":  "CAL-INV-001",
+                         "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                         "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                         "OrderId":  "a44c26f5-b76b-4cb5-99c5-0f7753c548fd",
+                         "Description":  "Invoice for delivered ALLER supply. Payment terms: net 30 days.",
+                         "TotalAmount":  2850,
+                         "Status":  "Active",
+                         "StatusReason":  "Billed",
+                         "CreatedOffset":  -20,
+                         "DueOffset":  10,
+                         "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                         "Lines":  [
+                                       {
+                                           "Id":  "b3a3c21b-47cd-4b26-88ea-dc84ebbfe4b6",
+                                           "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  20,
+                                           "UnitPrice":  45,
+                                           "Amount":  900
+                                       },
+                                       {
+                                           "Id":  "da196de1-6cdf-4ec8-bce1-1efa9d30208a",
+                                           "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  30,
+                                           "UnitPrice":  65,
+                                           "Amount":  1950
+                                       }
+                                   ],
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                     },
+                     {
+                         "Id":  "43c5a2f1-5b40-4a60-b81f-5f96710f16a5",
+                         "Name":  "Lakeshore Regional Health - ALLER supply invoice CAL-INV-002",
+                         "InvoiceNumber":  "CAL-INV-002",
+                         "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                         "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                         "OrderId":  "b1313ebf-60f6-43e2-89a6-129f5e2221bd",
+                         "Description":  "Invoice for ALLER supply with partial shipment recorded; remaining delivery confirmation is pending. Payment terms: net 30 days.",
+                         "TotalAmount":  7100,
+                         "Status":  "Active",
+                         "StatusReason":  "Partially Shipped",
+                         "CreatedOffset":  -21,
+                         "DueOffset":  9,
+                         "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                         "Lines":  [
+                                       {
+                                           "Id":  "8c691695-95e8-44db-ae3c-c561748b63e7",
+                                           "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  20,
+                                           "UnitPrice":  65,
+                                           "Amount":  1300
+                                       },
+                                       {
+                                           "Id":  "b3f2bba9-b58d-4153-9e2d-59af6b5692ae",
+                                           "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  30,
+                                           "UnitPrice":  120,
+                                           "Amount":  3600
+                                       },
+                                       {
+                                           "Id":  "63ea93f3-aeb6-406c-993f-25faf5b0690c",
+                                           "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  40,
+                                           "UnitPrice":  55,
+                                           "Amount":  2200
+                                       }
+                                   ],
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                     },
+                     {
+                         "Id":  "b62b2569-2091-4ae6-9dac-56e37035043f",
+                         "Name":  "Northbridge Medical Network - ALLER supply invoice CAL-INV-003",
+                         "InvoiceNumber":  "CAL-INV-003",
+                         "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                         "ContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                         "OrderId":  "91f68386-2888-41e7-b286-ea2bf771036a",
+                         "Description":  "Invoice for delivered ALLER supply; payment received in full. Payment terms: net 30 days.",
+                         "TotalAmount":  9700,
+                         "Status":  "Paid",
+                         "StatusReason":  "Complete",
+                         "CreatedOffset":  -22,
+                         "DueOffset":  8,
+                         "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                         "Lines":  [
+                                       {
+                                           "Id":  "21f98eea-9bc5-4e8d-9e3c-7e13d5e8dfda",
+                                           "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  20,
+                                           "UnitPrice":  120,
+                                           "Amount":  2400
+                                       },
+                                       {
+                                           "Id":  "55872fd2-fa13-47c0-8d06-3d90007e33f0",
+                                           "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  30,
+                                           "UnitPrice":  55,
+                                           "Amount":  1650
+                                       },
+                                       {
+                                           "Id":  "7e6600ea-7c03-4c03-a2ba-e23f768f34be",
+                                           "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  40,
+                                           "UnitPrice":  85,
+                                           "Amount":  3400
+                                       },
+                                       {
+                                           "Id":  "f3ed7be2-e06b-4358-a3a1-6fea2fad6a09",
+                                           "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  50,
+                                           "UnitPrice":  45,
+                                           "Amount":  2250
+                                       }
+                                   ],
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                     },
+                     {
+                         "Id":  "4725e5e3-73b7-48c0-bbc1-3fb8006c5987",
+                         "Name":  "Cedar Valley Healthcare - ALLER supply invoice CAL-INV-004",
+                         "InvoiceNumber":  "CAL-INV-004",
+                         "AccountId":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+                         "ContactId":  "e85d5626-0836-423f-bcc9-11acbcb8f151",
+                         "OrderId":  "c36fde66-5561-4fed-8dd7-1450d156933e",
+                         "Description":  "Invoice for delivered ALLER supply. Payment terms: net 30 days.",
+                         "TotalAmount":  15900,
+                         "Status":  "Active",
+                         "StatusReason":  "Billed",
+                         "CreatedOffset":  -23,
+                         "DueOffset":  7,
+                         "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                         "Lines":  [
+                                       {
+                                           "Id":  "59b86459-f34e-4d90-957c-dd971d8e09d3",
+                                           "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  20,
+                                           "UnitPrice":  55,
+                                           "Amount":  1100
+                                       },
+                                       {
+                                           "Id":  "2c77651f-3e47-404b-85a0-0848f8a8b8fa",
+                                           "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  30,
+                                           "UnitPrice":  85,
+                                           "Amount":  2550
+                                       },
+                                       {
+                                           "Id":  "75f1180f-366e-4b6e-a927-ea597163aca8",
+                                           "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  40,
+                                           "UnitPrice":  45,
+                                           "Amount":  1800
+                                       },
+                                       {
+                                           "Id":  "3a4749ad-87fa-438b-837d-4b5531f2bca1",
+                                           "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  50,
+                                           "UnitPrice":  65,
+                                           "Amount":  3250
+                                       },
+                                       {
+                                           "Id":  "63d79875-256f-4beb-8692-8c4f4a032e86",
+                                           "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  60,
+                                           "UnitPrice":  120,
+                                           "Amount":  7200
+                                       }
+                                   ],
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                     },
+                     {
+                         "Id":  "82be6335-3467-4619-9143-43871ad269c4",
+                         "Name":  "Meridian Health Alliance - ALLER supply invoice CAL-INV-006",
+                         "InvoiceNumber":  "CAL-INV-006",
+                         "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                         "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                         "OrderId":  "582c7ee9-8eb0-4c47-925d-fa3a8f0a59c0",
+                         "Description":  "Invoice for ALLER supply with partial shipment recorded; remaining delivery confirmation is pending. Payment terms: net 30 days.",
+                         "TotalAmount":  23850,
+                         "Status":  "Active",
+                         "StatusReason":  "Partially Shipped",
+                         "CreatedOffset":  -20,
+                         "DueOffset":  10,
+                         "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                         "Lines":  [
+                                       {
+                                           "Id":  "1c17d9d6-d350-4e27-9050-bc4cbd112f01",
+                                           "ProductId":  "1db1fb14-df03-409b-94d1-23605a9e5063",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  20,
+                                           "UnitPrice":  45,
+                                           "Amount":  900
+                                       },
+                                       {
+                                           "Id":  "6d2c777f-5ab1-4c8e-9fa5-1d7de294974b",
+                                           "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  30,
+                                           "UnitPrice":  65,
+                                           "Amount":  1950
+                                       },
+                                       {
+                                           "Id":  "8de5086a-2585-40ff-b30d-e3bb6b6b5cec",
+                                           "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  40,
+                                           "UnitPrice":  120,
+                                           "Amount":  4800
+                                       },
+                                       {
+                                           "Id":  "278a6c6b-71e7-4fa1-acd5-4df8ce414f03",
+                                           "ProductId":  "0b908f1f-b370-4253-a22f-c70f21c7128f",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  50,
+                                           "UnitPrice":  55,
+                                           "Amount":  2750
+                                       },
+                                       {
+                                           "Id":  "cd46c348-1cc4-401f-afeb-992e1aeca5ba",
+                                           "ProductId":  "e9725f44-d8e6-4ceb-8ee8-40d3929c6011",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  60,
+                                           "UnitPrice":  85,
+                                           "Amount":  5100
+                                       },
+                                       {
+                                           "Id":  "8b887e72-cf1e-492e-ad66-e84273014e24",
+                                           "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  70,
+                                           "UnitPrice":  45,
+                                           "Amount":  3150
+                                       },
+                                       {
+                                           "Id":  "46cbfd88-c326-47a2-85d9-4663798a9d40",
+                                           "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                                           "UnitId":  "a8a9df16-c3a2-4f98-840f-604edaf2665d",
+                                           "Quantity":  80,
+                                           "UnitPrice":  65,
+                                           "Amount":  5200
+                                       }
+                                   ],
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                     },
+                     {
+                         "Id":  "025c1fd7-e9d0-49f5-941b-3c25276c43b5",
+                         "Name":  "Lakeshore Regional Health - ALLER supply invoice CAL-INV-007",
+                         "InvoiceNumber":  "CAL-INV-007",
+                         "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                         "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                         "OrderId":  "adc24818-8a2c-45b1-99de-4bef67633184",
+                         "Description":  "Invoice for delivered ALLER supply; payment received in full. Payment terms: net 30 days.",
+                         "TotalAmount":  4900,
+                         "Status":  "Paid",
+                         "StatusReason":  "Complete",
+                         "CreatedOffset":  -21,
+                         "DueOffset":  9,
+                         "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                         "Lines":  [
+                                       {
+                                           "Id":  "00b83dd5-519c-4c4e-8e2d-e6b84777bff8",
+                                           "ProductId":  "b5aa99fa-14fb-423e-a9b4-f375dee79700",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  20,
+                                           "UnitPrice":  65,
+                                           "Amount":  1300
+                                       },
+                                       {
+                                           "Id":  "e2e06f0d-8bff-479b-bed0-4fcaf2f2897c",
+                                           "ProductId":  "58232f9b-67fe-4c5b-a2de-62120c169816",
+                                           "UnitId":  "f469b923-deab-473e-8e36-5232728cf0e6",
+                                           "Quantity":  30,
+                                           "UnitPrice":  120,
+                                           "Amount":  3600
+                                       }
+                                   ],
+                         "PriceListId":  "e284508a-1e37-4a00-b65a-b4dee4ffd049"
+                     }
+                 ],
+    "Incidents":  [
+                      {
+                          "Id":  "1a3a7b40-7be9-45fc-bafa-ca271a2be949",
+                          "Title":  "Meridian Health Alliance - Cold-chain shipment delay",
+                          "TicketNumber":  "CAL-CASE-001",
+                          "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                          "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                          "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                          "OrderId":  "a44c26f5-b76b-4cb5-99c5-0f7753c548fd",
+                          "InvoiceId":  "81a52479-358c-47f9-bd0c-f359cce04b2f",
+                          "Description":  "Carrier reported a late shipment. Cold-chain review confirmed no temperature excursion; customer requests the delivery timeline.",
+                          "Priority":  "High",
+                          "Status":  "In Progress",
+                          "Origin":  "Email",
+                          "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                          "CreatedOffset":  -7
+                      },
+                      {
+                          "Id":  "af124310-b688-4339-89ff-8d8b3decb79f",
+                          "Title":  "Lakeshore Regional Health - ALLER-20 education session request",
+                          "TicketNumber":  "CAL-CASE-002",
+                          "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+                          "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4",
+                          "ProductId":  "f5a31139-d1f6-4bbc-bf10-888701824769",
+                          "OrderId":  "b1313ebf-60f6-43e2-89a6-129f5e2221bd",
+                          "InvoiceId":  "43c5a2f1-5b40-4a60-b81f-5f96710f16a5",
+                          "Description":  "Customer completed ALLER-10 evaluation and requests an ALLER-20 education session before the next adoption review.",
+                          "Priority":  "Normal",
+                          "Status":  "In Progress",
+                          "Origin":  "Email",
+                          "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                          "CreatedOffset":  -8
+                      },
+                      {
+                          "Id":  "c731f673-53a0-4236-9b3a-3a127f7c98de",
+                          "Title":  "Northbridge Medical Network - Prefilled syringe delivery clarification",
+                          "TicketNumber":  "CAL-CASE-003",
+                          "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+                          "ContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d",
+                          "ProductId":  "458e81c6-08e1-48b5-9aa6-b18a1a92db3a",
+                          "OrderId":  "91f68386-2888-41e7-b286-ea2bf771036a",
+                          "InvoiceId":  "b62b2569-2091-4ae6-9dac-56e37035043f",
+                          "Description":  "Procurement requests the delivery confirmation and packing list for the ALLER-INJ shipment.",
+                          "Priority":  "Normal",
+                          "Status":  "In Progress",
+                          "Origin":  "Email",
+                          "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                          "CreatedOffset":  -9
+                      },
+                      {
+                          "Id":  "024d3a63-6836-48a4-b209-a85df07aa13b",
+                          "Title":  "Cedar Valley Healthcare - Capsule packaging documentation request",
+                          "TicketNumber":  "CAL-CASE-004",
+                          "AccountId":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+                          "ContactId":  "e85d5626-0836-423f-bcc9-11acbcb8f151",
+                          "ProductId":  "7fcabbb6-1b1b-4932-a976-bd5cb7777e06",
+                          "OrderId":  "c36fde66-5561-4fed-8dd7-1450d156933e",
+                          "InvoiceId":  "4725e5e3-73b7-48c0-bbc1-3fb8006c5987",
+                          "Description":  "Formulary committee requests updated ALLER-CAP 25 mg packaging documentation for the renewal review.",
+                          "Priority":  "Normal",
+                          "Status":  "In Progress",
+                          "Origin":  "Email",
+                          "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+                          "CreatedOffset":  -10
+                      },
+                      {
+                          "Id":  "38b808e9-f2d5-46e6-bb35-b4d05604a4c1",
+                          "Title":  "Harborview Clinical Group - Order cancellation confirmation",
+                          "TicketNumber":  "CAL-CASE-005",
+                          "AccountId":  "3a057f3a-9d1e-49f1-b92c-fe75948f0b59",
+                          "ContactId":  "4e594bb8-e9f6-4910-97ef-ee6ab299aa9f",
+                          "ProductId":  "5ab70b47-30c6-4af0-8c53-2cf682b36dcb",
+                          "OrderId":  "708e8ee3-e676-4c7a-8468-e77daa5283d3",
+                          "Description":  "Accounts payable requests confirmation that the ALLER supply order was canceled and no invoice will be issued.",
+                          "Priority":  "Low",
+                          "Status":  "Resolved",
+                          "ResolvedOffset":  -9,
+                          "Resolution":  "Confirmed order CAL-ORD-005 was canceled before shipment and no invoice was issued. Customer accepted the confirmation.",
+                          "Origin":  "Email",
+                          "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+                          "CreatedOffset":  -11
+                      },
+                      {
+                          "Id":  "62a029e3-d183-4fd1-865e-3a6d2421e37a",
+                          "Title":  "Meridian Health Alliance - Cold-chain shipment delay - follow-up 006",
+                          "TicketNumber":  "CAL-CASE-006",
+                          "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+                          "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77",
+                          "ProductId":  "fcbc00aa-2337-4a0e-8452-fa9e66ff3e52",
+                          "OrderId":  "a44c26f5-b76b-4cb5-99c5-0f7753c548fd",
+                          "InvoiceId":  "81a52479-358c-47f9-bd0c-f359cce04b2f",
+                          "Description":  "Carrier reported a late shipment. Cold-chain review confirmed no temperature excursion; customer requests the delivery timeline. Customer requests an additional status update before the next account review.",
+                          "Priority":  "High",
+                          "Status":  "In Progress",
+                          "Origin":  "Email",
+                          "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+                          "CreatedOffset":  -13
+                      }
+                  ],
+    "FieldEngagements": [
+    {
+        "Id":  "9bf68a07-94f9-41e1-8e10-97ae7480d038",
+        "Name":  "Meridian - Cold-chain delivery follow-up",
+        "Priority":  2,
+        "Type":  2,
+        "CurrentStatus":  2,
+        "CreatedOffset":  -7,
+        "Description":  "Review delivery timelines and the open shipment escalation with Amelia Brooks.",
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77"
+    },
+    {
+        "Id":  "15f053c7-895f-4ad5-9a37-974c847d5cfd",
+        "Name":  "Lakeshore - ALLER-20 clinical training",
+        "Priority":  1,
+        "Type":  5,
+        "CurrentStatus":  1,
+        "CreatedOffset":  -6,
+        "Description":  "Provide the requested ALLER-20 education session for the clinical rollout.",
+        "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+        "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4"
+    },
+    {
+        "Id":  "82027587-0c74-43a2-a710-40186261c00a",
+        "Name":  "Northbridge - ALLER-INJ product demonstration",
+        "Priority":  1,
+        "Type":  3,
+        "CurrentStatus":  0,
+        "CreatedOffset":  -5,
+        "Description":  "Demonstrate the ALLER-INJ portfolio and discuss procurement requirements.",
+        "AccountId":  "4f05c532-bb28-4600-a22a-3a705d722be0",
+        "ContactId":  "1c47744c-5c50-4b0b-bcd4-22025711dc2d"
+    },
+    {
+        "Id":  "ecbbc51b-dff7-40d7-b320-9e942786ceb0",
+        "Name":  "Cedar Valley - Packaging documentation review",
+        "Priority":  1,
+        "Type":  0,
+        "CurrentStatus":  3,
+        "CreatedOffset":  -10,
+        "Description":  "Reviewed updated ALLER-CAP packaging documentation with the formulary committee.",
+        "AccountId":  "3cfe8ffc-cb08-46e0-b5ba-6707389a32c9",
+        "ContactId":  "e85d5626-0836-423f-bcc9-11acbcb8f151"
+    },
+    {
+        "Id":  "6b673693-de40-4102-8a10-c69bd86535b4",
+        "Name":  "Harborview - Canceled order follow-up",
+        "Priority":  0,
+        "Type":  2,
+        "CurrentStatus":  3,
+        "CreatedOffset":  -9,
+        "Description":  "Confirmed CAL-ORD-005 was canceled before shipment and no invoice was issued.",
+        "AccountId":  "3a057f3a-9d1e-49f1-b92c-fe75948f0b59",
+        "ContactId":  "4e594bb8-e9f6-4910-97ef-ee6ab299aa9f"
+    },
+    {
+        "Id":  "ff25c370-368f-402a-a205-72a5d7696ec6",
+        "Name":  "Pinecrest - Initial adoption sales visit",
+        "Priority":  1,
+        "Type":  1,
+        "CurrentStatus":  0,
+        "CreatedOffset":  -4,
+        "Description":  "Discuss ALLER formulary planning, evaluation scope, and the purchasing timeline.",
+        "AccountId":  "dd4554bb-e274-49c5-a38b-9283056184a8",
+        "ContactId":  "90de81fc-846b-427b-b66a-e27bafc60620"
+    },
+    {
+        "Id":  "db1ef9ef-c269-4926-b9eb-a96a5d073cc1",
+        "Name":  "Meridian - Delivery readiness inspection",
+        "Priority":  2,
+        "Type":  4,
+        "CurrentStatus":  1,
+        "CreatedOffset":  -3,
+        "Description":  "Review receiving procedures and cold-chain handling readiness.",
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "ContactId":  "054e2d30-73ba-4052-9bfb-818263115c77"
+    },
+    {
+        "Id":  "18e9373f-2453-48f6-bb98-95557d2627df",
+        "Name":  "Lakeshore - Superseded account review",
+        "Priority":  0,
+        "Type":  6,
+        "CurrentStatus":  4,
+        "CreatedOffset":  -8,
+        "Description":  "Account review canceled because the clinical training session covers the requested topics.",
+        "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+        "ContactId":  "0237f230-1319-4677-9df1-0d34dc8615f4"
+    }
+],
+    "Emails": [
+    {
+        "Id":  "7017683e-4f1d-4051-9b35-d8a72eb0d8d7",
+        "Subject":  "Meridian Health Alliance - delivery concern",
+        "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                   },
+                   {
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "Body":  "Team,\n\nMeridian Health Alliance escalated a temperature-controlled shipment that arrived later than planned. They want a root-cause explanation. Valence Cold Chain Logistics is the carrier.\n\nDavid",
+        "Date":  "2026-09-14 08:45",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -16,
+        "SentOffset":  -16,
+        "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+    },
+    {
+        "Id":  "cf700991-a65c-4c44-9883-fcb79e8c77ea",
+        "Subject":  "RE: Meridian Health Alliance - delivery concern",
+        "From":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                   },
+                   {
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "Body":  "I\u0027ll ask Valence Cold Chain Logistics for the shipment record today. David, please hold a call with the account.\n\nCharlotte",
+        "Date":  "2026-09-14 10:30",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -16,
+        "SentOffset":  -16,
+        "Owner":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+    },
+    {
+        "Id":  "52233c6d-bf8f-4834-bc27-e380c6e6943c",
+        "Subject":  "RE: Meridian Health Alliance - delivery concern",
+        "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "charlotte.waltson@<TENANTPREFIX>.onmicrosoft.com"
+                   },
+                   {
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "Body":  "Valence confirmed a carrier delay, no temperature excursion. Meridian accepted the explanation and wants a continuity commitment.\n\nDavid",
+        "Date":  "2026-09-16 09:20",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -14,
+        "SentOffset":  -14,
+        "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+    },
+    {
+        "Id":  "42819253-52fb-4d56-87d1-5bee62113a39",
+        "Subject":  "Meridian renewal plan",
+        "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "Body":  "Babak,\n\nPlanning the Meridian Health Alliance renewal. Can you share formulary timing and adoption data?\n\nDavid",
+        "Date":  "2026-09-22 09:00",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -8,
+        "SentOffset":  -8,
+        "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+    },
+    {
+        "Id":  "53f19882-8f14-4375-98ac-eacd7701d61a",
+        "Subject":  "RE: Meridian renewal plan",
+        "From":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "Body":  "Formulary committee meets in October. Adoption data from Lakeshore Regional Health is a useful comparator.\n\nBabak",
+        "Date":  "2026-09-23 11:10",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -7,
+        "SentOffset":  -7,
+        "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+    },
+    {
+        "Id":  "18392e60-93ec-4751-ae7b-42fb427c61d8",
+        "Subject":  "RE: Meridian renewal plan",
+        "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "2f4d1a5c-c6e5-42df-b612-128f460d129b",
+        "Body":  "Thanks. I\u0027ll draft the plan into the Renewal Strategy.\n\nDavid",
+        "Date":  "2026-09-24 08:30",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -6,
+        "SentOffset":  -6,
+        "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+    },
+    {
+        "Id":  "74709555-d19a-4bfa-90b0-a4ec392ff895",
+        "Subject":  "ALLER-10 adoption at Lakeshore Regional Health",
+        "From":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+        "Body":  "David,\n\nLakeshore Regional Health\u0027s evaluation of ALLER-10 is complete. Clinicians liked the starter dose. They want more education on ALLER-20 titration.\n\nBabak",
+        "Date":  "2026-09-17 10:00",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -13,
+        "SentOffset":  -13,
+        "Owner":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+    },
+    {
+        "Id":  "576817a4-6b7f-4dff-b014-5c26a60a6cbc",
+        "Subject":  "RE: ALLER-10 adoption at Lakeshore Regional Health",
+        "From":  "david.power@<TENANTPREFIX>.onmicrosoft.com",
+        "To":  [
+                   {
+                       "Email":  "babak.shammas@<TENANTPREFIX>.onmicrosoft.com"
+                   }
+               ],
+        "Cc":  [
+
+               ],
+        "AccountId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+        "RegardingTable":  "Accounts",
+        "RegardingId":  "298e10a0-d7da-4b7e-b69a-cffcfea278b9",
+        "Body":  "Great. I\u0027ll schedule an education session and log the engagement.\n\nDavid",
+        "Date":  "2026-09-18 09:40",
+        "Direction":  "Outgoing",
+        "Status":  "Sent",
+        "CreatedOffset":  -12,
+        "SentOffset":  -12,
+        "Owner":  "david.power@<TENANTPREFIX>.onmicrosoft.com"
+    }
+]
+}

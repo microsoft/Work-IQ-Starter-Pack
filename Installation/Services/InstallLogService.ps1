@@ -1,3 +1,31 @@
+function Wait-InstallPollingInterval {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$Activity,
+        [ValidateRange(1, 3600)][int]$Seconds = 30
+    )
+    # This bar measures the wait until the next check, not task completion.
+    try {
+        for ($remaining = $Seconds; $remaining -gt 0; $remaining--) {
+            Write-Progress -Id 41 -Activity $Activity -Status "Next check in $remaining seconds" -SecondsRemaining $remaining -PercentComplete ([int](100 * ($Seconds - $remaining) / $Seconds))
+            Start-Sleep -Seconds 1
+        }
+    }
+    finally { Write-Progress -Id 41 -Activity $Activity -Completed }
+}
+
+function Invoke-InstallStep {
+    param([string]$Description, [scriptblock]$Action)
+    Write-Host ''
+    Write-InstallLogAction -Message "$Description..."
+    $errorsBefore = @($script:installLogActions | Where-Object Level -eq 'Error').Count
+    & $Action
+    if (@($script:installLogActions | Where-Object Level -eq 'Error').Count -gt $errorsBefore) {
+        Write-InstallLogAction -Message "$Description finished with errors. Review the messages above." -Level Warning
+    }
+    else { Write-InstallLogAction -Message "Completed: $Description." -Level Success }
+}
+
 function Initialize-InstallLog {
     param(
         [string]$Title = "WorkIQ Starter Pack Installation Log",

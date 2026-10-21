@@ -12,6 +12,7 @@ The Work IQ Starter Pack is a collection of PowerShell scripts that automate the
 [Content/content.json](./Content/content.json) describes the demo. The installer reads it and uses PnP PowerShell and Microsoft Graph to create:
 
 - Users (optional), their licenses, and profile photos
+- Entra security groups named in each selected site's `Groups` array, containing the same demo or resolved real users used by `Add-Users`. Existing assigned, non-mail-enabled security groups are reused and missing members added; other members are retained. These security groups are not removed by `CleanUp.ps1`.
 - Microsoft Teams and their SharePoint sites, with channels
 - Documents uploaded with the right authors and dates, and past Teams meetings created on each team's calendar with their transcripts (Word documents) linked from the channel
 - SharePoint lists, libraries, content types, views, and managed-metadata term sets
