@@ -1,10 +1,11 @@
-param(
+﻿param(
     # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
     [switch]$UseConfig
 )
 
 try {
     if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
+        Write-Host "PnP.PowerShell module was not found. It will now be installed for the current user."
         Install-Module -Name PnP.PowerShell -Scope CurrentUser -Force
     }
     Import-Module PnP.PowerShell
@@ -63,7 +64,7 @@ try {
     $customContentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
 
     #Load App Registration Service file
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegistrationService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegService.ps1")
 
     # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
@@ -132,6 +133,14 @@ try {
             throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
         }
 
+        $savedContentUpns = @()
+        if (-not $UseConfig -and (Test-Path -LiteralPath $customContentPath)) {
+            try {
+                $savedContent = Get-Content -LiteralPath $customContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+                $savedContentUpns = @($savedContent.RealUserUpns)
+            }
+            catch { Write-Verbose "Could not load saved UPN defaults: $($_.Exception.Message)" }
+        }
         $realUserUpns = @{}
         foreach ($role in $demoRoles) {
             if ($UseConfig) {
@@ -139,13 +148,23 @@ try {
             }
             else {
                 do {
-                    $upn = (Read-Host "Enter the UPN for the $($role.Label)").Trim()
+                    $defaultUpn = if ($role.Index -lt $configUpns.Count -and -not [string]::IsNullOrWhiteSpace($configUpns[$role.Index])) {
+                        ([string]$configUpns[$role.Index]).Trim()
+                    }
+                    elseif ($role.Index -lt $savedContentUpns.Count) { ([string]$savedContentUpns[$role.Index]).Trim() }
+                    else { '' }
+                    $prompt = "Enter the UPN for the $($role.Label)"
+                    if (-not [string]::IsNullOrWhiteSpace($defaultUpn)) { $prompt += " (default: $defaultUpn)" }
+                    $upn = (Read-Host $prompt).Trim()
+                    if ([string]::IsNullOrWhiteSpace($upn)) { $upn = $defaultUpn }
                 } while ([string]::IsNullOrWhiteSpace($upn))
             }
 
             $realUserUpns[$role.Index] = $upn
             Write-InstallLogInput -Prompt "UPN for the $($role.Label)" -Response $upn
         }
+        $selectedUpns = @($demoRoles | ForEach-Object { $realUserUpns[$_.Index] })
+        $config.Settings | Add-Member -NotePropertyName RealUserUpns -NotePropertyValue $selectedUpns -Force
     }
 
     # Add-Member -Force so configs that predate this setting still work.
@@ -231,6 +250,10 @@ try {
     Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
     # end app reg creation
 
+    # Make sure the Work IQ service principal exists in the tenant (needs the Graph connection above).
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
+    Enable-WorkIQServicePrincipal -Settings $settings | Out-Null
+
     if ([string]::IsNullOrWhiteSpace($config.Settings.ClientId)) {
         throw "No application registration client ID was found in config.json."
     }
@@ -266,7 +289,7 @@ try {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/MeetingService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PermissionsService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1")
 
         # Teams chat history import uses Microsoft Graph's message migration API, which only supports
         # application permissions (Teamwork.Migrate.All) - need a seprate connection specifically for migration using a cert.
@@ -297,13 +320,16 @@ try {
         $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
         $preRequisitesMet = $true
 
+        #Confirm the tenant has Copilot credits available
+        $copilotCreditsAvailable = Test-CopilotCreditBalance
+
         #If installing Dynamics content, also confirm the user has permission to configure a Power Platform environment
         $powerPlatformPermissionsMet = $true
         if ($config.Settings.InstallDynamicsContent -eq $true) {
             $powerPlatformPermissionsMet = Test-PowerPlatformEnvironmentPermissions -Settings $settings
         }
 
-        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
+        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
             Add-Users -Settings $provisioningSettings
@@ -324,6 +350,8 @@ try {
 
             foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
                 Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
+
+                Add-Groups -Site $site -Settings $provisioningSettings
 
                 if (-not (Add-TeamSite -Site $site -Config $config)) {
                     Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
@@ -365,4 +393,3 @@ finally {
         Write-Host "Installation log (including any demo user passwords): $logLink" -ForegroundColor Cyan
     }
 }
-

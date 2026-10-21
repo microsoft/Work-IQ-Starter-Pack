@@ -146,7 +146,15 @@ try {
         Remove-TeamsChatMigrationCertificate
     }
 
-    Write-InstallLogAction -Message "Cleanup complete." -Level Success
+    if ($script:sitesNotRemoved -and $script:sitesNotRemoved.Count -gt 0) {
+        Write-InstallLogAction -Message "Cleanup finished, but $($script:sitesNotRemoved.Count) site(s) could not be fully removed. Please clean these up manually in the SharePoint admin center (active sites and deleted sites) or with PowerShell:" -Level Warning
+        foreach ($remaining in $script:sitesNotRemoved) {
+            Write-InstallLogAction -Message "  - $($remaining.Title): $($remaining.Url) ($($remaining.Reason))" -Level Warning
+        }
+    }
+    else {
+        Write-InstallLogAction -Message "Cleanup complete." -Level Success
+    }
     $cleanupSucceeded = $true
 }
 catch {

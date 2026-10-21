@@ -6,7 +6,11 @@
             "User.ReadWrite.All",
             "Directory.ReadWrite.All",
             "Application.ReadWrite.All",
-            "TeamMember.ReadWrite.All"
+            "TeamMember.ReadWrite.All",
+            "TeamsTab.ReadWrite.All",
+            "AppCatalog.Read.All",
+            "CopilotCostManagement.Read.All",
+            "CopilotCostManagement-Policy.Read.All"
         ],
         "GraphApplication": [
             "Teamwork.Migrate.All",
