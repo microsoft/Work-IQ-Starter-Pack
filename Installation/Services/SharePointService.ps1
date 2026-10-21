@@ -31,6 +31,20 @@ function Add-SiteListsAndLibraries {
         Add-SiteColumns -Connection $connection -Site $Site -Lists $lists -Libraries $libraries
         Add-SiteContentTypes -Connection $connection -Site $Site -Lists $lists -Libraries $libraries
 
+        # Tabs go in the channel created from content.json (first channel, else General).
+        $tabTarget = $null
+        if ($Site.EnableMicrosoftTeams) {
+            try {
+                $teamId = (Invoke-RestMethod -Uri "$graphBaseUrl/groups?`$filter=mailNickname eq '$($Site.URL)'&`$select=id" -Headers $headers -Method Get).value | Select-Object -First 1 -ExpandProperty id
+                $channelName = if ($Site.Channels -and $Site.Channels[0].Title) { $Site.Channels[0].Title } else { "General" }
+                $tabTarget = @{ TeamId = $teamId; ChannelId = (Get-TeamChannelId -TeamId $teamId -ChannelName $channelName) }
+            }
+            catch {
+                Write-InstallLogAction -Message "Could not resolve channel for tabs on site '$($Site.URL)': $($_.Exception.Message)" -Level Warning
+            }
+        }
+        $tabHost = "https://$($Config.Settings.TenantPrefix).sharepoint.com"
+
         foreach ($list in $lists) {
             try {
                 $pnpList = Add-SiteList -Connection $connection -Site $Site -Definition $list
@@ -38,6 +52,10 @@ function Add-SiteListsAndLibraries {
                 Add-ListContentTypes -Connection $connection -Site $Site -List $pnpList -Definition $list
                 Add-ListViews -Connection $connection -Site $Site -List $pnpList -Definition $list
                 Add-ListItems -Connection $connection -Site $Site -List $pnpList -Definition $list
+                if ($tabTarget) {
+                    $listUrl = $tabHost + (Get-PnPProperty -ClientObject $pnpList -Property RootFolder -Connection $connection).ServerRelativeUrl
+                    Add-ChannelTab -TeamId $tabTarget.TeamId -ChannelId $tabTarget.ChannelId -DisplayName $list.Title -WebUrl $listUrl -Kind List -SiteUrl $siteUrl
+                }
             }
             catch {
                 Write-InstallLogAction -Message "Failed to provision list '$($list.Title)' on site '$($Site.URL)': $($_.Exception.Message)" -Level Error
@@ -51,6 +69,10 @@ function Add-SiteListsAndLibraries {
                 Add-ListContentTypes -Connection $connection -Site $Site -List $pnpLibrary -Definition $library
                 Add-ListViews -Connection $connection -Site $Site -List $pnpLibrary -Definition $library
                 Add-LibraryDocuments -Connection $connection -Site $Site -Library $pnpLibrary -Definition $library
+                if ($tabTarget) {
+                    $libraryUrl = $tabHost + (Get-PnPProperty -ClientObject $pnpLibrary -Property RootFolder -Connection $connection).ServerRelativeUrl
+                    Add-ChannelTab -TeamId $tabTarget.TeamId -ChannelId $tabTarget.ChannelId -DisplayName $library.Title -WebUrl $libraryUrl -Kind Library -SiteUrl $siteUrl
+                }
             }
             catch {
                 Write-InstallLogAction -Message "Failed to provision library '$($library.Title)' on site '$($Site.URL)': $($_.Exception.Message)" -Level Error
