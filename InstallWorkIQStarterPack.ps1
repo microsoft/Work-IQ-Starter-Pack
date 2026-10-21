@@ -64,7 +64,7 @@ try {
     $customContentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
 
     #Load App Registration Service file
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegistrationService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegService.ps1")
 
     # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
@@ -250,6 +250,10 @@ try {
     Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
     # end app reg creation
 
+    # Make sure the Work IQ service principal exists in the tenant (needs the Graph connection above).
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
+    Enable-WorkIQServicePrincipal -Settings $settings | Out-Null
+
     if ([string]::IsNullOrWhiteSpace($config.Settings.ClientId)) {
         throw "No application registration client ID was found in config.json."
     }
@@ -316,13 +320,16 @@ try {
         $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
         $preRequisitesMet = $true
 
+        #Confirm the tenant has Copilot credits available
+        $copilotCreditsAvailable = Test-CopilotCreditBalance
+
         #If installing Dynamics content, also confirm the user has permission to configure a Power Platform environment
         $powerPlatformPermissionsMet = $true
         if ($config.Settings.InstallDynamicsContent -eq $true) {
             $powerPlatformPermissionsMet = Test-PowerPlatformEnvironmentPermissions -Settings $settings
         }
 
-        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
+        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
             Add-Users -Settings $provisioningSettings

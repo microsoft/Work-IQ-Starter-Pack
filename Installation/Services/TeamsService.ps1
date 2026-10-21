@@ -84,7 +84,7 @@ function Remove-DefaultChannelTabs {
         $Site
     )
 
-    # Removes the default Notes (OneNote) and Wiki ("Pages") tabs from every channel of the team.
+    # Removes the default Notes (OneNote) and Loop ("Page") tabs from every channel of the team.
     try {
         $channels = (Invoke-RestMethod -Uri "$graphBaseUrl/teams/$GroupId/channels" -Headers $headers -Method Get).value
         foreach ($channel in $channels) {
@@ -93,7 +93,7 @@ function Remove-DefaultChannelTabs {
             Write-InstallLogAction -Message "Tabs in channel '$($channel.displayName)' of site '$($Site.URL)': $(($tabs | ForEach-Object { "$($_.displayName) [app: $($_.teamsApp.displayName)]" }) -join '; ')"
             foreach ($tab in $tabs) {
                 $appName = $tab.teamsApp.displayName
-                if ($appName -notin @("OneNote", "Wiki", "Pages") -and $tab.displayName -notin @("Notes", "Wiki", "Pages")) {
+                if ($appName -notin @("OneNote", "Wiki", "Page") -and $tab.displayName -notin @("Notes", "Wiki", "Page")) {
                     continue
                 }
                 try {
@@ -181,9 +181,12 @@ function Remove-Teams {
 
     $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
 
+    # Sites that could not be fully removed, so the caller can tell the admin to finish them by hand
+    $script:sitesNotRemoved = [System.Collections.Generic.List[object]]::new()
+
     foreach ($site in $contentConfig.Sites) {
+        $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
         try {
-            $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
 
             $existingTeam = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
             if (-not $existingTeam) {
@@ -239,6 +242,7 @@ function Remove-Teams {
 
             if (-not $siteInactive) {
                 Write-InstallLogAction "Site '$siteUrl' could not be removed from active sites in time." -Level Warning
+                $script:sitesNotRemoved.Add([PSCustomObject]@{ Title = $site.Title; Url = $siteUrl; Reason = "Still an active site" })
                 continue
             }
 
@@ -254,10 +258,12 @@ function Remove-Teams {
             }
             elseif ($waitForBins) {
                 Write-InstallLogAction "Site '$siteUrl' did not appear in the tenant recycle bin in time." -Level Warning
+                $script:sitesNotRemoved.Add([PSCustomObject]@{ Title = $site.Title; Url = $siteUrl; Reason = "Removed from active sites but not confirmed purged from the tenant recycle bin" })
             }
         }
         catch {
             Write-InstallLogAction "Failed to remove site '$($site.URL)': $($_.Exception.Message)" -Level Error
+            $script:sitesNotRemoved.Add([PSCustomObject]@{ Title = $site.Title; Url = $siteUrl; Reason = "Error: $($_.Exception.Message)" })
         }
     }
 }
