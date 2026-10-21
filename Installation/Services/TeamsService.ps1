@@ -42,6 +42,7 @@ function Add-TeamSite {
             Remove-TeamAccess -GroupId $groupId -Site $Site | Out-Null
             Add-TeamAccess -GroupId $groupId -Site $Site | Out-Null
         }
+        Remove-DefaultChannelTabs -GroupId $groupId -Site $Site
         return $true
     }
     catch {
@@ -72,6 +73,101 @@ function Add-TeamChannels {
         catch {
             Write-InstallLogAction -Message "Failed to add channel '$($channel.Title)' to site '$($Site.URL)': $($_.Exception.Message)" -Level Error
         }
+    }
+}
+
+function Remove-DefaultChannelTabs {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$GroupId,
+        [Parameter(Mandatory = $true)]
+        $Site
+    )
+
+    # Removes the default Notes (OneNote) and Wiki ("Pages") tabs from every channel of the team.
+    try {
+        $channels = (Invoke-RestMethod -Uri "$graphBaseUrl/teams/$GroupId/channels" -Headers $headers -Method Get).value
+        foreach ($channel in $channels) {
+            $tabsUri = "$graphBaseUrl/teams/$GroupId/channels/$($channel.id)/tabs"
+            $tabs = (Invoke-RestMethod -Uri "$tabsUri`?`$expand=teamsApp" -Headers $headers -Method Get).value
+            Write-InstallLogAction -Message "Tabs in channel '$($channel.displayName)' of site '$($Site.URL)': $(($tabs | ForEach-Object { "$($_.displayName) [app: $($_.teamsApp.displayName)]" }) -join '; ')"
+            foreach ($tab in $tabs) {
+                $appName = $tab.teamsApp.displayName
+                if ($appName -notin @("OneNote", "Wiki", "Pages") -and $tab.displayName -notin @("Notes", "Wiki", "Pages")) {
+                    continue
+                }
+                try {
+                    Invoke-RestMethod -Uri "$tabsUri/$($tab.id)" -Headers $headers -Method Delete | Out-Null
+                    Write-InstallLogAction -Message "Removed tab '$($tab.displayName)' from channel '$($channel.displayName)' in site '$($Site.URL)'."
+                }
+                catch {
+                    Write-InstallLogAction -Message "Could not remove tab '$($tab.displayName)' from channel '$($channel.displayName)' in site '$($Site.URL)': $($_.Exception.Message)" -Level Warning
+                }
+            }
+        }
+    }
+    catch {
+        Write-InstallLogAction -Message "Failed to remove default tabs for site '$($Site.URL)': $($_.Exception.Message)" -Level Warning
+    }
+}
+
+function Add-ChannelTab {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TeamId,
+        [Parameter(Mandatory = $true)]
+        [string]$ChannelId,
+        [Parameter(Mandatory = $true)]
+        [string]$DisplayName,
+        [Parameter(Mandatory = $true)]
+        [string]$WebUrl,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet("List", "Library")]
+        [string]$Kind,
+        [Parameter(Mandatory = $true)]
+        [string]$SiteUrl
+    )
+
+    # Lists use the Lists Teams app; libraries use the SharePoint Teams app. Look the app up by name
+    # in the app catalog rather than hard-coding an ID.
+    $appName = if ($Kind -eq "List") { "Lists" } else { "SharePoint" }
+    $tabsUri = "$graphBaseUrl/teams/$TeamId/channels/$ChannelId/tabs"
+
+    try {
+        $teamsAppId = (Invoke-RestMethod -Uri "$graphBaseUrl/appCatalogs/teamsApps?`$filter=displayName eq '$appName' and distributionMethod eq 'store'" -Headers $headers -Method Get).value |
+            Select-Object -First 1 -ExpandProperty id
+        if (-not $teamsAppId) {
+            throw "The '$appName' Teams app was not found in the app catalog."
+        }
+
+        $existingTabs = (Invoke-RestMethod -Uri "$tabsUri`?`$expand=teamsApp" -Headers $headers -Method Get).value
+        foreach ($existingTab in @($existingTabs | Where-Object { $_.displayName -eq $DisplayName })) {
+            if ($existingTab.teamsApp.id -eq $teamsAppId) {
+                Write-InstallLogAction -Message "Tab '$DisplayName' already exists in the channel, skipping."
+                return
+            }
+            # Same name but a different app (e.g. created by an earlier run with the wrong app) - replace it.
+            Invoke-RestMethod -Uri "$tabsUri/$($existingTab.id)" -Headers $headers -Method Delete | Out-Null
+            Write-InstallLogAction -Message "Removed tab '$DisplayName' that used the wrong app ($($existingTab.teamsApp.displayName))."
+        }
+
+        $encodedUrl = [System.Uri]::EscapeDataString($WebUrl)
+        $body = @{
+            displayName          = $DisplayName
+            "teamsApp@odata.bind" = "https://graph.microsoft.com/v1.0/appCatalogs/teamsApps/$teamsAppId"
+            configuration        = @{
+                entityId   = ""
+                contentUrl = "$SiteUrl/_layouts/15/teamslogon.aspx?spfx=true&dest=$encodedUrl"
+                removeUrl  = $null
+                websiteUrl = $WebUrl
+            }
+        } | ConvertTo-Json -Depth 5
+
+        Invoke-RestMethod -Uri $tabsUri -Headers $headers -Method Post -ContentType "application/json" -Body $body | Out-Null
+        Write-InstallLogAction -Message "Added $Kind tab '$DisplayName' to the channel."
+    }
+    catch {
+        Write-InstallLogAction -Message "Failed to add $Kind tab '$DisplayName': $($_.Exception.Message)" -Level Warning
     }
 }
 

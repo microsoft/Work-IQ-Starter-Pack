@@ -1647,6 +1647,12 @@
                 "babak.shammas@<TENANTPREFIX>.onmicrosoft.com",
                 "cassandra.dunn@<TENANTPREFIX>.onmicrosoft.com"
             ],
+            "Channels": [
+                {
+                    "Title": "Dynamics - D365 - Sales Hub",
+                    "Description": ""
+                }
+            ],
             "Content": {
                 "Documents": [
                     {
