@@ -116,7 +116,7 @@ function Invoke-AppRegProvisioning {
         [Parameter(Mandatory = $true)][string]$TenantPrefix,
         [string]$AppName,
         [guid]$ClientId,
-        [string]$PermissionsPath = (Join-Path $PSScriptRoot '../../appPermissions.json'),
+        [string]$PermissionsPath = (Join-Path $PSScriptRoot '../../Configuration/appPermissions.json'),
         [guid]$AuthenticationClientId = '14d82eec-204b-4c2f-b7e8-296a70dab67e'
     )
     $ErrorActionPreference = 'Stop'
@@ -291,7 +291,7 @@ function Get-AppRegistrationPermissionStatus {
     param(
         [Parameter(Mandatory = $true)][guid]$ClientId,
         [Parameter(Mandatory = $true)][string]$AccessToken,
-        [string]$PermissionsPath = (Join-Path $PSScriptRoot '../../appPermissions.json'),
+        [string]$PermissionsPath = (Join-Path $PSScriptRoot '../../Configuration/appPermissions.json'),
         [string[]]$RequiredResourceIds
     )
     $ErrorActionPreference = 'Stop'
@@ -369,7 +369,7 @@ function Assert-AppRegistrationPermissions {
     param(
         [Parameter(Mandatory = $true)][guid]$ClientId,
         [Parameter(Mandatory = $true)][string]$AccessToken,
-        [string]$PermissionsPath = (Join-Path $PSScriptRoot '../../appPermissions.json'),
+        [string]$PermissionsPath = (Join-Path $PSScriptRoot '../../Configuration/appPermissions.json'),
         [string[]]$RequiredResourceIds
     )
     $status = @(Get-AppRegistrationPermissionStatus @PSBoundParameters)

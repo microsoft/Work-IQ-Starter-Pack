@@ -320,13 +320,16 @@ try {
         $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
         $preRequisitesMet = $true
 
+        #Confirm the tenant has Copilot credits available
+        $copilotCreditsAvailable = Test-CopilotCreditBalance
+
         #If installing Dynamics content, also confirm the user has permission to configure a Power Platform environment
         $powerPlatformPermissionsMet = $true
         if ($config.Settings.InstallDynamicsContent -eq $true) {
             $powerPlatformPermissionsMet = Test-PowerPlatformEnvironmentPermissions -Settings $settings
         }
 
-        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
+        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
             Add-Users -Settings $provisioningSettings

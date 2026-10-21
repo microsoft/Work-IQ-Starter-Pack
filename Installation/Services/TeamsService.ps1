@@ -181,9 +181,12 @@ function Remove-Teams {
 
     $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
 
+    # Sites that could not be fully removed, so the caller can tell the admin to finish them by hand
+    $script:sitesNotRemoved = [System.Collections.Generic.List[object]]::new()
+
     foreach ($site in $contentConfig.Sites) {
+        $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
         try {
-            $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
 
             $existingTeam = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
             if (-not $existingTeam) {
@@ -239,6 +242,7 @@ function Remove-Teams {
 
             if (-not $siteInactive) {
                 Write-InstallLogAction "Site '$siteUrl' could not be removed from active sites in time." -Level Warning
+                $script:sitesNotRemoved.Add([PSCustomObject]@{ Title = $site.Title; Url = $siteUrl; Reason = "Still an active site" })
                 continue
             }
 
@@ -254,10 +258,12 @@ function Remove-Teams {
             }
             elseif ($waitForBins) {
                 Write-InstallLogAction "Site '$siteUrl' did not appear in the tenant recycle bin in time." -Level Warning
+                $script:sitesNotRemoved.Add([PSCustomObject]@{ Title = $site.Title; Url = $siteUrl; Reason = "Removed from active sites but not confirmed purged from the tenant recycle bin" })
             }
         }
         catch {
             Write-InstallLogAction "Failed to remove site '$($site.URL)': $($_.Exception.Message)" -Level Error
+            $script:sitesNotRemoved.Add([PSCustomObject]@{ Title = $site.Title; Url = $siteUrl; Reason = "Error: $($_.Exception.Message)" })
         }
     }
 }

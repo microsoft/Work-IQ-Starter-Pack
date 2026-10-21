@@ -103,5 +103,19 @@
         "PermissionId":  "e2a3a72e-5f79-4c64-b1b1-878b674786c9",
         "PermissionName":  "Mail.ReadWrite",
         "PermissionType":  "Role"
+    },
+    {
+        "ResourceId":  "00000003-0000-0000-c000-000000000000",
+        "ResourceName":  "Microsoft Graph",
+        "PermissionId":  "8ba18862-c034-4e30-b630-e0f7b0dcc0e7",
+        "PermissionName":  "CopilotCostManagement.Read.All",
+        "PermissionType":  "Scope"
+    },
+    {
+        "ResourceId":  "00000003-0000-0000-c000-000000000000",
+        "ResourceName":  "Microsoft Graph",
+        "PermissionId":  "7fe904eb-5276-4ddc-ab01-67e4d708b664",
+        "PermissionName":  "CopilotCostManagement-Policy.Read.All",
+        "PermissionType":  "Scope"
     }
 ]

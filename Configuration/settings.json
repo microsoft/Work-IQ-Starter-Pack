@@ -8,7 +8,9 @@
             "Application.ReadWrite.All",
             "TeamMember.ReadWrite.All",
             "TeamsTab.ReadWrite.All",
-            "AppCatalog.Read.All"
+            "AppCatalog.Read.All",
+            "CopilotCostManagement.Read.All",
+            "CopilotCostManagement-Policy.Read.All"
         ],
         "GraphApplication": [
             "Teamwork.Migrate.All",

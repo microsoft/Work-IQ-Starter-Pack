@@ -60,6 +60,59 @@ function Test-License-PreRequisites {
     return $retVal
 }
 
+function Test-CopilotCreditBalance {
+    # Uses the Graph beta Copilot Cost Management API (requires CopilotCostManagement.Read.All).
+    $retVal = $false
+    $betaBaseUrl = "https://graph.microsoft.com/beta/copilot/costmanagement"
+    try {
+        $balance = Invoke-RestMethod -Uri "$betaBaseUrl/gettenantcreditbalance()" -Headers $headers -Method Get
+        $methodBalances = @($balance.billingMethodBalances)
+
+        # Prepaid credits are a purchased pool, so the remaining balance is purchased minus consumed.
+        # Pay-as-you-go has no purchased pool (it bills after use), so if it is listed credits are not a blocker.
+        $availableCredits = 0
+        $payAsYouGoEnabled = $false
+        foreach ($methodBalance in $methodBalances) {
+            if ($methodBalance.billingMethod -eq "prepaidCredits") {
+                $availableCredits += [double]$methodBalance.purchasedQuantity - [double]$methodBalance.consumedQuantity
+            }
+            elseif ($methodBalance.billingMethod -eq "payAsYouGo") {
+                $payAsYouGoEnabled = $true
+                Write-InstallLogAction -Message "Pay-as-you-go Copilot credits consumed so far: $($methodBalance.consumedQuantity)"
+            }
+        }
+
+        if ($availableCredits -gt 0) {
+            Write-InstallLogAction -Message "Tenant has $availableCredits prepaid Copilot credits available." -Level Success
+            $retVal = $true
+        }
+        elseif ($payAsYouGoEnabled) {
+            Write-InstallLogAction -Message "No prepaid Copilot credits, but pay-as-you-go billing is enabled." -Level Success
+            $retVal = $true
+        }
+        else {
+            Write-InstallLogAction -Message "No Copilot credits available in the tenant. Balance response: $($balance | ConvertTo-Json -Depth 5 -Compress)" -Level Error
+
+            # Report whether a spending policy exists, since it controls who can consume credits
+            try {
+                $policies = @((Invoke-RestMethod -Uri "$betaBaseUrl/spendingPolicies" -Headers $headers -Method Get).value)
+                Write-InstallLogAction -Message "Found $($policies.Count) Copilot spending policies." -Level Warning
+            }
+            catch {
+                Write-InstallLogAction -Message "Unable to read Copilot spending policies: $($_.Exception.Message)" -Level Warning
+            }
+        }
+    }
+    catch {
+        $message = "Failed to check Copilot credit balance: $($_.Exception.Message)"
+        if ($_.ErrorDetails.Message) {
+            $message += " Graph response: $($_.ErrorDetails.Message)"
+        }
+        Write-InstallLogAction -Message $message -Level Error
+    }
+    return $retVal
+}
+
 function Set-LicenseForUser {
     param(
         [Parameter(Mandatory = $true)]
