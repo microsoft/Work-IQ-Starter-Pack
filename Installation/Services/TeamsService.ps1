@@ -84,7 +84,7 @@ function Remove-DefaultChannelTabs {
         $Site
     )
 
-    # Removes the default Notes (OneNote) and Wiki ("Pages") tabs from every channel of the team.
+    # Removes the default Notes (OneNote) and Loop ("Page") tabs from every channel of the team.
     try {
         $channels = (Invoke-RestMethod -Uri "$graphBaseUrl/teams/$GroupId/channels" -Headers $headers -Method Get).value
         foreach ($channel in $channels) {
@@ -93,7 +93,7 @@ function Remove-DefaultChannelTabs {
             Write-InstallLogAction -Message "Tabs in channel '$($channel.displayName)' of site '$($Site.URL)': $(($tabs | ForEach-Object { "$($_.displayName) [app: $($_.teamsApp.displayName)]" }) -join '; ')"
             foreach ($tab in $tabs) {
                 $appName = $tab.teamsApp.displayName
-                if ($appName -notin @("OneNote", "Wiki", "Pages") -and $tab.displayName -notin @("Notes", "Wiki", "Pages")) {
+                if ($appName -notin @("OneNote", "Wiki", "Page") -and $tab.displayName -notin @("Notes", "Wiki", "Page")) {
                     continue
                 }
                 try {

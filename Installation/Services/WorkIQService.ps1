@@ -1,3 +1,27 @@
+function Enable-WorkIQServicePrincipal {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Settings
+    )
+    try {
+        $appId = $Settings.WorkIQAppId
+        $existing = (Invoke-RestMethod -Uri "$graphBaseUrl/servicePrincipals?`$filter=appId eq '$appId'" -Headers $headers -Method Get).value | Select-Object -First 1
+        if ($existing) {
+            Write-Host "Work IQ service principal already exists in this tenant (AppId: $appId)."
+            return $true
+        }
+
+        $body = @{ appId = $appId } | ConvertTo-Json
+        Invoke-RestMethod -Uri "$graphBaseUrl/servicePrincipals" -Headers $headers -Method Post -ContentType "application/json" -Body $body | Out-Null
+        Write-Host "Work IQ service principal created in this tenant (AppId: $appId)."
+        return $true
+    }
+    catch {
+        Write-Host "Failed to enable the Work IQ service principal: $($_.Exception.Message)" -ForegroundColor Red
+        throw
+    }
+}
+
 function Test-WorkIQServicePrincipalEnabled {
     param(
         [Parameter(Mandatory = $true)]

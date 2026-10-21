@@ -1,3 +1,10 @@
+# TODO
+- Look more at licensing including teams vs non-teams skus
+- review pre-requisite checks. Need to look and see if you are using existing users do they already have a license. If you are using demo users have they been provisioned and do they have licenses.
+- If you are just doing dynamics you don't need the copilot license
+- add the WorkIQ activation via graph.
+- See if we can cehck for copilot credits via graph.
+
 # WorkIQ Starter Pack
 
 Demo sites, users, and content used to explore Work IQ on a demo or developer tenant.
@@ -23,7 +30,6 @@ The Work IQ Starter Pack is a collection of PowerShell scripts that automate the
 - PowerShell 7.4.0 or later ([install](https://learn.microsoft.com/powershell/scripting/install/installing-powershell)). It is available for Windows, Linux and Mac.
 - The `PnP.PowerShell` module. The installer installs it for the current user if it is missing.
 - A **Global Administrator** account (see [Permissions](#permissions)).
-- Work IQ enabled in your tenant. The Work IQ service principal (app ID `fdcc1f02-fc51-4226-8753-f668596af7f7`) must exist and be enabled, otherwise the installer stops.
 - Licenses for the users (see [Licenses](#licenses)).
 - An application registration. `InstallWorkIQStarterPack.ps1` can create one for you, or you can enter the client ID of an existing one when prompted.
 
@@ -54,7 +60,7 @@ The Work IQ Starter Pack is a collection of PowerShell scripts that automate the
 | `InstallM365Content` | Install the M365 content pack. At least one pack must be selected. |
 | `InstallDynamicsContent` | Install the Dynamics 365 content pack. This also assigns a Dynamics license to the users. |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
-| `SkipPreReqCheck` | Skip the Global Administrator, license, and Power Platform checks. The Work IQ service principal check is always enforced. |
+| `SkipPreReqCheck` | Skip the Global Administrator, license, and Power Platform checks. |
 | `AppRegistrationName` | Optional, unattended mode only. Name for a new app registration (default `WorkIQStarterPack`). |
 | `RealUserUpns` | Unattended mode with `InstallDemoUsers: false` only. A list of 5 UPNs (see [Users](#users)). |
 
@@ -112,12 +118,11 @@ The app registration needs the permissions below. The installer creates them, as
 The two application permissions are used with certificate authentication. The installer generates a self-signed certificate (valid for 2 years) in `Installation/.certs/` and registers the public key on the app registration. The `.pfx` contains a private key. The folder is git-ignored; do not commit or share it.
 
 ## Instructions
-1. Make sure your tenant meets the requirements for Work IQ and [enable Work IQ in your tenant](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq/enable-work-iq?tabs=entra-admin).
-2. Run `./InstallWorkIQStarterPack.ps1`.
-3. Answer the prompts: tenant prefix, demo or real users, content packs, and the app registration. If you do not already have an app registration with the permissions above, answer "no" and the installer creates one.
-4. Sign in when asked and approve admin consent. Sign-in opens a browser; it happens for several of the steps.
-5. Wait for the installer to finish. Some steps wait for Microsoft 365 to catch up (team and site provisioning, mailbox creation for photos and email, and consent and certificate propagation, which can take a few minutes).
-6. Review `Logs/InstallLog.md`.
+1. Run `./InstallWorkIQStarterPack.ps1`.
+2. Answer the prompts: tenant prefix, demo or real users, content packs, and the app registration. If you do not already have an app registration with the permissions above, answer "no" and the installer creates one.
+3. Sign in when asked and approve admin consent. Sign-in opens a browser; it happens for several of the steps.
+4. Wait for the installer to finish. Some steps wait for Microsoft 365 to catch up (team and site provisioning, mailbox creation for photos and email, and consent and certificate propagation, which can take a few minutes).
+5. Review `Logs/InstallLog.md`.
 
 The installer can be run again. Existing Teams are kept, but their owners and members are reset. Chat history is skipped if the channel was already imported. Emails are deleted and re-delivered.
 

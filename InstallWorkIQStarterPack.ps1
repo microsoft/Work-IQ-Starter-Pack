@@ -64,7 +64,7 @@ try {
     $customContentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
 
     #Load App Registration Service file
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegistrationService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegService.ps1")
 
     # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
@@ -249,6 +249,10 @@ try {
     # registered, and the certificate-based migration connection below fails without it.
     Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
     # end app reg creation
+
+    # Make sure the Work IQ service principal exists in the tenant (needs the Graph connection above).
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
+    Enable-WorkIQServicePrincipal -Settings $settings | Out-Null
 
     if ([string]::IsNullOrWhiteSpace($config.Settings.ClientId)) {
         throw "No application registration client ID was found in config.json."

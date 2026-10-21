@@ -72,8 +72,22 @@
     {
         "ResourceId":  "00000003-0000-0000-c000-000000000000",
         "ResourceName":  "Microsoft Graph",
+        "PermissionId":  "88e58d74-d3df-44f3-ad47-e89edf4472e4",
+        "PermissionName":  "AppCatalog.Read.All",
+        "PermissionType":  "Scope"
+    },
+    {
+        "ResourceId":  "00000003-0000-0000-c000-000000000000",
+        "ResourceName":  "Microsoft Graph",
         "PermissionId":  "4a06efd2-f825-4e34-813e-82a57b03d1ee",
         "PermissionName":  "TeamMember.ReadWrite.All",
+        "PermissionType":  "Scope"
+    },
+    {
+        "ResourceId":  "00000003-0000-0000-c000-000000000000",
+        "ResourceName":  "Microsoft Graph",
+        "PermissionId":  "b98bfd41-87c6-45cc-b104-e2de4f0dafb9",
+        "PermissionName":  "TeamsTab.ReadWrite.All",
         "PermissionType":  "Scope"
     },
     {
