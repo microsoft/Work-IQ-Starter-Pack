@@ -8,7 +8,6 @@
     "DynamicsFOProductTemplateItemNumber": "ITEM",
     "AppRegistrationName": "ATESTGP",
     "DynamicsEnvironmentId": "f94ff2b1-c247-e991-8cbb-fc2e471a8f0b",
-    "TenantPrefix": "sympdcp",
     "ClientId": "52e4e0af-a727-4909-a003-8a192f144007",
     "DynamicsFOEnvironmentUrl": "https://finance2026oct.operations.ch.dynamics.com",
     "DynamicsFOLegalEntityId": "ITCO",
@@ -26,6 +25,7 @@
     ],
     "DynamicsEnvironmentUrl": "https://finance2026oct.crm17.dynamics.com",
     "InstallDynamicsFOContent": false,
-    "ProvisionUserEmails": true
+    "ProvisionUserEmails": true,
+    "TenantPrefix": "sympdcp"
   }
 }

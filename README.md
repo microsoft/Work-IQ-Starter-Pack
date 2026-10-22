@@ -1,6 +1,3 @@
-# TODO
-- Look more at licensing including teams vs non-teams skus
-
 # WorkIQ Starter Pack
 
 Demo sites, users, and content used to explore Work IQ on a demo or developer tenant.

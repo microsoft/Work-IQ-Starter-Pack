@@ -356,7 +356,7 @@ try {
 
     # M365 provisioning runs only when its content pack was selected.
     if ($installM365Content) {
-        #L oad services files
+        #Load services files
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
@@ -367,8 +367,7 @@ try {
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/MeetingService.ps1")
 
 
-        # Teams chat history import uses Microsoft Graph's message migration API, which only supports
-        # application permissions (Teamwork.Migrate.All) - need a seprate connection specifically for migration using a cert.
+        # Teams chat history import uses Microsoft Graph's message migration API - need a seprate connection specifically for migration using a cert.
         $migrationCertificatePath = Join-Path -Path $PSScriptRoot -ChildPath "Installation/.certs/teams-chat-migration.pfx"
         if (-not (Test-Path $migrationCertificatePath)) {
             throw "Teams chat migration certificate not found at $migrationCertificatePath. Run InstallWorkIQStarterPack.ps1 again once admin consent has been granted."
@@ -398,7 +397,7 @@ try {
         $copilotCreditsAvailable = Test-CopilotCreditBalance
 
         $powerPlatformPermissionsMet = $true
-        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
+        if ($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
             Add-Users -Settings $provisioningSettings
@@ -453,7 +452,7 @@ try {
             $provisioningSettings.Users = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
         }
 
-        if (-not $installM365Content -and -not $config.Settings.SkipPreReqCheck) {
+        if (-not $installM365Content) {
             $isGlobalAdmin = Test-GlobalAdminPreRequisite
             if (-not $isGlobalAdmin) {
                 throw "One or more prerequisites were not met. Please review the messages above."
