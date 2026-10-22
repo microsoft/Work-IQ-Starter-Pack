@@ -16,6 +16,28 @@ function Read-MiniCleanupChoice {
     return $selected
 }
 
+function Read-MiniCleanupEnvironmentUrl {
+    param([string]$Label, [string]$Example, [string]$Default, [string]$SettingName)
+    $environmentUrl = $Default
+    do {
+        $prompt = "Enter the $Label environment URL (e.g. $Example)"
+        if (-not [string]::IsNullOrWhiteSpace($environmentUrl)) {
+            $prompt += " (default: $environmentUrl)"
+        }
+        $answer = (Read-Host $prompt).Trim()
+        if (-not [string]::IsNullOrWhiteSpace($answer)) { $environmentUrl = $answer }
+    } while ([string]::IsNullOrWhiteSpace($environmentUrl))
+    $environmentUri = $null
+    if (-not [Uri]::TryCreate($environmentUrl, [UriKind]::Absolute, [ref]$environmentUri) -or
+        $environmentUri.Scheme -ne 'https' -or $environmentUri.UserInfo -or
+        $environmentUri.AbsolutePath -ne '/' -or $environmentUri.Query -or $environmentUri.Fragment) {
+        throw "Provide an HTTPS environment root URL in Settings.$SettingName or at the prompt."
+    }
+    $environmentUrl = $environmentUri.GetLeftPart([UriPartial]::Authority)
+    Write-InstallLogInput -Prompt "$Label environment URL" -Response $environmentUrl
+    return $environmentUrl
+}
+
 function Invoke-MiniCleanupStep {
     param([string]$Description, [string]$ActionVerb = 'Deleting', [string]$CompletedVerb = 'deleting', [scriptblock]$Action)
     Write-Host ''
@@ -53,11 +75,17 @@ try {
     $deleteDynamics = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Sales and Customer Service (D365 Sales & CS) demo data?'
     $removeSolution = $false
     if ($deleteDynamics) {
+        $environmentUrl = Read-MiniCleanupEnvironmentUrl -Label 'D365 Sales & CS' -Example 'https://contoso.crm.dynamics.com' -Default $config.Settings.DynamicsEnvironmentUrl -SettingName 'DynamicsEnvironmentUrl'
+        $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentUrl -NotePropertyValue $environmentUrl -Force
         Write-Host 'Removing the managed Field Engagement solution also removes its custom table, app, and any remaining Field Engagement records.'
         $removeSolution = Read-MiniCleanupChoice 'Do you also want to remove the Caldova Field Engagement solution?'
     }
     Write-Host "D365 F&O cleanup deletes $(@($content.Orders).Count) demo Sales Orders and their lines, $(@($content.Accounts).Count) demo customers by Account code in company '$($config.Settings.DynamicsFOLegalEntityId)' and $(@($content.Products).Count) shared Products by Product number from $($config.Settings.DynamicsFOEnvironmentUrl). Shared Products apply across companies."
     $deleteFO = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Finance & Operations (D365 F&O) demo data?'
+    if ($deleteFO) {
+        $foEnvironmentUrl = Read-MiniCleanupEnvironmentUrl -Label 'D365 F&O' -Example 'https://contoso.operations.dynamics.com' -Default $config.Settings.DynamicsFOEnvironmentUrl -SettingName 'DynamicsFOEnvironmentUrl'
+        $config.Settings | Add-Member -NotePropertyName DynamicsFOEnvironmentUrl -NotePropertyValue $foEnvironmentUrl -Force
+    }
     $deleteSharePoint = Read-MiniCleanupChoice 'Do you want to remove the uploaded D365 Sales & CS SharePoint integration files?'
     if (-not $deleteDynamics -and -not $deleteFO -and -not $deleteSharePoint) {
         Write-InstallLogAction -Message 'No cleanup selected.'
