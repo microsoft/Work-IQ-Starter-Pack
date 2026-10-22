@@ -277,19 +277,15 @@ function Remove-DynamicsSharePointDocumentsRest {
     $content = Get-Content -LiteralPath $ContentPath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
     foreach ($account in $content.Accounts) {
         $id = [guid]::Parse($account.Id).ToString()
-        $localFolder = Join-Path $DocumentsPath $id
-        if (-not (Test-Path -LiteralPath $localFolder -PathType Container)) { continue }
-        foreach ($file in (Get-ChildItem -LiteralPath $localFolder -File -ErrorAction Stop | Where-Object { $_.Name -notlike '~$*' })) {
-            $fileUrl = "$rootUrl/$id/$($file.Name)"
-            $filePath = "GetFileByServerRelativePath(decodedUrl='$([uri]::EscapeDataString($fileUrl.Replace("'", "''")))')"
-            try {
-                $null = Invoke-CleanupSharePointRequest -Path "$filePath/recycle()" -Method Post
-                Write-InstallLogAction -Message "Recycled D365 Sales & CS SharePoint document '$fileUrl'." -Level Success
-            }
-            catch {
-                if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) {
-                } else { throw }
-            }
+        $folderUrl = "$rootUrl/$id"
+        $folderPath = Get-CleanupFolderPath -ServerRelativeUrl $folderUrl
+        try {
+            $null = Invoke-CleanupSharePointRequest -Path "$folderPath/recycle()" -Method Post
+            Write-InstallLogAction -Message "Recycled D365 Sales & CS SharePoint account folder '$folderUrl' and its contents." -Level Success
+        }
+        catch {
+            if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -eq 404) {
+            } else { throw }
         }
     }
 }
