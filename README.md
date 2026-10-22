@@ -1,7 +1,3 @@
-# TODO
-- Look more at licensing including teams vs non-teams skus
-- If you are just doing dynamics you don't need the copilot license
-
 # WorkIQ Starter Pack
 
 Demo sites, users, and content used to explore Work IQ on a demo or developer tenant.
