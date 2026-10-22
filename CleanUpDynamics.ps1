@@ -3,7 +3,7 @@
 # Independently clean Dynamics and D365 F&O demo records using source IDs/codes.
 $cleanupSucceeded = $false
 . (Join-Path $PSScriptRoot 'Installation/Services/InstallLogService.ps1')
-Initialize-InstallLog -Title 'WorkIQ Starter Pack Mini Cleanup Log' -FileName 'CleanUpMiniLog.md' -IncludePasswords $false
+Initialize-InstallLog -Title 'WorkIQ Starter Pack Mini Cleanup Log' -FileName 'CleanUpLog.md' -IncludePasswords $false
 
 function Read-MiniCleanupChoice {
     param([string]$Prompt, [bool]$Default = $false)
@@ -53,6 +53,19 @@ try {
     $content = Get-Content -LiteralPath $contentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
 
     . (Join-Path $PSScriptRoot 'Installation/Services/AppRegService.ps1')
+    $currentTenant = $config.Settings.TenantPrefix
+    do {
+        $prompt = 'Enter your tenant prefix name (e.g. caldova from caldova.onmicrosoft.com)'
+        if (-not [string]::IsNullOrWhiteSpace($currentTenant)) {
+            $prompt += " (default: $currentTenant)"
+        }
+        $tenant = (Read-Host $prompt).Trim()
+        if ([string]::IsNullOrWhiteSpace($tenant)) { $tenant = $currentTenant }
+        $tenant = $tenant -replace '\.onmicrosoft\.com$', ''
+    } while ([string]::IsNullOrWhiteSpace($tenant))
+    $config.Settings | Add-Member -NotePropertyName TenantPrefix -NotePropertyValue $tenant -Force
+    Write-InstallLogInput -Prompt 'Tenant prefix' -Response $tenant
+
     $hasAppRegistration = Read-MiniCleanupChoice 'Do you have an existing Application Registration? Please review the README.md file for the level of permissions required.' -Default $true
     if ($hasAppRegistration) {
         $storedClientID = $config.Settings.ClientId
@@ -71,7 +84,7 @@ try {
         throw 'Cleanup requires an existing app registration with all required permissions and admin consent already granted. Run InstallWorkIQDynamicsPack.ps1 to create or configure one first.'
     }
 
-    Write-Host "D365 Sales & CS cleanup deletes demo Emails, Cases, Invoices, Orders, Quotes, Opportunities, Leads, Accounts, and Product catalog records by their IDs in Content/contentDynamics.json from $($config.Settings.DynamicsEnvironmentUrl)."
+    Write-Host 'D365 Sales & CS cleanup deletes demo Emails, Cases, Invoices, Orders, Quotes, Opportunities, Leads, Accounts, and Product catalog records by their IDs in Content/contentDynamics.json.'
     $deleteDynamics = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Sales and Customer Service (D365 Sales & CS) demo data?'
     $removeSolution = $false
     if ($deleteDynamics) {
@@ -80,7 +93,7 @@ try {
         Write-Host 'Removing the managed Field Engagement solution also removes its custom table, app, and any remaining Field Engagement records.'
         $removeSolution = Read-MiniCleanupChoice 'Do you also want to remove the Caldova Field Engagement solution?'
     }
-    Write-Host "D365 F&O cleanup deletes $(@($content.Orders).Count) demo Sales Orders and their lines, $(@($content.Accounts).Count) demo customers by Account code in company '$($config.Settings.DynamicsFOLegalEntityId)' and $(@($content.Products).Count) shared Products by Product number from $($config.Settings.DynamicsFOEnvironmentUrl). Shared Products apply across companies."
+    Write-Host "D365 F&O cleanup deletes $(@($content.Orders).Count) demo Sales Orders and their lines, $(@($content.Accounts).Count) demo customers by Account code in company '$($config.Settings.DynamicsFOLegalEntityId)' and $(@($content.Products).Count) shared Products by Product number. Shared Products apply across companies."
     $deleteFO = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Finance & Operations (D365 F&O) demo data?'
     if ($deleteFO) {
         $foEnvironmentUrl = Read-MiniCleanupEnvironmentUrl -Label 'D365 F&O' -Example 'https://contoso.operations.dynamics.com' -Default $config.Settings.DynamicsFOEnvironmentUrl -SettingName 'DynamicsFOEnvironmentUrl'
