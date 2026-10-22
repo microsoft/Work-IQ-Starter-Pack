@@ -117,6 +117,7 @@ function Invoke-AppRegProvisioning {
         [string]$AppName,
         [guid]$ClientId,
         [string]$PermissionsPath = (Join-Path $PSScriptRoot '../../Configuration/appPermissions.json'),
+        [string[]]$RequiredResourceIds,
         [guid]$AuthenticationClientId = '14d82eec-204b-4c2f-b7e8-296a70dab67e'
     )
     $ErrorActionPreference = 'Stop'
@@ -127,6 +128,14 @@ function Invoke-AppRegProvisioning {
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
     $parsedPermissions = Get-Content -LiteralPath $PermissionsPath -Raw | ConvertFrom-Json
     $permissions = @($parsedPermissions)
+    if ($PSBoundParameters.ContainsKey('RequiredResourceIds')) {
+        foreach ($resourceId in $RequiredResourceIds) {
+            if (-not @($permissions | Where-Object ResourceId -eq $resourceId).Count) {
+                throw "No permissions are defined for required resource '$resourceId' in $PermissionsPath."
+            }
+        }
+        $permissions = @($permissions | Where-Object ResourceId -in $RequiredResourceIds)
+    }
     if ($permissions.Count -eq 0) { throw 'The permissions file is empty.' }
     $seen = @{}
     foreach ($permission in $permissions) {
@@ -224,7 +233,7 @@ function Invoke-AppRegProvisioning {
             $null = Get-OrCreateServicePrincipal -AppId $resourceId
         }
         Write-Host 'Step 2/2: Check existing admin consent and grant only missing consent'
-        $permissionStatus = @(Get-AppRegistrationPermissionStatus -ClientId $app.appId -AccessToken $AccessToken -PermissionsPath $PermissionsPath)
+        $permissionStatus = @(Get-AppRegistrationPermissionStatus -ClientId $app.appId -AccessToken $AccessToken -PermissionsPath $PermissionsPath -RequiredResourceIds @($permissions.ResourceId | Sort-Object -Unique))
         $missingConsent = @($permissionStatus | Where-Object { -not $_.Consented })
         if (-not $missingConsent.Count) { Write-Host 'Admin consent is already granted for all required permissions. No consent changes are needed.' }
         foreach ($group in ($permissions | Group-Object ResourceId)) {
@@ -387,18 +396,24 @@ function New-AppRegistration {
     param(
         [Parameter(Mandatory = $true)][string]$Tenant,
         [Parameter(Mandatory = $true)][string]$AppName,
+        [string[]]$RequiredResourceIds,
         [guid]$AuthenticationClientId = '14d82eec-204b-4c2f-b7e8-296a70dab67e'
     )
-    Invoke-AppRegProvisioning -TenantPrefix $Tenant -AppName $AppName -AuthenticationClientId $AuthenticationClientId
+    $options = @{}
+    if ($PSBoundParameters.ContainsKey('RequiredResourceIds')) { $options.RequiredResourceIds = $RequiredResourceIds }
+    Invoke-AppRegProvisioning -TenantPrefix $Tenant -AppName $AppName -AuthenticationClientId $AuthenticationClientId @options
 }
 
 function Update-AppRegistrationPermissions {
     param(
         [Parameter(Mandatory = $true)][string]$ClientId,
         [Parameter(Mandatory = $true)][string]$TenantPrefix,
+        [string[]]$RequiredResourceIds,
         [guid]$AuthenticationClientId = '14d82eec-204b-4c2f-b7e8-296a70dab67e'
     )
-    $null = Invoke-AppRegProvisioning -TenantPrefix $TenantPrefix -ClientId $ClientId -AuthenticationClientId $AuthenticationClientId
+    $options = @{}
+    if ($PSBoundParameters.ContainsKey('RequiredResourceIds')) { $options.RequiredResourceIds = $RequiredResourceIds }
+    $null = Invoke-AppRegProvisioning -TenantPrefix $TenantPrefix -ClientId $ClientId -AuthenticationClientId $AuthenticationClientId @options
     return $true
 }
 

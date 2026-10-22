@@ -22,6 +22,31 @@ function Get-AvailableSkusCount{
     return $freeSeatsCount
 }
 
+function Get-UserLicenseStatus {
+    param(
+        [Parameter(Mandatory = $true)]
+        $User,
+        [Parameter(Mandatory = $true)]
+        $Settings
+    )
+    $upn = $User.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
+    $status = [PSCustomObject]@{ Exists = $false; HasOffice = $false; HasCopilot = $false }
+
+    $graphUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$upn'&`$select=id,assignedLicenses" -Headers $headers -Method Get).value | Select-Object -First 1
+    if (-not $graphUser) {
+        return $status
+    }
+    $status.Exists = $true
+
+    $assignedSkuIds = @($graphUser.assignedLicenses | ForEach-Object { $_.skuId })
+    $officeSkuIds = @($availableSkus | Where-Object { $_.skuPartNumber -and $Settings.Licenses.Office -contains $_.skuPartNumber } | ForEach-Object { $_.skuId })
+    $copilotSkuIds = @($availableSkus | Where-Object { $_.skuPartNumber -and $Settings.Licenses.Copilot -contains $_.skuPartNumber } | ForEach-Object { $_.skuId })
+
+    $status.HasOffice = [bool]($assignedSkuIds | Where-Object { $officeSkuIds -contains $_ })
+    $status.HasCopilot = [bool]($assignedSkuIds | Where-Object { $copilotSkuIds -contains $_ })
+    return $status
+}
+
 function Test-License-PreRequisites {
     param(
         [Parameter(Mandatory = $true)]
@@ -39,13 +64,30 @@ function Test-License-PreRequisites {
             $officeLicenseCount += Get-AvailableSkusCount -SkuPartNumber $skuPartNumber
         }
 
-        if($copilotLicenseCount -lt $Settings.Users.Count) {
-            Write-Host "Not enough Copilot licenses available. Required: $($Settings.Users.Count), Available: $copilotLicenseCount" -ForegroundColor Red
+        #Only count seats for users that actually need a license. Demo users who are not provisioned
+        #yet need both; provisioned demo users and real users only need whichever one they are missing.
+        $copilotNeeded = 0
+        $officeNeeded = 0
+        foreach ($user in $Settings.Users) {
+            $userStatus = Get-UserLicenseStatus -User $user -Settings $Settings
+            $label = $user.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
+            if ($config.Settings.InstallDemoUsers -and -not $userStatus.Exists) {
+                Write-InstallLogAction -Message "Demo user $label is not provisioned yet; Office and Copilot licenses will be needed."
+            }
+            else {
+                Write-InstallLogAction -Message "User $label - Office license: $($userStatus.HasOffice), Copilot license: $($userStatus.HasCopilot)"
+            }
+            if (-not $userStatus.HasOffice) { $officeNeeded++ }
+            if (-not $userStatus.HasCopilot) { $copilotNeeded++ }
         }
-        if($officeLicenseCount -lt $Settings.Users.Count) {
-            Write-Host "Not enough Office licenses available. Required: $($Settings.Users.Count), Available: $officeLicenseCount" -ForegroundColor Red
+
+        if($copilotLicenseCount -lt $copilotNeeded) {
+            Write-Host "Not enough Copilot licenses available. Required: $copilotNeeded, Available: $copilotLicenseCount" -ForegroundColor Red
         }
-        if($copilotLicenseCount -ge $Settings.Users.Count -and $officeLicenseCount -ge $Settings.Users.Count) {
+        if($officeLicenseCount -lt $officeNeeded) {
+            Write-Host "Not enough Office licenses available. Required: $officeNeeded, Available: $officeLicenseCount" -ForegroundColor Red
+        }
+        if($copilotLicenseCount -ge $copilotNeeded -and $officeLicenseCount -ge $officeNeeded) {
            $retVal = $true
         }
     }
