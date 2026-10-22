@@ -74,16 +74,16 @@ try {
         $tenant = $currentTenant
     }
     else {
-    do {
-        $prompt = "Enter your tenant prefix name (e.g. caldova from caldova.onmicrosoft.com)"
-        if (-not [string]::IsNullOrWhiteSpace($currentTenant)) {
-            $prompt += " (default: $currentTenant)"
-        }
-        $tenant = (Read-Host $prompt).Trim()
-        if ([string]::IsNullOrWhiteSpace($tenant)) {
-            $tenant = $currentTenant
-        }
-    } while ([string]::IsNullOrWhiteSpace($tenant))
+        do {
+            $prompt = "Enter your tenant prefix name (e.g. caldova from caldova.onmicrosoft.com)"
+            if (-not [string]::IsNullOrWhiteSpace($currentTenant)) {
+                $prompt += " (default: $currentTenant)"
+            }
+            $tenant = (Read-Host $prompt).Trim()
+            if ([string]::IsNullOrWhiteSpace($tenant)) {
+                $tenant = $currentTenant
+            }
+        } while ([string]::IsNullOrWhiteSpace($tenant))
     }
 
     $config.Settings.TenantPrefix = ($tenant -replace '\.onmicrosoft\.com$', '')
@@ -94,9 +94,7 @@ try {
         $user.Email = $user.Email.Replace('<TENANTPREFIX>', $config.Settings.TenantPrefix)
     }
     # Ask whether to provision the built-in demo users, or point the starter pack's 5 role
-    # slots at real, existing users instead. The UPNs are collected here (upfront, alongside
-    # the other one-time setup questions); the actual Entra ID lookup happens later, once
-    # Connect-WorkIQGraph has established a Graph connection.
+    # slots at real, existing users instead. The UPNs are collected here.
     $provisionDemoUsers = if ($UseConfig) { [bool]$config.Settings.InstallDemoUsers } else { Read-YesNo "Do you want to provision the built-in demo users?" -Default $true }
     $config.Settings.InstallDemoUsers = $provisionDemoUsers
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
@@ -392,13 +390,11 @@ try {
 
         #Check to see if the current user is a Global Administrator before checking license availability
         $isGlobalAdmin = Test-GlobalAdminPreRequisite
-
-        #Check to see if the required licenses are available before provisioning users
-        $preRequisitesMet = Test-License-PreRequisites -Settings $settings
+        
+        #Check to see if WorkIQ service principal is enabled
         $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
-        $preRequisitesMet = $true
 
-        #Confirm the tenant has Copilot credits available
+        #Confirm the tenant has Copilot credits available or PayGo is enabled
         $copilotCreditsAvailable = Test-CopilotCreditBalance
 
         $powerPlatformPermissionsMet = $true
