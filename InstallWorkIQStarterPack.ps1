@@ -79,16 +79,16 @@ try {
         $tenant = $currentTenant
     }
     else {
-    do {
-        $prompt = "Enter your tenant prefix name (e.g. caldova from caldova.onmicrosoft.com)"
-        if (-not [string]::IsNullOrWhiteSpace($currentTenant)) {
-            $prompt += " (default: $currentTenant)"
-        }
-        $tenant = (Read-Host $prompt).Trim()
-        if ([string]::IsNullOrWhiteSpace($tenant)) {
-            $tenant = $currentTenant
-        }
-    } while ([string]::IsNullOrWhiteSpace($tenant))
+        do {
+            $prompt = "Enter your tenant prefix name (e.g. caldova from caldova.onmicrosoft.com)"
+            if (-not [string]::IsNullOrWhiteSpace($currentTenant)) {
+                $prompt += " (default: $currentTenant)"
+            }
+            $tenant = (Read-Host $prompt).Trim()
+            if ([string]::IsNullOrWhiteSpace($tenant)) {
+                $tenant = $currentTenant
+            }
+        } while ([string]::IsNullOrWhiteSpace($tenant))
     }
 
     $config.Settings.TenantPrefix = ($tenant -replace '\.onmicrosoft\.com$', '')
@@ -96,9 +96,7 @@ try {
     Write-InstallLogInput -Prompt "Tenant prefix" -Response $config.Settings.TenantPrefix
 
     # Ask whether to provision the built-in demo users, or point the starter pack's 5 role
-    # slots at real, existing users instead. The UPNs are collected here (upfront, alongside
-    # the other one-time setup questions); the actual Entra ID lookup happens later, once
-    # Connect-WorkIQGraph has established a Graph connection.
+    # slots at real, existing users instead. The UPNs are collected here.
     $provisionDemoUsers = if ($UseConfig) { [bool]$config.Settings.InstallDemoUsers } else { Read-YesNo "Do you want to provision the built-in demo users?" -Default $true }
     $config.Settings.InstallDemoUsers = $provisionDemoUsers
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
@@ -224,8 +222,9 @@ try {
 
         Write-InstallLogAction -Message "Client ID saved to $configPath" -Level Success
 
-        Connect-WorkIQPnP -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $clientId -Force
+        # Check the permissions (adding any that are missing and granting admin consent) before signing in
         Update-AppRegistrationPermissions -ClientId $clientId -TenantPrefix $config.Settings.TenantPrefix | Out-Null
+        Connect-WorkIQPnP -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $clientId -Force
     }
     else {
         # If they don't have an app reg create one.
@@ -245,8 +244,7 @@ try {
     # Connect to SharePoint Online using PnP PowerShell. This is done once here and the resulting
     Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
 
-    # Run this for existing app registrations too - it's a no-op when the certificate is already
-    # registered, and the certificate-based migration connection below fails without it.
+    # Run this for existing app registrations add the cert for Teams chat migration
     Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
     # end app reg creation
 
@@ -280,7 +278,7 @@ try {
     
     # You need to install one of the content packs to proceed.
     if ($config.Settings.InstallM365Content -eq $true -or $config.Settings.InstallDynamicsContent -eq $true) {
-        #L oad services files
+        #Load services files
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
@@ -314,14 +312,15 @@ try {
 
         #Check to see if the current user is a Global Administrator before checking license availability
         $isGlobalAdmin = Test-GlobalAdminPreRequisite
+        
+        #Check to see if WorkIQ service principal is enabled
+        $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
+
+        #Confirm the tenant has Copilot credits available or PayGo is enabled
+        $copilotCreditsAvailable = Test-CopilotCreditBalance
 
         #Check to see if the required licenses are available before provisioning users
-        $preRequisitesMet = Test-License-PreRequisites -Settings $settings
-        $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
-        $preRequisitesMet = $true
-
-        #Confirm the tenant has Copilot credits available
-        $copilotCreditsAvailable = Test-CopilotCreditBalance
+        $preRequisitesMet = Test-License-PreRequisites -Settings $provisioningSettings
 
         #If installing Dynamics content, also confirm the user has permission to configure a Power Platform environment
         $powerPlatformPermissionsMet = $true
@@ -329,7 +328,7 @@ try {
             $powerPlatformPermissionsMet = Test-PowerPlatformEnvironmentPermissions -Settings $settings
         }
 
-        if ((($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true) -or $config.Settings.SkipPreReqCheck -eq $true) -and $workIQEnabled -eq $true) {
+        if ($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
             Add-Users -Settings $provisioningSettings

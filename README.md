@@ -1,8 +1,6 @@
 # TODO
 - Look more at licensing including teams vs non-teams skus
-- review pre-requisite checks. Need to look and see if you are using existing users do they already have a license. If you are using demo users have they been provisioned and do they have licenses.
 - If you are just doing dynamics you don't need the copilot license
-- add the WorkIQ activation via graph.
 
 # WorkIQ Starter Pack
 
@@ -57,8 +55,7 @@ The pack has two installers and two matching cleanup scripts:
     "InstallDemoUsers": true,
     "InstallM365Content": true,
     "InstallDynamicsContent": true,
-    "ProvisionUserEmails": true,
-    "SkipPreReqCheck": false
+    "ProvisionUserEmails": true
   }
 }
 ```
@@ -71,7 +68,6 @@ The pack has two installers and two matching cleanup scripts:
 | `InstallM365Content` | Install the M365 content pack. At least one pack must be selected. |
 | `InstallDynamicsContent` | Install the Dynamics 365 content pack. In `InstallWorkIQStarterPack.ps1` this adds the Sales Team and assigns a Dynamics license to the users; the Dynamics data comes from `InstallWorkIQDynamicsPack.ps1`. |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
-| `SkipPreReqCheck` | Skip the Global Administrator, license, Copilot credit, and Power Platform checks. The Work IQ service principal check always runs. |
 | `AppRegistrationName` | Optional, unattended mode only. Name for a new app registration (default `WorkIQStarterPack`). |
 | `RealUserUpns` | Unattended mode with `InstallDemoUsers: false` only. A list of 5 UPNs (see [Users](#users)). |
 
@@ -94,7 +90,7 @@ The Microsoft 365 content pack installs the Market Research, Finance, and Procur
 ### Unattended install
 Run `./InstallWorkIQStarterPack.ps1 -UseConfig` to skip every install question and use the values in config.json instead. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
 
-The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, `ProvisionUserEmails`, `SkipPreReqCheck`, and `ClientId` (set = use that existing app registration; empty = create one, named by `AppRegistrationName`). If `InstallDemoUsers` is false, `RealUserUpns` must contain exactly 5 UPNs.
+The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, `ProvisionUserEmails`, and `ClientId` (set = use that existing app registration; empty = create one, named by `AppRegistrationName`). If `InstallDemoUsers` is false, `RealUserUpns` must contain exactly 5 UPNs.
 
 ### Users
 The demo needs 5 users, one for each role. With `InstallDemoUsers: true` the installer creates these demo users:
@@ -121,7 +117,7 @@ Each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that
 You need at least 5 available seats each of Copilot and Office. `InstallWorkIQDynamicsPack.ps1` does not assign licenses.
 
 ### Pre-requisite checks
-Before provisioning, `InstallWorkIQStarterPack.ps1` checks the following. `SkipPreReqCheck` skips all of them except the Work IQ service principal.
+Before provisioning, `InstallWorkIQStarterPack.ps1` checks the following.
 - **Global Administrator:** the signed-in user holds the Global Administrator role.
 - **Licenses:** at least 5 available Copilot seats and 5 available Office seats (see [Licenses](#licenses)).
 - **Work IQ service principal:** it exists and is enabled (the installer creates it if it is missing).
@@ -178,12 +174,24 @@ The installer can be run again. Existing Teams are kept, but their owners and me
 
 The lists and libraries are added to the first channel as tabs, and the default Notes, Wiki, and Page tabs are removed.
 
-The sample documents live under [Content/Documents](./Content/Documents), in the Demo1 to Demo4 folders used by the sites in `content.json`. [Prompts/DocumentGenerationPrompt.md](./Content/Documents/Prompts/DocumentGenerationPrompt.md) is the prompt used to author content.
+The sample documents live under [Content/Documents](./Content/Documents), in the Demo1 to Demo4 folders used by the sites in `content.json`. To create more, see [Generating new content](#generating-new-content).
+
+## Generating new content
+[Prompts/DocumentGenerationPrompt.md](./Content/Documents/Prompts/DocumentGenerationPrompt.md) is the prompt used to author the demo content: documents, meeting transcripts, email threads, and Teams chats. It fixes the product, supplier, and raw-material names so everything stays consistent across the demos.
+
+To generate new content:
+1. Open this repository in Claude.
+2. Ask it to create documents based on the `Content/Documents/Prompts/DocumentGenerationPrompt.md` prompt, for example: "Create documents based on the DocumentGenerationPrompt.md prompt."
+3. Review the generated files under `Content/Documents/<DemoName>/`.
+4. Make sure any new items are registered in [Content/content.json](./Content/content.json) so the installer uploads them.
+5. Run the installer again (see [Instructions](#instructions)).
+
+To change the scenario or the names used, edit the prompt before asking Claude to generate the content.
 
 ## Dynamics 365 content
 `InstallWorkIQDynamicsPack.ps1` installs the Dynamics 365 demo data. `InstallWorkIQStarterPack.ps1` does not call it; run it separately (before or after the main installer). It signs in with the app registration, so the Dynamics and Power Platform permissions above must be consented.
 
-It asks whether to install Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both (at least one is required), and prompts for the Dataverse and F&O environment URLs. It can also create a new Dataverse environment and save its ID and URL to config.json. Run `./InstallWorkIQDynamicsPack.ps1 -UseConfig` to use the values in config.json instead; it does not create an environment, and it still asks whether to deploy the SharePoint documents. It only checks that you are a Global Administrator (skipped by `SkipPreReqCheck`) and does not assign licenses.
+It asks whether to install Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both (at least one is required), and prompts for the Dataverse and F&O environment URLs. It can also create a new Dataverse environment and save its ID and URL to config.json. Run `./InstallWorkIQDynamicsPack.ps1 -UseConfig` to use the values in config.json instead; it does not create an environment, and it still asks whether to deploy the SharePoint documents. It only checks that you are a Global Administrator and does not assign licenses.
 
 It will:
 - Create or look up the demo users and sync them into Dataverse.
