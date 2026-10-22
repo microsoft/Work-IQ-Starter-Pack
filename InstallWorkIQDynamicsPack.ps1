@@ -347,9 +347,9 @@ try {
             $environmentOptions = @{}
             foreach ($option in @(
                 @{ Name = 'DisplayName'; Prompt = 'Environment display name'; Default = 'Caldova Demo' },
-                @{ Name = 'Location'; Prompt = 'Environment location code'; Default = 'unitedstates' },
+                @{ Name = 'Location'; Prompt = 'Environment location code (e.g. unitedstates or europe)'; Default = 'unitedstates' },
                 @{ Name = 'EnvironmentType'; Prompt = 'Environment type (Sandbox, Production, Trial, Developer)'; Default = 'Sandbox' },
-                @{ Name = 'BaseLanguage'; Prompt = 'Base language LCID'; Default = '1033' },
+                @{ Name = 'BaseLanguage'; Prompt = 'Base language LCID (1033: English)'; Default = '1033' },
                 @{ Name = 'CurrencyCode'; Prompt = 'Currency code'; Default = 'USD' }
             )) {
                 $answer = (Read-Host "$($option.Prompt) (default: $($option.Default))").Trim()
@@ -359,7 +359,7 @@ try {
             }
             $environmentOptions.BaseLanguage = [int]$environmentOptions.BaseLanguage
             $environmentOptions.CurrencyCode = $environmentOptions.CurrencyCode.ToUpperInvariant()
-            $environmentOptions.SecurityGroupId = (Read-Host 'Security group object ID (leave blank for none)').Trim()
+            $environmentOptions.SecurityGroupId = ''
             Write-InstallLogInput -Prompt 'Environment security group object ID' -Response $(if ($environmentOptions.SecurityGroupId) { $environmentOptions.SecurityGroupId } else { 'None' })
             $newEnvironment = Invoke-InstallStep -Description 'Creating the Dataverse Environment' -Action { New-PowerPlatformDataverseEnvironment @environmentOptions }
             $newEnvironmentUri = $null
