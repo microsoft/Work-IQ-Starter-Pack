@@ -18,7 +18,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 
 [Content/content.json](./Content/content.json) describes the Microsoft 365 demo. The installer reads it and uses PnP PowerShell and Microsoft Graph to create:
 
-- Users (optional), their licenses, and profile photos
+- Users (demo users, or your own existing users), their licenses, and profile photos
 - Entra security groups named in a site's optional `Groups` array (no site in the shipped `content.json` defines one), containing the same demo or resolved real users used by `Add-Users`. Existing assigned, non-mail-enabled security groups are reused and missing members added; other members are retained. These security groups are not removed by `CleanUp.ps1`.
 - Microsoft Teams and their SharePoint sites, with channels
 - Documents uploaded with the right authors and dates, and past Teams meetings created on each team's calendar with their transcripts (Word documents) linked from the channel

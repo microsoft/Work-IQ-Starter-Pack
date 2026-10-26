@@ -288,7 +288,7 @@ try {
     }
     else {
         # If they don't have an app reg create one.
-        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your application registration (default: WorkIQStarterPack)" }
+        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your new application registration (default: WorkIQStarterPack)" }
         if ([string]::IsNullOrWhiteSpace($appName)) {
             $appName = "WorkIQStarterPack"
         }
@@ -426,8 +426,12 @@ try {
             Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
         }
 
-        foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
-            Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
+        #Confirm that the licenses are available
+        $licensesAvailable = Test-License-PreRequisites -Settings $provisioningSettings
+
+        $powerPlatformPermissionsMet = $true
+        if ($isGlobalAdmin -eq $true -and $licensesAvailable -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
+            Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
             Add-Groups -Site $site -Settings $provisioningSettings
 
