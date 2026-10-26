@@ -216,6 +216,24 @@ All installation operations are recorded in the installation log (see [Generated
 
 Use `./CleanUp.ps1` to remove Dynamics data and optionally Microsoft 365 content in the same run. It asks which parts to remove; see [Cleanup](#cleanup).
 
+### Environment preparation
+
+**Sales & Customer Service (Dataverse)**
+
+1. Create a Sandbox environment with a Dataverse database, or use an existing demo environment. Confirm the required Dynamics licenses and available Dataverse capacity using Microsoft's [environment creation instructions](https://learn.microsoft.com/en-us/power-platform/admin/create-environment). The shared lab licenses and installer permissions are covered in [Licenses](#licenses) and [Permissions](#permissions).
+2. Select **Enable Dynamics 365 apps** when creating the database and ensure Sales and Customer Service are installed and ready. Microsoft does not allow this option to be enabled later on a database created without it. Use English (United States, LCID `1033`) to match the English security-role names used by the installer, and select the base currency for your demo.
+3. For an existing environment, set `DynamicsEnvironmentUrl` to its HTTPS root URL, for example `https://org.crm.dynamics.com`. Ensure the administrator running the installer can access the environment, import solutions, and assign security roles. If an environment security group is configured, the installer adds the selected users to it.
+
+Alternatively, run the installer interactively and choose to create a new Dataverse environment. Its defaults are Sandbox, English (`1033`), and `USD`; it saves the environment ID and URL to the selected configuration. With `-Config`, an existing environment and `DynamicsEnvironmentUrl` are required. User synchronization, solution installation, and role assignment are handled by the installer for either path.
+
+**Enable Business Applications in Work IQ**
+
+For the Dataverse environment, follow Microsoft's [Work IQ pilot setup (preview)](https://learn.microsoft.com/en-us/power-platform/admin/business-applications-work-iq/quickstart): confirm the demo users are included in the Microsoft 365 admin center's Business Applications in Work IQ availability setting, and turn on Work IQ under **Settings > Product > Features** in the Power Platform admin center. Review [Dataverse search indexing for AI and agent experiences](https://learn.microsoft.com/en-us/power-platform/admin/configure-relevance-search-organization#turn-on-search-indexing-to-support-dataverse-intelligence-work-iq-in-ai-and-agent-experiences) for Dataverse-backed AI experiences. These administrative settings are separate from installing the demo data and are not enabled by the starter pack.
+
+**Finance & Operations**
+
+F&O requires an existing environment; the installer does not create one. Set `DynamicsFOEnvironmentUrl` and confirm that the selected legal entity, customer group, shipping warehouse, and released product used as a setup template are available. See the F&O settings in [Configuration](#configuration) and the license requirements in [Licenses](#licenses). The Dataverse environment creation steps above apply to Sales & Customer Service.
+
 ## Generated files and logs
 For the default `Configuration/config.json`, these locations are unchanged and git-ignored:
 - `Content/content.custom.json`: the content with your tenant prefix and users applied. It also records the imported email message IDs.
