@@ -374,13 +374,17 @@ try {
     }
     Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
+    Invoke-InstallStep -Description 'Provisioning Users and Licenses' -Action {
+        Add-Users -Settings $provisioningSettings
+    }
+
     # M365 provisioning runs only when its content pack was selected.
     if ($installM365Content) {
         Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
         Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
 
         #Load services files
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/SharePointService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
@@ -399,7 +403,6 @@ try {
 
         $activeContentPath = $customContentPath
 
-        Add-Users -Settings $provisioningSettings
         if ($config.Settings.InstallDemoUsers) {
             Add-UserPhotos -Settings $provisioningSettings
         }
@@ -438,7 +441,6 @@ try {
 
     if ($installDynamicsContent -or $installDynamicsFOContent) {
         # Dynamics provisioning reuses the shared identities and app registration.
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1") -AccessTokenProvider $installerTokenProvider
 
         if ($config.Settings.InstallDynamicsContent -eq $true) {
@@ -477,12 +479,6 @@ try {
             }
             $dynamicsEnvironment = Show-DynamicsEnvironmentSecurityGroup -Config $config
         }
-        if (-not $installM365Content) {
-            Invoke-InstallStep -Description 'Provisioning Demo Users' -Action {
-                Add-Users -Settings $provisioningSettings -SkipLicenses
-            }
-        }
-
         if ($config.Settings.InstallDynamicsContent -eq $true) {
             Invoke-InstallStep -Description 'Synchronizing Users with Dataverse' -Action {
                 Initialize-PowerPlatformUsers -Config $config -Settings $provisioningSettings -Environment $dynamicsEnvironment

@@ -161,14 +161,17 @@ function Set-LicenseForUser {
         $UserId
     )
     try {
+        $availableSkus = (Invoke-RestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
         $currentLicenses = (Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId`?`$select=assignedLicenses" -Headers $headers -Method Get).assignedLicenses
+        $officeSkuIds = @($availableSkus | Where-Object { $settings.Licenses.Office -contains $_.skuPartNumber } | ForEach-Object { $_.skuId })
+        $copilotSkuIds = @($availableSkus | Where-Object { $settings.Licenses.Copilot -contains $_.skuPartNumber } | ForEach-Object { $_.skuId })
 
         $licensesToAssign = @()
         #Install the M365 Licenses
         foreach ($skuPartNumber in $settings.Licenses.Office) {
             $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
-            if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
-                Write-InstallLogAction -Message "User with ID: $UserId already has the $SkuPartNumber license, skipping."
+            if ($currentLicenses | Where-Object { $officeSkuIds -contains $_.skuId }) {
+                Write-InstallLogAction -Message "User with ID: $UserId already has an Office license, skipping."
                 break
             }
             if($sku.prepaidUnits.enabled - $sku.consumedUnits -gt 0) {
@@ -181,8 +184,8 @@ function Set-LicenseForUser {
         #Install Copilot license
         foreach ($skuPartNumber in $settings.Licenses.Copilot) {
             $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
-            if ($currentLicenses | Where-Object { $_.skuId -eq $sku.skuId }) {
-                Write-InstallLogAction -Message "User with ID: $UserId already has the $SkuPartNumber license, skipping."
+            if ($currentLicenses | Where-Object { $copilotSkuIds -contains $_.skuId }) {
+                Write-InstallLogAction -Message "User with ID: $UserId already has a Copilot license, skipping."
                 break
             }
             if($sku.prepaidUnits.enabled - $sku.consumedUnits -gt 0) {
@@ -210,10 +213,15 @@ function Set-LicenseForUser {
 
         if ($licensesToAssign.Count -gt 0) {
             $licenseBody = @{ addLicenses = $licensesToAssign; removeLicenses = @() } | ConvertTo-Json -Depth 5
-            Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody
+            $currentLicenses = (Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody).assignedLicenses
         }
         else {
-            Write-InstallLogAction -Message "No licenses needed to be assigned to this UserId: $UserId" -Level Error
+            Write-InstallLogAction -Message "No license changes for user with ID: $UserId"
+        }
+
+        if (-not ($currentLicenses | Where-Object { $officeSkuIds -contains $_.skuId }) -or
+            -not ($currentLicenses | Where-Object { $copilotSkuIds -contains $_.skuId })) {
+            throw "User with ID: $UserId must have both an Office license and a Microsoft 365 Copilot license before content can be provisioned."
         }
     }
     catch {

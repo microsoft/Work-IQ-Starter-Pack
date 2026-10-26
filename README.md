@@ -62,7 +62,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 | `ClientId` | Client ID of an existing app registration. If empty, the installer creates one and saves its ID here. Required by `CleanUp.ps1`. |
 | `InstallDemoUsers` | `true` creates the 5 built-in demo users. `false` maps the demo roles onto your own users (see [Users](#users)). |
 | `InstallM365Content` | Install the Microsoft 365 content pack. At least one of Microsoft 365, Dynamics 365 Sales & Customer Service, or Finance & Operations must be selected. |
-| `InstallDynamicsContent` | Install the Dynamics 365 Sales & Customer Service data, including the Caldova Field Engagement solution. When Microsoft 365 content is also selected, this adds the Sales Team and enables Dynamics license assignment. |
+| `InstallDynamicsContent` | Install the Dynamics 365 Sales & Customer Service data, including the Caldova Field Engagement solution, and enable Dynamics license assignment. When Microsoft 365 content is also selected, this adds the Sales Team. |
 | `InstallDynamicsFOContent` | Install the Dynamics 365 Finance & Operations data. Can be selected independently of the other packs. |
 | `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from config with `-UseConfig`. |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
@@ -102,12 +102,12 @@ The demo needs 5 users, one for each role. With `InstallDemoUsers: true` the ins
 | Finance 2 | Charlotte Waltson | VP Procurement |
 | Sales | David Power | Sales Director |
 
-New users get a temporary password and must change it at first sign-in. The passwords are written to `Logs/InstallLog.md`. Users that already exist are not recreated or edited (an empty usage location is filled in). License assignment runs only when Microsoft 365 content is selected.
+New users get a temporary password and must change it at first sign-in. The passwords are written to `Logs/InstallLog.md`. Users that already exist are not recreated or edited (an empty usage location is filled in). Missing Office and Copilot licenses are assigned for every content pack.
 
 To use your own users instead, answer "no" when the installer asks about demo users and enter 5 UPNs, or set `InstallDemoUsers: false` and `RealUserUpns` in the config file. Enter them in the order Marketing, Finance, Security/Governance, Finance 2, Sales. The installer looks them up in Entra ID and replaces the demo names and emails in the content with theirs. Demo user photos are only applied to demo users.
 
 ### Licenses
-For every content pack, each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps. Dynamics license assignment also runs when Sales & Customer Service content is selected alongside Microsoft 365. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
+For every content pack, each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps. Dynamics license assignment also runs when Sales & Customer Service content is selected. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
 
 - **Copilot:** `Microsoft_365_Copilot`, `M365_Copilot`, `M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS`
 - **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`
@@ -115,7 +115,7 @@ For every content pack, each user needs a Microsoft 365 Copilot license and a Mi
 
 For a new set of 5 demo users, you need 5 available seats each of Copilot and Office. For existing users, the prerequisite check counts only the licenses they are missing.
 
-For a Dynamics-only installation (`InstallM365Content: false`), the installer checks Office and Copilot license availability but does not assign licenses. Ensure the users have Office, Copilot, and the appropriate Dynamics licenses assigned separately.
+Office and Copilot licenses are assigned through the same process for all content packs, including Dynamics-only installations (`InstallM365Content: false`). Existing supported licenses are retained. The installer verifies that each user has both licenses and stops before provisioning content if user creation or licensing fails. Ensure F&O users have the appropriate Dynamics licenses assigned separately.
 
 ### Pre-requisite checks
 Before provisioning users, environments, or content, `InstallWorkIQStarterPack.ps1` checks the following for all selected content packs, including Dynamics-only installations.
@@ -191,7 +191,7 @@ To change the scenario or the names used, edit the prompt before asking Claude t
 ## Dynamics 365 content
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
 
-The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 pack. At least one of the three packs must be selected. It prompts for the relevant Dataverse and F&O environment URLs and can create a new Dataverse environment, saving its ID and URL to config.json. Use `./InstallWorkIQStarterPack.ps1 -UseConfig` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). Dynamics-only installations run the same prerequisite checks as Microsoft 365 installations, but license assignment remains manual (see [Licenses](#licenses)).
+The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 pack. At least one of the three packs must be selected. It prompts for the relevant Dataverse and F&O environment URLs and can create a new Dataverse environment, saving its ID and URL to config.json. Use `./InstallWorkIQStarterPack.ps1 -UseConfig` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). Dynamics-only installations run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations (see [Licenses](#licenses)).
 
 Depending on the selected packs, it will:
 - Create or look up the demo users and sync them into Dataverse.
