@@ -203,14 +203,16 @@ To change the scenario or the names used, edit the prompt before asking Claude t
 ## Dynamics 365 content
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
 
-The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 pack. At least one of the three packs must be selected. It prompts for the relevant Dataverse and F&O environment URLs and can create a new Dataverse environment, saving its ID and URL to config.json. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). Dynamics-only installations run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations (see [Licenses](#licenses)).
+The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 content pack. At least one of the three packs must be selected. When run interactively, it prompts for the relevant environment URLs and can create a new Dataverse environment, saving its ID and URL to the selected configuration file. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). See [Environment preparation](#environment-preparation) for the existing-environment requirements and interactive creation options.
+
+Dynamics-only labs still require Microsoft 365 and Microsoft 365 Copilot licenses, plus Copilot credits or pay-as-you-go billing. They run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations; see [Licenses](#licenses) and [Pre-requisite checks](#pre-requisite-checks) for the shared requirements and the separate Dynamics license requirements.
 
 Depending on the selected packs, it will:
-- Create or look up the demo users and sync them into Dataverse.
-- Install the Caldova Field Engagement managed solution from [Content/DataverseSolutions](./Content/DataverseSolutions).
+- Create or resolve the selected users for all packs; synchronize them into Dataverse when Sales & Customer Service is selected.
+- Install the Caldova Field Engagement managed solution from [Content/DataverseSolutions](./Content/DataverseSolutions) when Sales & Customer Service is selected.
 - Create the Sales & Customer Service data in [Content/contentDynamics.json](./Content/contentDynamics.json): leads, accounts, contacts, price lists, products, opportunities, quotes, orders, invoices, cases, emails, and field engagements.
 - Optionally create the F&O customers, products, and sales orders.
-- Optionally deploy SharePoint documents connected to the Dynamics records.
+- Optionally deploy SharePoint documents connected to the Sales & Customer Service records.
 
 All installation operations are recorded in the installation log (see [Generated files and logs](#generated-files-and-logs)).
 
