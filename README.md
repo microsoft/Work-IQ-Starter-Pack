@@ -191,14 +191,30 @@ The sample documents live under [Content/Documents](./Content/Documents), in the
 ## Generating new content
 [Prompts/DocumentGenerationPrompt.md](./Content/Documents/Prompts/DocumentGenerationPrompt.md) is the prompt used to author the demo content: documents, meeting transcripts, email threads, and Teams chats. It fixes the product, supplier, and raw-material names so everything stays consistent across the demos.
 
+You can use this prompt with GitHub Copilot, Microsoft 365 Copilot, Claude, Codex, or another assistant.
+
 To generate new content:
-1. Open this repository in Claude.
-2. Ask it to create documents based on the `Content/Documents/Prompts/DocumentGenerationPrompt.md` prompt, for example: "Create documents based on the DocumentGenerationPrompt.md prompt."
-3. Review the generated files under `Content/Documents/<DemoName>/`.
-4. Make sure any new items are registered in [Content/content.json](./Content/content.json) so the installer uploads them.
+
+1. Give the assistant the generation prompt, [Configuration/settings.json](./Configuration/settings.json) for the demo users, and [Content/content.json](./Content/content.json) for the existing content structure. With repository access, reference these files in your request. In a chat without file access, paste the prompt and the relevant JSON sections instead.
+2. Ask it to generate the selected demo under `Content/Documents/<DemoName>/` and prepare the matching entries in `Content/content.json`, keeping the other demos unchanged. An example request is provided below.
+3. If the assistant only returns content in chat, save or export the files into the target demo folder and apply the proposed JSON changes yourself. Use actual Word (`.docx`) and PDF files for documents, Word (`.docx`) files for meeting transcripts, and Markdown for email threads and chats, as required by the prompt.
+4. Review the generated files and transcript structure against the prompt. Check that `Content/content.json` is valid JSON, references the actual files using repository-relative paths, and uses the configured demo users and consistent dates in the past.
 5. Run the installer again (see [Instructions](#instructions)).
 
-To change the scenario or the names used, edit the prompt before asking Claude to generate the content.
+Example request (replace `<DemoName>` with the target demo folder name):
+
+> Use the instructions in `Content/Documents/Prompts/DocumentGenerationPrompt.md`, the demo users in `Configuration/settings.json`, and the structure in `Content/content.json` to generate content for `<DemoName>`. Create the files in the required formats under `Content/Documents/<DemoName>/` and update the corresponding `Content/content.json` entries. Keep other demos unchanged. If you cannot edit the repository, return the content and proposed JSON entries for me to save and apply.
+
+Choose the workflow for your assistant:
+
+| Assistant | How to use it |
+|---|---|
+| GitHub Copilot | Open the repository in your IDE and use [agent mode](https://docs.github.com/en/copilot/how-tos/copilot-in-your-ide/use-copilot-agents/use-agent-mode). Reference the three files above and ask it to create the demo files and update the matching JSON entries. |
+| Microsoft 365 Copilot | Use [Copilot Chat](https://support.microsoft.com/en-us/microsoft-365-copilot/create-content-using-microsoft-365-copilot-chat), paste the prompt and relevant JSON sections, and ask for the content and proposed entries. Save or export the files and apply the JSON changes in the repository as described above. |
+| Claude | Start [Claude Code](https://code.claude.com/docs/en/quickstart) from the repository directory and reference the three files above in your request. |
+| Codex | Start [Codex](https://learn.chatgpt.com/docs/projects) from the repository directory with `codex`, or open the repository in the Codex IDE extension. Reference the three files above in your request. |
+
+To change the scenario or the names used, edit the prompt before generating the content. When regenerating an existing demo, the prompt instructs the assistant to remove the existing files in that demo folder first.
 
 ## Dynamics 365 content
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
