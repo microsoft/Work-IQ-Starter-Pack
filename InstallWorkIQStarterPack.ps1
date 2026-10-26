@@ -1,7 +1,14 @@
 param(
-    # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
-    [switch]$UseConfig
+    # Read install choices from the selected file; browser sign-in is still required.
+    [Alias('Config')]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConfigPath = (Join-Path $PSScriptRoot 'Configuration/config.json')
 )
+
+$UseConfig = $PSBoundParameters.ContainsKey('ConfigPath')
+. (Join-Path $PSScriptRoot 'Installation/Services/ConfigurationService.ps1')
+$configurationPaths = Get-WorkIQConfigurationPaths -ConfigPath $ConfigPath -RepositoryRoot $PSScriptRoot
+$configPath = $configurationPaths.ConfigPath
 
 try {
     if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
@@ -43,8 +50,7 @@ try {
     }
     Write-Host ""
     # Load the configuration file from file system
-    $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
-    $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+    $config = $configurationPaths.Config
 
     # Load the installation settings file from file system
     $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
@@ -54,9 +60,10 @@ try {
     # InstallDemoUsers is false, the real users' resolved identities and the persona-swapped
     # content live in these separate "custom" files instead, so the demo definitions are never
     # overwritten.
-    $customUsersPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/users.custom.json"
+    $customUsersPath = $configurationPaths.CustomUsersPath
     $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.json"
-    $customContentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
+    $customContentPath = $configurationPaths.CustomContentPath
+    New-Item -Path (Split-Path $customContentPath -Parent) -ItemType Directory -Force | Out-Null
 
     #Load App Registration Service file
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegService.ps1")
@@ -64,12 +71,13 @@ try {
     # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/InstallLogService.ps1")
-    Initialize-InstallLog
+    Initialize-InstallLog -LogDirectory $configurationPaths.LogDirectory
+    Write-InstallLogInput -Prompt 'Configuration file' -Response $configPath
 
     $currentTenant = $config.Settings.TenantPrefix
     if ($UseConfig) {
         if ([string]::IsNullOrWhiteSpace($currentTenant)) {
-            throw "-UseConfig requires Settings.TenantPrefix in config.json."
+            throw "-Config requires Settings.TenantPrefix in '$configPath'."
         }
         $tenant = $currentTenant
     }
@@ -87,7 +95,7 @@ try {
     }
 
     $config.Settings.TenantPrefix = ($tenant -replace '\.onmicrosoft\.com$', '')
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
     Write-InstallLogInput -Prompt "Tenant prefix" -Response $config.Settings.TenantPrefix
 
     foreach ($user in $settings.Users) {
@@ -97,7 +105,7 @@ try {
     # slots at real, existing users instead. The UPNs are collected here.
     $provisionDemoUsers = if ($UseConfig) { [bool]$config.Settings.InstallDemoUsers } else { Read-YesNo "Do you want to provision the built-in demo users?" -Default $true }
     $config.Settings.InstallDemoUsers = $provisionDemoUsers
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
     Write-InstallLogInput -Prompt "Provision the built-in demo users?" -Response $(if ($provisionDemoUsers) { "Yes" } else { "No" })
 
     # Persisted so the email import step can be gated on it later. Demo users always get emails.
@@ -126,7 +134,7 @@ try {
 
         $configUpns = @($config.Settings.RealUserUpns)
         if ($UseConfig -and ($configUpns.Count -ne $demoRoles.Count -or @($configUpns | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0)) {
-            throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
+            throw "-Config with InstallDemoUsers=false requires Settings.RealUserUpns in '$configPath' to list $($demoRoles.Count) UPNs."
         }
 
         $savedContentUpns = @()
@@ -165,7 +173,7 @@ try {
 
     # Add-Member -Force so configs that predate this setting still work.
     $config.Settings | Add-Member -NotePropertyName ProvisionUserEmails -NotePropertyValue $provisionEmails -Force
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
 
     $installM365Content = if ($UseConfig) { [bool]$config.Settings.InstallM365Content } else { Read-YesNo "Do you want to install the M365 WorkIQ Starter Pack Content?" -Default $true }
     Write-InstallLogInput -Prompt "Install the M365 WorkIQ Starter Pack Content?" -Response $(if ($installM365Content) { "Yes" } else { "No" })
@@ -230,7 +238,7 @@ try {
     }
     $config.Settings.InstallDynamicsContent = $installDynamicsContent
     $config.Settings | Add-Member -NotePropertyName InstallDynamicsFOContent -NotePropertyValue $installDynamicsFOContent -Force
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
 
     # Scope app registration creation, updates, and consent to the selected APIs.
     $requiredResourceIds = @(
@@ -245,7 +253,7 @@ try {
         $requiredResourceIds += '00000015-0000-0000-c000-000000000000' # Dynamics ERP
     }
     # Check if the user needs the app registration created
-    # With -UseConfig, a ClientId in config.json means use that existing app registration; otherwise one is created.
+    # With -Config, a ClientId in the selected file means use that app registration; otherwise one is created.
     $hasAppRegistration = if ($UseConfig) { -not [string]::IsNullOrWhiteSpace($config.Settings.ClientId) } else { Read-YesNo "Do you have an existing Application Registration? Please review the README.md file for the level of permissions required." -Default $false }
     Write-InstallLogInput -Prompt "Do you have an existing Application Registration?" -Response $(if ($hasAppRegistration) { "Yes" } else { "No" })
 
@@ -271,7 +279,7 @@ try {
         Write-InstallLogInput -Prompt "Application registration client ID" -Response $clientId
 
         $config.Settings.ClientId = $clientId
-        $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+        $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
 
         Write-InstallLogAction -Message "Client ID saved to $configPath" -Level Success
 
@@ -290,7 +298,7 @@ try {
         Set-AppRegistrationConfig -ClientId $registration.ClientId -TenantPrefix $registration.TenantPrefix -ConfigPath $configPath | Out-Null
 
         # Reload configuration in case Set-AppRegistrationConfig updated config.json.
-        $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+        $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
     }
 
     # One browser sign-in for the registered app; reuse its refresh token for APIs.
@@ -329,7 +337,7 @@ try {
     # If the installer opted out of the demo users, look up each supplied UPN's real profile in
     # Entra ID. Resolved users go into Configuration/users.custom.json and the persona-swapped content into
     # Content/content.custom.json - settings.json's
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1") -ImportedPostsPath $configurationPaths.ImportedPostsPath
     if ($null -eq $realUserUpns) {
         Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -TenantPrefix $config.Settings.TenantPrefix
     }
@@ -339,7 +347,7 @@ try {
         $demoUsers = $settings.Users | ForEach-Object { $_.PSObject.Copy() }
         $customUsersSettings = [PSCustomObject]@{ Users = ($settings.Users | ForEach-Object { $_.PSObject.Copy() }) }
         $customUsersSettings = Resolve-RealUsers -Settings $customUsersSettings -RealUserUpns $realUserUpns
-        $customUsersSettings.Users | ConvertTo-Json -Depth 10 | Set-Content -Path $customUsersPath
+        $customUsersSettings.Users | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $customUsersPath
 
         Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -TenantPrefix $config.Settings.TenantPrefix -DemoUsers $demoUsers -RealUsers $customUsersSettings.Users -RealUserUpns $realUserUpns
     }
@@ -358,7 +366,7 @@ try {
     $provisioningSettings = $settings
     if (-not $config.Settings.InstallDemoUsers) {
         $provisioningSettings = $settings.PSObject.Copy()
-        $provisioningSettings.Users = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
+        $provisioningSettings.Users = Get-Content -LiteralPath $customUsersPath -Raw | ConvertFrom-Json
     }
 
     $preRequisitesMet = Test-License-PreRequisites -Settings $provisioningSettings
@@ -382,19 +390,19 @@ try {
     # M365 provisioning runs only when its content pack was selected.
     if ($installM365Content) {
         Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
-        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
+        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -CertificateDirectory $configurationPaths.CertificateDirectory
 
         #Load services files
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/SharePointService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1") -ImportedPostsPath $configurationPaths.ImportedPostsPath
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/MeetingService.ps1")
 
 
         # Teams chat history import uses Microsoft Graph's message migration API - need a seprate connection specifically for migration using a cert.
-        $migrationCertificatePath = Join-Path -Path $PSScriptRoot -ChildPath "Installation/.certs/teams-chat-migration.pfx"
-        if (-not (Test-Path $migrationCertificatePath)) {
+        $migrationCertificatePath = $configurationPaths.CertificatePath
+        if (-not (Test-Path -LiteralPath $migrationCertificatePath)) {
             throw "Teams chat migration certificate not found at $migrationCertificatePath. Run InstallWorkIQStarterPack.ps1 again once admin consent has been granted."
         }
         $migrationToken = Get-TeamsChatMigrationAccessToken -ClientId $config.Settings.ClientId `
@@ -409,7 +417,7 @@ try {
 
         # Parse the content file once and provision it one site at a time: each site gets its team,
         # documents, lists/libraries, chats and emails before moving on to the next.
-        $contentConfig = Get-Content -Path $activeContentPath -Raw | ConvertFrom-Json
+        $contentConfig = Get-Content -LiteralPath $activeContentPath -Raw | ConvertFrom-Json
         $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
 
         # The same certificate token carries Mail.ReadWrite, so it also serves the inbox import.
@@ -474,7 +482,7 @@ try {
                 $environmentUrl = $newEnvironmentUri.GetLeftPart([UriPartial]::Authority)
                 $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentId -NotePropertyValue $newEnvironment.environmentId -Force
                 $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentUrl -NotePropertyValue $environmentUrl -Force
-                $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+                $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
                 Write-InstallLogAction -Message "Using new Dataverse environment '$($newEnvironment.environmentId)' at $environmentUrl. Configuration saved." -Level Success
             }
             $dynamicsEnvironment = Show-DynamicsEnvironmentSecurityGroup -Config $config
@@ -537,7 +545,7 @@ try {
             }
             $deployDynamicsDocuments = if ($UseConfig) { [bool]$config.Settings.DeployDynamicsDocuments } else { Read-YesNo 'Do you want to deploy the SharePoint Documents connected to D365 Sales & CS?' -Default $false }
             $config.Settings | Add-Member -NotePropertyName DeployDynamicsDocuments -NotePropertyValue $deployDynamicsDocuments -Force
-            $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+            $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
             Write-InstallLogInput -Prompt 'Deploy SharePoint Documents connected to D365 Sales & CS?' -Response $(if ($deployDynamicsDocuments) { 'Yes' } else { 'No' })
             if ($deployDynamicsDocuments) {
                 . (Join-Path $PSScriptRoot 'Installation/Services/DynamicsSharePointService.ps1') -AccessTokenProvider $installerTokenProvider
@@ -579,7 +587,7 @@ finally {
 
     Save-InstallLog -Success ($installSucceeded -eq $true)
 
-    if (Test-Path $script:installLogPath) {
+    if (Test-Path -LiteralPath $script:installLogPath) {
         # file:// URI makes this a clickable link in terminals that support it (e.g. VS Code's).
         $logLink = "file://$($script:installLogPath -replace '\\', '/')"
         Write-Host ""

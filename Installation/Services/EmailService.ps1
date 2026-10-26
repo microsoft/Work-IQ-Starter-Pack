@@ -263,7 +263,7 @@ function Import-UserEmails {
             # Save the IDs even after a partial failure so a re-run / cleanup can still delete what was delivered.
             if ($null -ne $recorded) {
                 $thread | Add-Member -NotePropertyName Messages -NotePropertyValue @($recorded) -Force
-                $ContentConfig | ConvertTo-Json -Depth 20 | Set-Content -Path $ContentPath
+                $ContentConfig | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $ContentPath
             }
         }
     }
@@ -277,9 +277,9 @@ function Remove-ImportedEmails {
         [hashtable]$MailHeaders
     )
 
-    if ($ContentPath -and (Test-Path $ContentPath)) {
+    if ($ContentPath -and (Test-Path -LiteralPath $ContentPath)) {
         Write-InstallLogAction -Message "Removing imported emails by recorded message ID..."
-        $contentConfig = Get-Content -Path $ContentPath -Raw | ConvertFrom-Json
+        $contentConfig = Get-Content -LiteralPath $ContentPath -Raw | ConvertFrom-Json
         $removed = 0
         foreach ($site in $contentConfig.Sites) {
             foreach ($thread in @($site.Content.EmailThreads)) {

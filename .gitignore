@@ -163,3 +163,6 @@ Configuration/users.custom.json
 
 # Installer record of the meeting posts imported into each channel.
 Installation/.state/
+
+# Files generated beside alternative configuration files
+**/Generated/

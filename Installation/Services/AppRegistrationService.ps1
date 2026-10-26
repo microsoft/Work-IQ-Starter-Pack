@@ -53,10 +53,10 @@ function Set-AppRegistrationConfig {
     )
 
     try {
-        $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
+        $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
         $config.Settings.ClientId = $ClientId
         $config.Settings.TenantPrefix = $TenantPrefix
-        $config | ConvertTo-Json -Depth 20 | Set-Content -Path $ConfigPath
+        $config | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $ConfigPath
         Write-InstallLogAction -Message "Updated config.json with ClientId: $ClientId and TenantPrefix: $TenantPrefix"
         return $true
     }
@@ -242,12 +242,12 @@ function Update-AppRegistrationPermissions {
             # Opening the browser is best-effort, the URL is printed above.
         }
         if ($UseConfig) {
-            Write-Host "Running with -UseConfig: continuing without waiting. Grant admin consent at the URL above if it has not been granted yet." -ForegroundColor Yellow
+            Write-Host "Running with -Config: continuing without waiting. Grant admin consent at the URL above if it has not been granted yet." -ForegroundColor Yellow
         }
         else {
             Read-Host "Press Enter once admin consent has been granted" | Out-Null
         }
-          # Always configure these resources, including when -UseConfig skips
+          # Always configure these resources, including when -Config skips
           # the first consent wait. Previously that path never added them.
           Add-DynamicsAppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
 
@@ -460,11 +460,13 @@ function Remove-AppRegistration {
 }
 
 function Remove-TeamsChatMigrationCertificate {
-    try {
-        $certDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Installation/.certs"))
+    param([string]$CertificateDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Installation/.certs')))
 
-        if (Test-Path $certDir) {
-            Remove-Item -Path $certDir -Recurse -Force
+    try {
+        $certDir = $CertificateDirectory
+
+        if (Test-Path -LiteralPath $certDir) {
+            Remove-Item -LiteralPath $certDir -Recurse -Force
             Write-InstallLogAction "Removed local Teams chat migration certificate files at $certDir."
         }
         else {

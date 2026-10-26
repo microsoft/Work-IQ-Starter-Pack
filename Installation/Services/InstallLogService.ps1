@@ -30,13 +30,14 @@ function Initialize-InstallLog {
     param(
         [string]$Title = "WorkIQ Starter Pack Installation Log",
         [string]$FileName = "InstallLog.md",
-        [bool]$IncludePasswords = $true
+        [bool]$IncludePasswords = $true,
+        [string]$LogDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Logs'))
     )
 
     $script:installLogTitle = $Title
     $script:installLogIncludePasswords = $IncludePasswords
     $script:installLogStartTime = Get-Date
-    $script:installLogPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Logs/$FileName"))
+    $script:installLogPath = [IO.Path]::GetFullPath((Join-Path $LogDirectory $FileName))
     $script:installLogInputs = [System.Collections.Generic.List[object]]::new()
     $script:installLogActions = [System.Collections.Generic.List[object]]::new()
     $script:installLogPasswords = [System.Collections.Generic.List[object]]::new()
@@ -99,7 +100,7 @@ function Save-InstallLog {
     }
 
     $logDir = Split-Path -Path $script:installLogPath -Parent
-    if (-not (Test-Path $logDir)) {
+    if (-not (Test-Path -LiteralPath $logDir)) {
         New-Item -Path $logDir -ItemType Directory -Force | Out-Null
     }
 
@@ -159,5 +160,5 @@ function Save-InstallLog {
         $lines.Add("")
     }
 
-    Set-Content -Path $script:installLogPath -Value ($lines -join "`n")
+    Set-Content -LiteralPath $script:installLogPath -Value ($lines -join "`n")
 }

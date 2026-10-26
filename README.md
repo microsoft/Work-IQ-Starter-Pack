@@ -39,7 +39,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 ## Configuration
 
 ### Config file
-[Configuration/config.json](./Configuration/config.json) contains the user-editable settings. The installer prompts for most of them and writes the answers back to this file.
+[Configuration/config.json](./Configuration/config.json) contains the default user-editable settings. The installer prompts for most of them and writes the answers back to this file. Pass `-Config <path>` to read the install choices from another JSON file and save updates to that file instead. Relative paths are resolved from your current working directory; absolute paths and files outside the repository are also supported.
 
 ```json
 {
@@ -64,7 +64,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 | `InstallM365Content` | Install the Microsoft 365 content pack. At least one of Microsoft 365, Dynamics 365 Sales & Customer Service, or Finance & Operations must be selected. |
 | `InstallDynamicsContent` | Install the Dynamics 365 Sales & Customer Service data, including the Caldova Field Engagement solution, and enable Dynamics license assignment. When Microsoft 365 content is also selected, this adds the Sales Team. |
 | `InstallDynamicsFOContent` | Install the Dynamics 365 Finance & Operations data. Can be selected independently of the other packs. |
-| `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from config with `-UseConfig`. |
+| `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from the selected file with `-Config`. |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
 | `AppRegistrationName` | Optional, unattended mode only. Name for a new app registration (default `WorkIQStarterPack`). |
 | `RealUserUpns` | Unattended mode with `InstallDemoUsers: false` only. A list of 5 UPNs (see [Users](#users)). |
@@ -85,11 +85,23 @@ The main installer and cleanup use these additional settings for Dynamics operat
 The Microsoft 365 content pack installs the Market Research, Finance, and Procurement teams from `content.json`. When both Microsoft 365 and Sales & Customer Service content are selected, the installer also adds the Sales Team (the site flagged `DynamicsContent`). Dynamics 365 data is provisioned directly by the same installer, even when Microsoft 365 content is not selected. [Configuration/settings.json](./Configuration/settings.json) holds the static installer data: the app registration permissions, the supported license SKUs, and the demo users.
 
 ### Unattended install
-Run `./InstallWorkIQStarterPack.ps1 -UseConfig` to skip every install question and use the values in config.json instead. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
+Run `./InstallWorkIQStarterPack.ps1 -Config ./Configuration/config.json` to skip every install question and use the values in that file instead. `-Config` replaces the previous `-UseConfig` switch; `-ConfigPath` is also accepted. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
 
 The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, `InstallDynamicsFOContent`, `DeployDynamicsDocuments`, `ProvisionUserEmails`, and `ClientId` (set = use that existing app registration; empty = create one, named by `AppRegistrationName`). If `InstallDemoUsers` is false, `RealUserUpns` must contain exactly 5 UPNs.
 
-When Sales & Customer Service is selected, configure `DynamicsEnvironmentUrl` for an existing Dataverse environment; `-UseConfig` does not create a new environment. When F&O is selected, configure `DynamicsFOEnvironmentUrl` and the applicable F&O settings above. The SharePoint document deployment choice is read from `DeployDynamicsDocuments` without an additional question.
+When Sales & Customer Service is selected, configure `DynamicsEnvironmentUrl` for an existing Dataverse environment; `-Config` does not create a new environment. When F&O is selected, configure `DynamicsFOEnvironmentUrl` and the applicable F&O settings above. The SharePoint document deployment choice is read from `DeployDynamicsDocuments` without an additional question.
+
+### Multiple configurations
+Keep each tenant's configuration in a separate directory, for example `tenants/tenant-a/config.json` and `tenants/tenant-b/config.json`:
+
+```powershell
+./InstallWorkIQStarterPack.ps1 -Config ./tenants/tenant-a/config.json
+./CleanUp.ps1 -Config ./tenants/tenant-a/config.json
+```
+
+For an alternative configuration, generated files are stored in a `Generated/` directory beside the selected JSON file (see [Generated files and logs](#generated-files-and-logs)). Reusing that configuration reuses its generated files. Alternative configurations in the same directory share `Generated/`; use separate directories for separate tenants. The cleanup reads the same configuration and generated files, and its choices remain interactive.
+
+Selecting the repository's `Configuration/config.json`, either explicitly or by running without `-Config`, keeps the existing generated-file locations. Existing installations require no file migration. [Configuration/settings.json](./Configuration/settings.json), app permissions, original content, documents, and scripts are always read from the repository.
 
 ### Users
 The demo needs 5 users, one for each role. With `InstallDemoUsers: true` the installer creates these demo users:
@@ -102,7 +114,7 @@ The demo needs 5 users, one for each role. With `InstallDemoUsers: true` the ins
 | Finance 2 | Charlotte Waltson | VP Procurement |
 | Sales | David Power | Sales Director |
 
-New users get a temporary password and must change it at first sign-in. The passwords are written to `Logs/InstallLog.md`. Users that already exist are not recreated or edited (an empty usage location is filled in). Missing Office and Copilot licenses are assigned for every content pack.
+New users get a temporary password and must change it at first sign-in. The passwords are written to the installation log (see [Generated files and logs](#generated-files-and-logs)). Users that already exist are not recreated or edited (an empty usage location is filled in). Missing Office and Copilot licenses are assigned for every content pack.
 
 To use your own users instead, answer "no" when the installer asks about demo users and enter 5 UPNs, or set `InstallDemoUsers: false` and `RealUserUpns` in the config file. Enter them in the order Marketing, Finance, Security/Governance, Finance 2, Sales. The installer looks them up in Entra ID and replaces the demo names and emails in the content with theirs. Demo user photos are only applied to demo users.
 
@@ -153,14 +165,14 @@ The app registration needs the permissions below. They are defined in [Configura
 - Power Platform API: EnvironmentManagement.Environments.Read, EnvironmentManagement.Groups.ReadWrite, EnvironmentManagement.Settings.ReadWrite
 
 #### Certificate
-The two application permissions are used with certificate authentication. The installer generates a self-signed certificate (valid for 2 years) in `Installation/.certs/` and registers the public key on the app registration. The `.pfx` contains a private key. The folder is git-ignored; do not commit or share it.
+The two application permissions are used with certificate authentication. The installer generates a self-signed certificate (valid for 2 years) in `Installation/.certs/` for the default configuration, or `Generated/.certs/` beside an alternative configuration, and registers the public key on the app registration. The `.pfx` contains a private key. These generated folders are git-ignored within this repository; do not commit or share them.
 
 ## Instructions
 1. Run `./InstallWorkIQStarterPack.ps1`.
 2. Answer the prompts: tenant prefix, demo or real users, content packs (Microsoft 365, Dynamics 365 Sales & Customer Service, and/or Finance & Operations), environment URLs where applicable, and the app registration. For Sales & Customer Service, you can choose to create a new Dataverse environment instead. If you do not already have an app registration with the required permissions above, answer "no" and the installer creates one.
 3. Sign in when asked and approve admin consent. Sign-in opens a browser; it happens for several of the steps.
 4. Wait for the installer to finish all selected Microsoft 365 and Dynamics operations. Answer any applicable environment creation, F&O setup, and optional Dynamics SharePoint document prompts. Some steps wait for Microsoft 365 to catch up (team and site provisioning, mailbox creation for photos and email, and consent and certificate propagation, which can take a few minutes).
-5. Review `Logs/InstallLog.md`.
+5. Review the installation log at the path printed when the installer finishes.
 
 The installer can be run again. Existing Teams are kept, but their owners and members are reset. Chat history is skipped if the channel was already imported. Emails are deleted and re-delivered.
 
@@ -191,7 +203,7 @@ To change the scenario or the names used, edit the prompt before asking Claude t
 ## Dynamics 365 content
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
 
-The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 pack. At least one of the three packs must be selected. It prompts for the relevant Dataverse and F&O environment URLs and can create a new Dataverse environment, saving its ID and URL to config.json. Use `./InstallWorkIQStarterPack.ps1 -UseConfig` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). Dynamics-only installations run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations (see [Licenses](#licenses)).
+The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 pack. At least one of the three packs must be selected. It prompts for the relevant Dataverse and F&O environment URLs and can create a new Dataverse environment, saving its ID and URL to config.json. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). Dynamics-only installations run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations (see [Licenses](#licenses)).
 
 Depending on the selected packs, it will:
 - Create or look up the demo users and sync them into Dataverse.
@@ -200,19 +212,35 @@ Depending on the selected packs, it will:
 - Optionally create the F&O customers, products, and sales orders.
 - Optionally deploy SharePoint documents connected to the Dynamics records.
 
-All installation operations are recorded in `Logs/InstallLog.md`.
+All installation operations are recorded in the installation log (see [Generated files and logs](#generated-files-and-logs)).
 
 Use `./CleanUp.ps1` to remove Dynamics data and optionally Microsoft 365 content in the same run. It asks which parts to remove; see [Cleanup](#cleanup).
 
 ## Generated files and logs
-These are git-ignored:
+For the default `Configuration/config.json`, these locations are unchanged and git-ignored:
 - `Content/content.custom.json`: the content with your tenant prefix and users applied. It also records the imported email message IDs.
 - `Configuration/users.custom.json`: your resolved users (real users only).
 - `Installation/.certs/`: the certificate.
+- `Installation/.state/imported-posts.json`: the record of meeting posts already imported into each channel.
 - `Logs/InstallLog.md` and `Logs/CleanUpLog.md`: a run summary, your inputs, and the actions taken for all selected Microsoft 365 and Dynamics operations. The install log also lists the demo user passwords in plain text, so store or delete it securely.
 
+Alternative configurations use the following directory beside the selected JSON file:
+
+```text
+Generated/
+├── content.custom.json
+├── users.custom.json
+├── .state/imported-posts.json
+├── .certs/
+└── Logs/
+    ├── InstallLog.md
+    └── CleanUpLog.md
+```
+
+`Generated/` directories within this repository are git-ignored. Files generated outside this repository need the same care: certificates contain private keys and installation logs can contain temporary passwords. The cleanup uses only the generated paths associated with the selected configuration and retains its existing choices for removing files, logs, and the app registration's certificate.
+
 ## Cleanup
-Run `./CleanUp.ps1` to selectively remove what the installer created, including Dynamics 365 data. It is always interactive and requires PowerShell 7.4 or later and an existing app registration with the required permissions and admin consent already granted. It prompts for the tenant prefix and client ID, using the saved configuration values as defaults. Use `InstallWorkIQStarterPack.ps1` to create or configure the app registration before cleanup if needed.
+Run `./CleanUp.ps1` to selectively remove what the installer created, including Dynamics 365 data. Pass `-Config <path>` to use an alternative configuration and its generated files. It is always interactive and requires PowerShell 7.4 or later and an existing app registration with the required permissions and admin consent already granted. It prompts for the tenant prefix and client ID, using the selected configuration values as defaults. Use `InstallWorkIQStarterPack.ps1` to create or configure the app registration before cleanup if needed.
 
 It asks which operations to perform:
 - **Microsoft 365 cleanup:** remove imported emails, delete the Teams in `content.json` with their M365 groups and sites and purge them from the recycle bins, delete and purge the built-in demo users, and delete the generated custom files. This includes the Sales Team site. Real users are not deleted, and the Entra security groups described in [Overview](#overview) are retained.
@@ -223,7 +251,7 @@ It asks which operations to perform:
 
 Dynamics cleanup prompts for the relevant environment URLs, using saved values as defaults. F&O cleanup also requires `DynamicsFOLegalEntityId` in the configuration. Selecting Dynamics cleanup does not automatically select Microsoft 365 cleanup or delete users and Teams.
 
-All selected cleanup operations are recorded in `Logs/CleanUpLog.md`, unless you choose to delete the logs.
+All selected cleanup operations are recorded in the cleanup log (see [Generated files and logs](#generated-files-and-logs)), unless you choose to delete the logs.
 
 If a site cannot be fully removed (it stays active, is not confirmed purged from the recycle bin, or an error occurs), the cleanup lists those sites at the end with the reason. Remove them manually in the SharePoint admin center, from both Active sites and Deleted sites, and purge any matching deleted group in the Microsoft 365 admin center.
 
