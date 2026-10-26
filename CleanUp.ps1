@@ -110,7 +110,7 @@ try {
         Write-InstallLogInput -Prompt 'Application registration client ID' -Response $clientId
     }
     else {
-        throw 'Cleanup requires an existing app registration with all required permissions and admin consent already granted. Run InstallWorkIQDynamicsPack.ps1 to create or configure one first.'
+        throw 'Cleanup requires an existing app registration with all required permissions and admin consent already granted. Run InstallWorkIQStarterPack.ps1 to create or configure one first.'
     }
 
     $removeMicrosoft365 = Read-MiniCleanupChoice 'Do you want to remove the demo Teams (and their groups and sites), demo users, imported emails, and generated files?' -Default $true
