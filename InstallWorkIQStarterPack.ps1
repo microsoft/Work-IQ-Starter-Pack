@@ -390,7 +390,7 @@ try {
     # M365 provisioning runs only when its content pack was selected.
     if ($installM365Content) {
         Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
-        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -CertificateDirectory $configurationPaths.CertificateDirectory
+        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -CertificateDirectory $configurationPaths.CertificateDirectory
 
         #Load services files
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
