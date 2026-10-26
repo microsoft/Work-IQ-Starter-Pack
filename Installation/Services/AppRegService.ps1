@@ -215,6 +215,11 @@ function Invoke-AppRegProvisioning {
         else { Write-Host 'All required API permissions are already configured. No app registration update is needed.' }
     }
     else {
+        $escapedName = [Uri]::EscapeDataString($AppName.Replace("'", "''"))
+        $existing = @((Invoke-Graph -Path "applications?`$filter=displayName eq '$escapedName'&`$select=id,appId,displayName").value)
+        if ($existing.Count) {
+            throw "An app registration named '$AppName' already exists (client ID: $($existing[0].appId)). Choose a different name, or re-run and answer yes to using an existing application registration."
+        }
         Write-Host 'Creating the app registration with the required API permissions...'
         $app = Invoke-RestMethod -Method Post -Uri 'https://graph.microsoft.com/v1.0/applications' `
             -Headers $headers -ContentType 'application/json' -Body $body
@@ -426,10 +431,11 @@ function Set-AppRegistrationConfig {
     )
 
     try {
-        $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
-        $config.Settings.ClientId = $ClientId
-        $config.Settings.TenantPrefix = $TenantPrefix
-        $config | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $ConfigPath
+        $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
+        # Add-Member -Force so a config.json that omits these keys still gets them.
+        $config.Settings | Add-Member -NotePropertyName ClientId -NotePropertyValue $ClientId -Force
+        $config.Settings | Add-Member -NotePropertyName TenantPrefix -NotePropertyValue $TenantPrefix -Force
+        $config | ConvertTo-Json -Depth 20 | Set-Content -Path $ConfigPath
         Write-InstallLogAction -Message "Updated config.json with ClientId: $ClientId and TenantPrefix: $TenantPrefix"
         return $true
     }
@@ -449,7 +455,12 @@ function Connect-WorkIQPnP {
         [switch]$Force
     )
 
-    if (-not $Force -and $global:workIQPnPClientId -eq $ClientId -and (Get-PnPConnection -ErrorAction SilentlyContinue)) {
+    # Get-PnPConnection throws a terminating error when there is no connection, which -ErrorAction does not suppress.
+    $existingConnection = $null
+    if (-not $Force -and $global:workIQPnPClientId -eq $ClientId) {
+        try { $existingConnection = Get-PnPConnection } catch { }
+    }
+    if ($existingConnection) {
         return
     }
 
