@@ -1,6 +1,7 @@
 #Requires -Version 7.4
 
 param(
+    # Path to the config.json file to read and update. Defaults to Configuration/config.json.
     [Alias('Config')]
     [ValidateNotNullOrEmpty()]
     [string]$ConfigPath = (Join-Path $PSScriptRoot 'Configuration/config.json')
@@ -200,8 +201,8 @@ try {
             Write-InstallLogAction -Message 'PnP.PowerShell installation complete.' -Level Success
         }
         Import-Module PnP.PowerShell -ErrorAction Stop
-        Disconnect-PnPOnline -ErrorAction SilentlyContinue
-        . (Join-Path $PSScriptRoot 'Installation/Services/AppRegistrationService.ps1')
+        try { Disconnect-PnPOnline } catch { }
+        . (Join-Path $PSScriptRoot 'Installation/Services/AppRegService.ps1')
         . (Join-Path $PSScriptRoot 'Installation/Services/TeamsService.ps1')
         $sharePointUrl = "https://$($config.Settings.TenantPrefix).sharepoint.com"
         Connect-PnPOnline -Url $sharePointUrl -ClientId $clientId -Interactive -ErrorAction Stop
@@ -360,7 +361,7 @@ finally {
     if (Get-Variable cleanupAuthentication -ErrorAction SilentlyContinue) { $cleanupAuthentication.Clear() }
     $signIn = $null
     if (Get-Command Disconnect-PnPOnline -ErrorAction SilentlyContinue) {
-        Disconnect-PnPOnline -ErrorAction SilentlyContinue
+        try { Disconnect-PnPOnline } catch { }
     }
     if (-not $logsRemoved) { Save-InstallLog -Success $cleanupSucceeded }
     if (-not $logsRemoved) { Write-Host "Cleanup log: $script:installLogPath" }

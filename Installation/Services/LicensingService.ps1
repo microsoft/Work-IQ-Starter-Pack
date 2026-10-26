@@ -9,14 +9,20 @@ function Get-AvailableSkusCount{
     $freeSeatsCount = 0
     try {
         $sku = $availableSkus | Where-Object {$_.skuPartNumber -eq $SkuPartNumber -and $_.capabilityStatus -eq "Enabled"}
-        $freeSeatsCount = $sku.prepaidUnits.enabled - $sku.consumedUnits
+        if ($sku) {
+            $freeSeatsCount = $sku.prepaidUnits.enabled - $sku.consumedUnits
+            Write-InstallLogAction -Message "SKU $SkuPartNumber : $freeSeatsCount free of $($sku.prepaidUnits.enabled) purchased."
+        }
+        else {
+            Write-InstallLogAction -Message "SKU $SkuPartNumber was not found (or is not enabled) in this tenant." -Level Warning
+        }
     }
     catch {
         $message = "Failed to get SKUs: $($_.Exception.Message)"
         if ($_.ErrorDetails.Message) {
             $message += " Graph response: $($_.ErrorDetails.Message)"
         }
-        Write-Host $message -ForegroundColor Red
+        Write-InstallLogAction -Message $message -Level Error
         exit 1
     }
     return $freeSeatsCount
@@ -56,6 +62,7 @@ function Test-License-PreRequisites {
     try {
         $copilotLicenseCount = 0
         $officeLicenseCount = 0
+        Write-InstallLogAction -Message "Checking license availability. Copilot SKUs: $($Settings.Licenses.Copilot -join ', '). Office SKUs: $($Settings.Licenses.Office -join ', ')."
         #Get the number of available Copilot and Office licenses in the tenant
         foreach ($skuPartNumber in $Settings.Licenses.Copilot) {
             $copilotLicenseCount += Get-AvailableSkusCount -SkuPartNumber $skuPartNumber
@@ -82,12 +89,13 @@ function Test-License-PreRequisites {
         }
 
         if($copilotLicenseCount -lt $copilotNeeded) {
-            Write-Host "Not enough Copilot licenses available. Required: $copilotNeeded, Available: $copilotLicenseCount" -ForegroundColor Red
+            Write-InstallLogAction -Message "Not enough Copilot licenses available. Required: $copilotNeeded (users without a Copilot license), Available: $copilotLicenseCount. SKUs checked: $($Settings.Licenses.Copilot -join ', ')." -Level Error
         }
         if($officeLicenseCount -lt $officeNeeded) {
-            Write-Host "Not enough Office licenses available. Required: $officeNeeded, Available: $officeLicenseCount" -ForegroundColor Red
+            Write-InstallLogAction -Message "Not enough Office licenses available. Required: $officeNeeded (users without an Office license), Available: $officeLicenseCount. SKUs checked: $($Settings.Licenses.Office -join ', ')." -Level Error
         }
         if($copilotLicenseCount -ge $copilotNeeded -and $officeLicenseCount -ge $officeNeeded) {
+           Write-InstallLogAction -Message "Enough licenses available. Copilot: $copilotNeeded needed, $copilotLicenseCount available. Office: $officeNeeded needed, $officeLicenseCount available." -Level Success
            $retVal = $true
         }
     }
@@ -96,7 +104,7 @@ function Test-License-PreRequisites {
         if ($_.ErrorDetails.Message) {
             $message += " Graph response: $($_.ErrorDetails.Message)"
         }
-        Write-Host $message -ForegroundColor Red
+        Write-InstallLogAction -Message $message -Level Error
         exit 1
     }
     return $retVal

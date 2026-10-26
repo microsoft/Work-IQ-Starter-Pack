@@ -288,7 +288,7 @@ try {
     }
     else {
         # If they don't have an app reg create one.
-        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your application registration (default: WorkIQStarterPack)" }
+        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your new application registration (default: WorkIQStarterPack)" }
         if ([string]::IsNullOrWhiteSpace($appName)) {
             $appName = "WorkIQStarterPack"
         }
@@ -583,7 +583,8 @@ finally {
     if (Get-Variable installerAuthentication -ErrorAction SilentlyContinue) { $installerAuthentication.Clear() }
     $installerSignIn = $null
     # Always drop the PnP connection, whether the install succeeded or failed
-    Disconnect-PnPOnline -ErrorAction SilentlyContinue
+    # Disconnect-PnPOnline throws a terminating error when there is no connection, which -ErrorAction does not suppress.
+    try { Disconnect-PnPOnline } catch { }
 
     Save-InstallLog -Success ($installSucceeded -eq $true)
 
