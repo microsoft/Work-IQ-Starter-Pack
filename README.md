@@ -232,8 +232,6 @@ Depending on the selected packs, it will:
 
 All installation operations are recorded in the installation log (see [Generated files and logs](#generated-files-and-logs)).
 
-Use `./CleanUp.ps1` to remove Dynamics data and optionally Microsoft 365 content in the same run. It asks which parts to remove; see [Cleanup](#cleanup).
-
 ### Environment preparation
 
 **Sales & Customer Service (Dataverse)**
