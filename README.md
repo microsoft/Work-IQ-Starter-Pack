@@ -20,7 +20,7 @@ The pack has two installers and two matching cleanup scripts:
 
 [Content/content.json](./Content/content.json) describes the Microsoft 365 demo. The installer reads it and uses PnP PowerShell and Microsoft Graph to create:
 
-- Users (optional), their licenses, and profile photos
+- Users (demo users, or your own existing users), their licenses, and profile photos
 - Entra security groups named in a site's optional `Groups` array (no site in the shipped `content.json` defines one), containing the same demo or resolved real users used by `Add-Users`. Existing assigned, non-mail-enabled security groups are reused and missing members added; other members are retained. These security groups are not removed by `CleanUp.ps1`.
 - Microsoft Teams and their SharePoint sites, with channels
 - Documents uploaded with the right authors and dates, and past Teams meetings created on each team's calendar with their transcripts (Word documents) linked from the channel
@@ -34,7 +34,7 @@ The pack has two installers and two matching cleanup scripts:
 - The `Microsoft.PowerApps.Administration.PowerShell` module, used by the Dynamics installer. It is installed for the current user if it is missing.
 - The Work IQ service principal (app ID `fdcc1f02-fc51-4226-8753-f668596af7f7`, set as `WorkIQAppId` in settings.json) must exist and be enabled in the tenant. The installer creates it if it is missing and stops if it is disabled.
 - A **Global Administrator** account (see [Permissions](#permissions)).
-- Licenses for the users (see [Licenses](#licenses)).
+- **Required:** a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps for each of the 5 users (see [Licenses](#licenses)). The installer stops if either is short.
 - Copilot credits available in the tenant (see [Pre-requisite checks](#pre-requisite-checks)).
 - An application registration. `InstallWorkIQStarterPack.ps1` can create one for you, or you can enter the client ID of an existing one when prompted.
 
@@ -84,7 +84,7 @@ The Dynamics installer and cleanup use these additional settings. See [Dynamics 
 The Microsoft 365 content pack installs the Market Research, Finance, and Procurement teams from `content.json`. The Dynamics content pack adds the Sales Team (the site flagged `DynamicsContent`); the Dynamics 365 data itself is installed by `InstallWorkIQDynamicsPack.ps1`. [Configuration/settings.json](./Configuration/settings.json) holds the static installer data: the app registration permissions, the supported license SKUs, and the demo users.
 
 ### Unattended install
-Run `./InstallWorkIQStarterPack.ps1 -UseConfig` to skip every install question and use the values in config.json instead. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
+Run `./InstallWorkIQStarterPack.ps1 -ConfigPath <path-to-config.json>` (for example `-ConfigPath ./Configuration/config.json`) to skip every install question and use the values in that file instead. Without `-ConfigPath` the installer asks its questions and uses `Configuration/config.json`. The installer writes values it learns (such as the `ClientId` of a new app registration) back to the file you pass. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
 
 The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, `ProvisionUserEmails`, and `ClientId` (set = use that existing app registration; empty = create one, named by `AppRegistrationName`). If `InstallDemoUsers` is false, `RealUserUpns` must contain exactly 5 UPNs.
 
@@ -104,18 +104,18 @@ New users get a temporary password and must change it at first sign-in. The pass
 To use your own users instead, answer "no" when the installer asks about demo users and enter 5 UPNs, or set `InstallDemoUsers: false` and `RealUserUpns` in the config file. Enter them in the order Marketing, Finance, Security/Governance, Finance 2, Sales. The installer looks them up in Entra ID and replaces the demo names and emails in the content with theirs. Demo user photos are only applied to demo users.
 
 ### Licenses
-Each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps. Dynamics licenses are added when the Dynamics content pack is selected. The installer assigns the first available SKU of each kind from this list in [settings.json](./Configuration/settings.json):
+Both licenses are required for every user. Each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps, and neither can be skipped. Dynamics licenses are added when the Dynamics content pack is selected. The installer assigns the first available SKU of each kind from this list in [settings.json](./Configuration/settings.json):
 
 - **Copilot:** `Microsoft_365_Copilot`, `M365_Copilot`, `M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS`
 - **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`
 - **Dynamics:** `DYN365_ENTERPRISE_SALES_CUSTOMERSERVICE`, `DYN365_ENTERPRISE_SALES`, `DYN365_ENTERPRISE_CUSTOMER_SERVICE`, `DYN365_FINANCE`
 
-You need at least 5 available seats each of Copilot and Office. `InstallWorkIQDynamicsPack.ps1` does not assign licenses.
+You need at least 5 available seats each of Copilot and Office (fewer if some users already hold one of the licenses; only the missing license counts). The pre-requisite check fails and the install stops if either type is short. The log lists each SKU checked with its free and purchased seats, and warns about any SKU that is not in the tenant. `InstallWorkIQDynamicsPack.ps1` does not assign licenses.
 
 ### Pre-requisite checks
 Before provisioning, `InstallWorkIQStarterPack.ps1` checks the following.
 - **Global Administrator:** the signed-in user holds the Global Administrator role.
-- **Licenses:** at least 5 available Copilot seats and 5 available Office seats (see [Licenses](#licenses)).
+- **Licenses (required):** at least 5 available Copilot seats and 5 available Office seats, counting only users who lack that license (see [Licenses](#licenses)).
 - **Work IQ service principal:** it exists and is enabled (the installer creates it if it is missing).
 - **Copilot credits:** the tenant has Copilot credits. The installer calls the Microsoft Graph **beta** `copilot/costmanagement/gettenantcreditbalance()` endpoint and passes if the prepaid balance (purchased minus consumed) is above 0 or pay-as-you-go billing is listed. It needs the `CopilotCostManagement.Read.All` permission; if the call fails the check fails. The beta API can change.
 - **Power Platform:** only when Dynamics content is selected. It currently always passes.
@@ -176,18 +176,18 @@ The sample documents live under [Content/Documents](./Content/Documents), in the
 [Prompts/DocumentGenerationPrompt.md](./Content/Documents/Prompts/DocumentGenerationPrompt.md) is the prompt used to author the demo content: documents, meeting transcripts, email threads, and Teams chats. It fixes the product, supplier, and raw-material names so everything stays consistent across the demos.
 
 To generate new content:
-1. Open this repository in Claude.
+1. Open this repository in an AI assistant that can read and write files.
 2. Ask it to create documents based on the `Content/Documents/Prompts/DocumentGenerationPrompt.md` prompt, for example: "Create documents based on the DocumentGenerationPrompt.md prompt."
 3. Review the generated files under `Content/Documents/<DemoName>/`.
 4. Make sure any new items are registered in [Content/content.json](./Content/content.json) so the installer uploads them.
 5. Run the installer again (see [Instructions](#instructions)).
 
-To change the scenario or the names used, edit the prompt before asking Claude to generate the content.
+To change the scenario or the names used, edit the prompt before asking the assistant to generate the content.
 
 ## Dynamics 365 content
 `InstallWorkIQDynamicsPack.ps1` installs the Dynamics 365 demo data. `InstallWorkIQStarterPack.ps1` does not call it; run it separately (before or after the main installer). It signs in with the app registration, so the Dynamics and Power Platform permissions above must be consented.
 
-It asks whether to install Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both (at least one is required), and prompts for the Dataverse and F&O environment URLs. It can also create a new Dataverse environment and save its ID and URL to config.json. Run `./InstallWorkIQDynamicsPack.ps1 -UseConfig` to use the values in config.json instead; it does not create an environment, and it still asks whether to deploy the SharePoint documents. It only checks that you are a Global Administrator and does not assign licenses.
+It asks whether to install Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both (at least one is required), and prompts for the Dataverse and F&O environment URLs. It can also create a new Dataverse environment and save its ID and URL to config.json. Run `./InstallWorkIQDynamicsPack.ps1 -ConfigPath <path-to-config.json>` to use the values in that file instead; it does not create an environment, and it still asks whether to deploy the SharePoint documents. It only checks that you are a Global Administrator and does not assign licenses.
 
 It will:
 - Create or look up the demo users and sync them into Dataverse.
@@ -208,7 +208,7 @@ These are git-ignored:
 - `Logs/InstallLog.md`, `Logs/CleanUpLog.md`, `Logs/InstallMiniLog.md`, and `Logs/CleanUpMiniLog.md`: a run summary, your inputs, and the actions taken. The install log also lists the demo user passwords in plain text, so store or delete it securely.
 
 ## Cleanup
-Run `./CleanUp.ps1` to remove what the installer created. It is always interactive and requires `TenantPrefix` and `ClientId` in the config file. It will:
+Run `./CleanUp.ps1` to remove what the installer created. It is always interactive and requires `TenantPrefix` and `ClientId` in the config file. It reads `Configuration/config.json` unless you pass `-ConfigPath <path-to-config.json>`. It will:
 1. Remove the imported emails.
 2. Delete the Teams in `content.json`, their M365 groups and sites, and purge them from the recycle bins.
 3. Delete the demo users (only the ones in `DefaultUsers` in settings.json) and purge them from the deleted items.

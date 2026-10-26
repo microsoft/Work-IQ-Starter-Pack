@@ -242,12 +242,12 @@ function Update-AppRegistrationPermissions {
             # Opening the browser is best-effort, the URL is printed above.
         }
         if ($UseConfig) {
-            Write-Host "Running with -UseConfig: continuing without waiting. Grant admin consent at the URL above if it has not been granted yet." -ForegroundColor Yellow
+            Write-Host "Running with -ConfigPath: continuing without waiting. Grant admin consent at the URL above if it has not been granted yet." -ForegroundColor Yellow
         }
         else {
             Read-Host "Press Enter once admin consent has been granted" | Out-Null
         }
-          # Always configure these resources, including when -UseConfig skips
+          # Always configure these resources, including when -ConfigPath skips
           # the first consent wait. Previously that path never added them.
           Add-DynamicsAppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
 

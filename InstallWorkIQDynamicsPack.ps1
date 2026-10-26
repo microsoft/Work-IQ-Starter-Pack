@@ -1,7 +1,14 @@
 ﻿param(
-    # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
-    [switch]$UseConfig
+    # Path to a config.json file. When supplied, every install question is skipped and the installer runs
+    # straight from that file (for CLI/automated installs). Omit it to be prompted and use Configuration/config.json.
+    [string]$ConfigPath
 )
+
+# Passing -ConfigPath is what switches the installer to unattended mode.
+$UseConfig = -not [string]::IsNullOrWhiteSpace($ConfigPath)
+if ($UseConfig -and -not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
+    throw "The file passed to -ConfigPath was not found: $ConfigPath"
+}
 
 # Ask the user a yes/no question for configuration. Pass -Default to let a blank
 # response (pressing Enter) accept that default instead of re-prompting.
@@ -32,7 +39,12 @@ try {
     }
     Write-Host ""
     # Load the configuration file from file system
-    $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
+    if ($UseConfig) {
+        $configPath = (Resolve-Path -LiteralPath $ConfigPath).ProviderPath
+    }
+    else {
+        $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
+    }
     $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
     # Load the installation settings file from file system
@@ -59,7 +71,7 @@ try {
     $currentTenant = $config.Settings.TenantPrefix
     if ($UseConfig) {
         if ([string]::IsNullOrWhiteSpace($currentTenant)) {
-            throw "-UseConfig requires Settings.TenantPrefix in config.json."
+            throw "-ConfigPath requires Settings.TenantPrefix in config.json."
         }
         $tenant = $currentTenant
     }
@@ -119,7 +131,7 @@ try {
 
         $configUpns = @($config.Settings.RealUserUpns)
         if ($UseConfig -and ($configUpns.Count -ne $demoRoles.Count -or @($configUpns | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0)) {
-            throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
+            throw "-ConfigPath with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
         }
 
         $savedContentUpns = @()
@@ -223,7 +235,7 @@ try {
     $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
 
     # Check if the user needs the app registration created
-    # With -UseConfig, a ClientId in config.json means use that existing app registration; otherwise one is created.
+    # With -ConfigPath, a ClientId in config.json means use that existing app registration; otherwise one is created.
     $hasAppRegistration = if ($UseConfig) { -not [string]::IsNullOrWhiteSpace($config.Settings.ClientId) } else { Read-YesNo "Do you have an existing Application Registration? Please review the README.md file for the level of permissions required." -Default $true }
     Write-InstallLogInput -Prompt "Do you have an existing Application Registration?" -Response $(if ($hasAppRegistration) { "Yes" } else { "No" })
 
@@ -257,7 +269,7 @@ try {
     }
     else {
         # If they don't have an app reg create one.
-        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your application registration (default: WorkIQStarterPack)" }
+        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your new application registration (default: WorkIQStarterPack)" }
         if ([string]::IsNullOrWhiteSpace($appName)) {
             $appName = "WorkIQStarterPack"
         }
