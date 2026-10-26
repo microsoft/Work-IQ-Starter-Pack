@@ -1,4 +1,4 @@
-﻿# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
+# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
 # Runtime SharePoint, Graph token, and certificate helpers retain installer compatibility.
 # get the permissions from the settings file.
 $WorkIQSettingsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Configuration/settings.json"))
@@ -215,6 +215,11 @@ function Invoke-AppRegProvisioning {
         else { Write-Host 'All required API permissions are already configured. No app registration update is needed.' }
     }
     else {
+        $escapedName = [Uri]::EscapeDataString($AppName.Replace("'", "''"))
+        $existing = @((Invoke-Graph -Path "applications?`$filter=displayName eq '$escapedName'&`$select=id,appId,displayName").value)
+        if ($existing.Count) {
+            throw "An app registration named '$AppName' already exists (client ID: $($existing[0].appId)). Choose a different name, or re-run and answer yes to using an existing application registration."
+        }
         Write-Host 'Creating the app registration with the required API permissions...'
         $app = Invoke-RestMethod -Method Post -Uri 'https://graph.microsoft.com/v1.0/applications' `
             -Headers $headers -ContentType 'application/json' -Body $body
@@ -449,7 +454,12 @@ function Connect-WorkIQPnP {
         [switch]$Force
     )
 
-    if (-not $Force -and $global:workIQPnPClientId -eq $ClientId -and (Get-PnPConnection -ErrorAction SilentlyContinue)) {
+    # Get-PnPConnection throws a terminating error when there is no connection, which -ErrorAction does not suppress.
+    $existingConnection = $null
+    if (-not $Force -and $global:workIQPnPClientId -eq $ClientId) {
+        try { $existingConnection = Get-PnPConnection } catch { }
+    }
+    if ($existingConnection) {
         return
     }
 

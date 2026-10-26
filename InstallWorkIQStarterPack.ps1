@@ -209,7 +209,8 @@ try {
         Write-InstallLogInput -Prompt "D365 Sales & CS environment URL" -Response $environmentUrl
         }
     }
-    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
+    # Declining D365 Sales & CS skips the remaining Dynamics questions in interactive mode.
+    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } elseif (-not $installDynamicsContent) { $false } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
     Write-InstallLogInput -Prompt "Install the D365 F&O WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsFOContent) { "Yes" } else { "No" })
     if ($installDynamicsFOContent) {
         $foEnvironmentUrl = $config.Settings.DynamicsFOEnvironmentUrl
@@ -589,6 +590,7 @@ finally {
     # Always drop the PnP connection, whether the install succeeded or failed
     # Disconnect-PnPOnline throws a terminating error when there is no connection, which -ErrorAction does not suppress.
     try { Disconnect-PnPOnline } catch { }
+    $global:workIQPnPClientId = $null
 
     Save-InstallLog -Success ($installSucceeded -eq $true)
 
