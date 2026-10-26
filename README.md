@@ -30,10 +30,10 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 - PowerShell 7.4.0 or later ([install](https://learn.microsoft.com/powershell/scripting/install/installing-powershell)). It is available for Windows, Linux and Mac.
 - The `PnP.PowerShell` module. The installer installs it for the current user if it is missing.
 - The `Microsoft.PowerApps.Administration.PowerShell` module, used for Dynamics provisioning. It is installed for the current user if it is missing.
-- When Microsoft 365 content is selected, the Work IQ service principal (app ID `fdcc1f02-fc51-4226-8753-f668596af7f7`, set as `WorkIQAppId` in settings.json) must exist and be enabled in the tenant. The installer creates it if it is missing and stops if it is disabled.
+- The Work IQ service principal (app ID `fdcc1f02-fc51-4226-8753-f668596af7f7`, set as `WorkIQAppId` in settings.json) must exist and be enabled in the tenant for all content packs. The installer creates it if it is missing and stops if it is disabled.
 - A **Global Administrator** account (see [Permissions](#permissions)).
 - Licenses for the users (see [Licenses](#licenses)).
-- Copilot credits available in the tenant when Microsoft 365 content is selected (see [Pre-requisite checks](#pre-requisite-checks)).
+- Copilot credits available in the tenant or pay-as-you-go billing enabled, for all content packs (see [Pre-requisite checks](#pre-requisite-checks)).
 - An application registration. `InstallWorkIQStarterPack.ps1` can create one for you, or you can enter the client ID of an existing one when prompted.
 
 ## Configuration
@@ -107,7 +107,7 @@ New users get a temporary password and must change it at first sign-in. The pass
 To use your own users instead, answer "no" when the installer asks about demo users and enter 5 UPNs, or set `InstallDemoUsers: false` and `RealUserUpns` in the config file. Enter them in the order Marketing, Finance, Security/Governance, Finance 2, Sales. The installer looks them up in Entra ID and replaces the demo names and emails in the content with theirs. Demo user photos are only applied to demo users.
 
 ### Licenses
-When Microsoft 365 content is selected, each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps. Dynamics license assignment also runs when Sales & Customer Service content is selected alongside Microsoft 365. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
+For every content pack, each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps. Dynamics license assignment also runs when Sales & Customer Service content is selected alongside Microsoft 365. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
 
 - **Copilot:** `Microsoft_365_Copilot`, `M365_Copilot`, `M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS`
 - **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`
@@ -115,14 +115,14 @@ When Microsoft 365 content is selected, each user needs a Microsoft 365 Copilot 
 
 For a new set of 5 demo users, you need 5 available seats each of Copilot and Office. For existing users, the prerequisite check counts only the licenses they are missing.
 
-For a Dynamics-only installation (`InstallM365Content: false`), the installer does not check or assign Office, Copilot, or Dynamics licenses. A Copilot license is not required by this installation path; ensure the users have the appropriate Dynamics licenses separately.
+For a Dynamics-only installation (`InstallM365Content: false`), the installer checks Office and Copilot license availability but does not assign licenses. Ensure the users have Office, Copilot, and the appropriate Dynamics licenses assigned separately.
 
 ### Pre-requisite checks
-Before provisioning, `InstallWorkIQStarterPack.ps1` checks the following. The Microsoft 365-specific checks do not run for a Dynamics-only installation.
+Before provisioning users, environments, or content, `InstallWorkIQStarterPack.ps1` checks the following for all selected content packs, including Dynamics-only installations.
 - **Global Administrator:** the signed-in user holds the Global Administrator role.
-- **Licenses (Microsoft 365 only):** enough available Copilot and Office seats for users missing those licenses (see [Licenses](#licenses)).
-- **Work IQ service principal (Microsoft 365 only):** it exists and is enabled (the installer creates it if it is missing).
-- **Copilot credits (Microsoft 365 only):** the tenant has Copilot credits. The installer calls the Microsoft Graph **beta** `copilot/costmanagement/gettenantcreditbalance()` endpoint and passes if the prepaid balance (purchased minus consumed) is above 0 or pay-as-you-go billing is listed. It needs the `CopilotCostManagement.Read.All` permission; if the call fails the check fails. The beta API can change.
+- **Licenses:** enough available Copilot and Office seats for users missing those licenses (see [Licenses](#licenses)).
+- **Work IQ service principal:** it exists and is enabled (the installer creates it if it is missing).
+- **Copilot credits:** the tenant has Copilot credits. The installer calls the Microsoft Graph **beta** `copilot/costmanagement/gettenantcreditbalance()` endpoint and passes if the prepaid balance (purchased minus consumed) is above 0 or pay-as-you-go billing is listed. It needs the `CopilotCostManagement.Read.All` permission; if the call fails the check fails. The beta API can change.
 
 ### Permissions
 The user running the installer must be a Global Administrator, because the installer creates the app registration, grants admin consent, and runs migration-related imports.
@@ -191,7 +191,7 @@ To change the scenario or the names used, edit the prompt before asking Claude t
 ## Dynamics 365 content
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
 
-The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 pack. At least one of the three packs must be selected. It prompts for the relevant Dataverse and F&O environment URLs and can create a new Dataverse environment, saving its ID and URL to config.json. Use `./InstallWorkIQStarterPack.ps1 -UseConfig` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). Dynamics-only installations check that you are a Global Administrator and skip Microsoft 365 license assignment and prerequisite checks.
+The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 pack. At least one of the three packs must be selected. It prompts for the relevant Dataverse and F&O environment URLs and can create a new Dataverse environment, saving its ID and URL to config.json. Use `./InstallWorkIQStarterPack.ps1 -UseConfig` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). Dynamics-only installations run the same prerequisite checks as Microsoft 365 installations, but license assignment remains manual (see [Licenses](#licenses)).
 
 Depending on the selected packs, it will:
 - Create or look up the demo users and sync them into Dataverse.

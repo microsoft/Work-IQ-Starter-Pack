@@ -322,12 +322,6 @@ try {
     $global:graphBaseUrl = 'https://graph.microsoft.com/v1.0'
     $global:headers = @{ Authorization = "Bearer $(& $installerTokenProvider 'https://graph.microsoft.com/.default')" }
 
-    if ($installM365Content) {
-        Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
-        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
-        . (Join-Path $PSScriptRoot 'Installation/Services/WorkIQService.ps1')
-        Enable-WorkIQServicePrincipal -Settings $settings | Out-Null
-    }
     if ([string]::IsNullOrWhiteSpace($config.Settings.ClientId)) {
         throw "No application registration client ID was found in config.json."
     }
@@ -351,15 +345,42 @@ try {
     }
 
     # ---------------------Start App Configuration------------------------------------
-    # The Global Administrator check is shared with the Dynamics installer.
+    # Check the lab prerequisites for every content pack before provisioning.
     . (Join-Path $PSScriptRoot 'Installation/Services/PowerPlatformService.ps1') -AccessTokenProvider $installerTokenProvider
+    $isGlobalAdmin = Test-GlobalAdminPreRequisite
+    if (-not $isGlobalAdmin) {
+        throw "One or more prerequisites were not met. Please review the messages above."
+    }
+
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
+
+    $provisioningSettings = $settings
+    if (-not $config.Settings.InstallDemoUsers) {
+        $provisioningSettings = $settings.PSObject.Copy()
+        $provisioningSettings.Users = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
+    }
+
+    $preRequisitesMet = Test-License-PreRequisites -Settings $provisioningSettings
+    $copilotCreditsAvailable = Test-CopilotCreditBalance
+    if (-not $preRequisitesMet -or -not $copilotCreditsAvailable) {
+        throw "One or more prerequisites were not met. Please review the messages above."
+    }
+
+    Enable-WorkIQServicePrincipal -Settings $settings | Out-Null
+    $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
+    if (-not $workIQEnabled) {
+        throw "One or more prerequisites were not met. Please review the messages above."
+    }
+    Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
     # M365 provisioning runs only when its content pack was selected.
     if ($installM365Content) {
+        Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
+        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
+
         #Load services files
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/SharePointService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
@@ -376,69 +397,42 @@ try {
             -TenantPrefix $config.Settings.TenantPrefix -CertificatePath $migrationCertificatePath
         $migrationHeaders = @{ Authorization = "Bearer $migrationToken" }
 
-        # Demo users provisioned -> use settings.json's own Users and Content/content.json as-is.
-        # Existing users instead -> swap in the resolved identities from users.custom.json and
-        # the persona-swapped content.custom.json, without ever touching the demo definitions.
-        $provisioningSettings = $settings
         $activeContentPath = $customContentPath
-        if (-not $config.Settings.InstallDemoUsers) {
-            $customUsers = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
-            $provisioningSettings = $settings.PSObject.Copy()
-            $provisioningSettings.Users = $customUsers
+
+        Add-Users -Settings $provisioningSettings
+        if ($config.Settings.InstallDemoUsers) {
+            Add-UserPhotos -Settings $provisioningSettings
         }
 
-        #Check to see if the current user is a Global Administrator before checking license availability
-        $isGlobalAdmin = Test-GlobalAdminPreRequisite
-        
-        #Check to see if WorkIQ service principal is enabled
-        $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
+        # Parse the content file once and provision it one site at a time: each site gets its team,
+        # documents, lists/libraries, chats and emails before moving on to the next.
+        $contentConfig = Get-Content -Path $activeContentPath -Raw | ConvertFrom-Json
+        $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
 
-        #Confirm the tenant has Copilot credits available or PayGo is enabled
-        $copilotCreditsAvailable = Test-CopilotCreditBalance
-
-        $powerPlatformPermissionsMet = $true
-        if ($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
-            Write-Host "All pre-requisites are met. Proceeding with user provisioning."
-
-            Add-Users -Settings $provisioningSettings
-            if ($config.Settings.InstallDemoUsers) {
-                Add-UserPhotos -Settings $provisioningSettings
-            }
-
-            # Parse the content file once and provision it one site at a time: each site gets its team,
-            # documents, lists/libraries, chats and emails before moving on to the next.
-            $contentConfig = Get-Content -Path $activeContentPath -Raw | ConvertFrom-Json
-            $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
-
-            # The same certificate token carries Mail.ReadWrite, so it also serves the inbox import.
-            # $settings.Users are always the demo personas the email markdown is written with.
-            if (-not $config.Settings.ProvisionUserEmails) {
-                Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
-            }
-
-            foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
-                Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
-
-                Add-Groups -Site $site -Settings $provisioningSettings
-
-                if (-not (Add-TeamSite -Site $site -Config $config)) {
-                    Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
-                    continue
-                }
-
-                Import-SiteDocuments -Site $site -Config $config
-                Add-SiteListsAndLibraries -Site $site -Config $config
-                # The meeting posts are imported with the chats: a channel can only be migrated once.
-                $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
-                Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
-                if ($config.Settings.ProvisionUserEmails) {
-                    Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
-                }
-            }
+        # The same certificate token carries Mail.ReadWrite, so it also serves the inbox import.
+        # $settings.Users are always the demo personas the email markdown is written with.
+        if (-not $config.Settings.ProvisionUserEmails) {
+            Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
         }
-        else {
-            Write-InstallLogAction -Message "One or more prerequisites were not met. Please review the messages above." -Level Error
-            exit 1
+
+        foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
+            Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
+
+            Add-Groups -Site $site -Settings $provisioningSettings
+
+            if (-not (Add-TeamSite -Site $site -Config $config)) {
+                Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
+                continue
+            }
+
+            Import-SiteDocuments -Site $site -Config $config
+            Add-SiteListsAndLibraries -Site $site -Config $config
+            # The meeting posts are imported with the chats: a channel can only be migrated once.
+            $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
+            Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
+            if ($config.Settings.ProvisionUserEmails) {
+                Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
+            }
         }
     }
 
@@ -446,18 +440,6 @@ try {
         # Dynamics provisioning reuses the shared identities and app registration.
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1") -AccessTokenProvider $installerTokenProvider
-        $provisioningSettings = $settings
-        if (-not $config.Settings.InstallDemoUsers) {
-            $provisioningSettings = $settings.PSObject.Copy()
-            $provisioningSettings.Users = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
-        }
-
-        if (-not $installM365Content) {
-            $isGlobalAdmin = Test-GlobalAdminPreRequisite
-            if (-not $isGlobalAdmin) {
-                throw "One or more prerequisites were not met. Please review the messages above."
-            }
-        }
 
         if ($config.Settings.InstallDynamicsContent -eq $true) {
             if ($createDynamicsEnvironment) {
