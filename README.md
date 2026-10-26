@@ -66,8 +66,8 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 | `InstallDynamicsFOContent` | Install the Dynamics 365 Finance & Operations data. Can be selected independently of the other packs. |
 | `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from the selected file with `-Config`. |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
-| `AppRegistrationName` | Optional, unattended mode only. Name for a new app registration (default `WorkIQStarterPack`). |
-| `RealUserUpns` | Unattended mode with `InstallDemoUsers: false` only. A list of 5 UPNs (see [Users](#users)). |
+| `AppRegistrationName` | Optional, used with `-Config` only. Name for a new app registration (default `WorkIQStarterPack`). |
+| `RealUserUpns` | Used with `-Config` and `InstallDemoUsers: false` only. A list of 5 UPNs (see [Users](#users)). |
 
 The main installer and cleanup use these additional settings for Dynamics operations. See [Dynamics 365 content](#dynamics-365-content).
 
@@ -85,11 +85,17 @@ The main installer and cleanup use these additional settings for Dynamics operat
 The Microsoft 365 content pack installs the Market Research, Finance, and Procurement teams from `content.json`. When both Microsoft 365 and Sales & Customer Service content are selected, the installer also adds the Sales Team (the site flagged `DynamicsContent`). Dynamics 365 data is provisioned directly by the same installer, even when Microsoft 365 content is not selected. [Configuration/settings.json](./Configuration/settings.json) holds the static installer data: the app registration permissions, the supported license SKUs, and the demo users.
 
 ### Unattended install
-Run `./InstallWorkIQStarterPack.ps1 -Config ./Configuration/config.json` to skip every install question and use the values in that file instead. `-Config` replaces the previous `-UseConfig` switch; `-ConfigPath` is also accepted. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
+Run `./InstallWorkIQStarterPack.ps1 -Config ./Configuration/config.json` to read installation choices from that file instead of entering them at the configuration prompts. `-Config` replaces the previous `-UseConfig` switch; `-ConfigPath` is also accepted.
+
+This mode still requires interactive authentication. Browser sign-in is used when creating or updating the app registration and when starting provisioning, including with an existing app registration. Microsoft 365 SharePoint operations can request additional sign-ins. If users are missing from Dataverse, their synchronization can also require a Power Platform browser sign-in. See [Permissions](#permissions) for app registration and admin consent requirements.
+
+A fully non-interactive installation is not currently supported. Supporting it would require a separate assessment of authentication flows, API permissions, and user-dependent operations.
 
 The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, `InstallDynamicsFOContent`, `DeployDynamicsDocuments`, `ProvisionUserEmails`, and `ClientId` (set = use that existing app registration; empty = create one, named by `AppRegistrationName`). If `InstallDemoUsers` is false, `RealUserUpns` must contain exactly 5 UPNs.
 
-When Sales & Customer Service is selected, configure `DynamicsEnvironmentUrl` for an existing Dataverse environment; `-Config` does not create a new environment. When F&O is selected, configure `DynamicsFOEnvironmentUrl` and the applicable F&O settings above. The SharePoint document deployment choice is read from `DeployDynamicsDocuments` without an additional question.
+When Sales & Customer Service is selected, configure `DynamicsEnvironmentUrl` for an existing Dataverse environment; `-Config` does not create a new environment. When F&O is selected, configure `DynamicsFOEnvironmentUrl` and the applicable F&O settings above.
+
+The SharePoint document deployment choice is read from `DeployDynamicsDocuments`. If enabled and SharePoint integration or document management for the Account table is not ready, the installer prompts you to configure it or skip document deployment, even with `-Config`.
 
 ### Multiple configurations
 Keep each tenant's configuration in a separate directory, for example `tenants/tenant-a/config.json` and `tenants/tenant-b/config.json`:
@@ -139,7 +145,7 @@ Before provisioning users, environments, or content, `InstallWorkIQStarterPack.p
 ### Permissions
 The user running the installer must be a Global Administrator, because the installer creates the app registration, grants admin consent, and runs migration-related imports.
 
-The app registration needs the permissions below. They are defined in [Configuration/appPermissions.json](./Configuration/appPermissions.json), which the installer uses to create the app registration and check it. With an existing app registration, the installer adds any missing permissions and opens the admin consent page for you to approve them. For this to work, the existing app must already have the delegated Graph permission `Application.ReadWrite.All` with admin consent granted. The Graph and SharePoint names are also listed under `AppRegistrationPermissions` in [Configuration/settings.json](./Configuration/settings.json), which is used to verify the token. Keep the two in sync.
+The app registration needs the permissions below. They are defined in [Configuration/appPermissions.json](./Configuration/appPermissions.json), which the installer uses to create the app registration and check it. After browser sign-in as a Global Administrator, the installer creates a new app registration or adds missing permissions to the existing one, checks existing admin consent, and grants any missing consent through Microsoft Graph REST APIs. It stops if consent cannot be completed. The Graph and SharePoint names are also listed under `AppRegistrationPermissions` in [Configuration/settings.json](./Configuration/settings.json), which is used to verify the token. Keep the two in sync.
 
 #### Graph Delegated Permissions
 - Group.ReadWrite.All (also creates the past meetings on the team calendar)
@@ -170,7 +176,7 @@ The two application permissions are used with certificate authentication. The in
 ## Instructions
 1. Run `./InstallWorkIQStarterPack.ps1`.
 2. Answer the prompts: tenant prefix, demo or real users, content packs (Microsoft 365, Dynamics 365 Sales & Customer Service, and/or Finance & Operations), environment URLs where applicable, and the app registration. For Sales & Customer Service, you can choose to create a new Dataverse environment instead. If you do not already have an app registration with the required permissions above, answer "no" and the installer creates one.
-3. Sign in when asked and approve admin consent. Sign-in opens a browser; it happens for several of the steps.
+3. Sign in through the browser when asked, using a Global Administrator account (see [Permissions](#permissions)). Sign-in can occur at several steps.
 4. Wait for the installer to finish all selected Microsoft 365 and Dynamics operations. Answer any applicable environment creation, F&O setup, and optional Dynamics SharePoint document prompts. Some steps wait for Microsoft 365 to catch up (team and site provisioning, mailbox creation for photos and email, and consent and certificate propagation, which can take a few minutes).
 5. Review the installation log at the path printed when the installer finishes.
 
