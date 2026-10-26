@@ -2,13 +2,13 @@
   "Settings": {
     "SkipPreReqCheck": true,
     "InstallM365Content": true,
-    "InstallDynamicsContent": true,
+    "InstallDynamicsContent": false,
     "InstallDemoUsers": true,
     "DynamicsFOProductTemplateCompany": "ITCO",
     "DynamicsFOProductTemplateItemNumber": "ITEM",
     "AppRegistrationName": "ATESTGP",
     "DynamicsEnvironmentId": "f94ff2b1-c247-e991-8cbb-fc2e471a8f0b",
-    "ClientId": "52e4e0af-a727-4909-a003-8a192f144007",
+    "ClientId": "d7f81f9d-252f-417f-81b9-d363033284db",
     "DynamicsFOEnvironmentUrl": "https://finance2026oct.operations.ch.dynamics.com",
     "DynamicsFOLegalEntityId": "ITCO",
     "DynamicsFOSalesCurrencyCode": "EUR",
@@ -24,8 +24,8 @@
       "abc4@testiq2026oct.onmicrosoft.com"
     ],
     "DynamicsEnvironmentUrl": "https://finance2026oct.crm17.dynamics.com",
-    "InstallDynamicsFOContent": false,
     "ProvisionUserEmails": true,
+    "InstallDynamicsFOContent": false,
     "TenantPrefix": "sympdcp"
   }
 }

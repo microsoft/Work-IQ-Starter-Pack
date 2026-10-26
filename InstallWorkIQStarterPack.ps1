@@ -1,7 +1,14 @@
 param(
-    # Skip every install question and run straight from Configuration/config.json (for CLI/automated installs).
-    [switch]$UseConfig
+    # Path to a config.json file. When supplied, every install question is skipped and the installer runs
+    # straight from that file (for CLI/automated installs). Omit it to be prompted and use Configuration/config.json.
+    [string]$ConfigPath
 )
+
+# Passing -ConfigPath is what switches the installer to unattended mode.
+$UseConfig = -not [string]::IsNullOrWhiteSpace($ConfigPath)
+if ($UseConfig -and -not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
+    throw "The file passed to -ConfigPath was not found: $ConfigPath"
+}
 
 try {
     if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
@@ -43,7 +50,12 @@ try {
     }
     Write-Host ""
     # Load the configuration file from file system
-    $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
+    if ($UseConfig) {
+        $configPath = (Resolve-Path -LiteralPath $ConfigPath).ProviderPath
+    }
+    else {
+        $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
+    }
     $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
 
     # Load the installation settings file from file system
@@ -69,7 +81,7 @@ try {
     $currentTenant = $config.Settings.TenantPrefix
     if ($UseConfig) {
         if ([string]::IsNullOrWhiteSpace($currentTenant)) {
-            throw "-UseConfig requires Settings.TenantPrefix in config.json."
+            throw "-ConfigPath requires Settings.TenantPrefix in config.json."
         }
         $tenant = $currentTenant
     }
@@ -126,7 +138,7 @@ try {
 
         $configUpns = @($config.Settings.RealUserUpns)
         if ($UseConfig -and ($configUpns.Count -ne $demoRoles.Count -or @($configUpns | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0)) {
-            throw "-UseConfig with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
+            throw "-ConfigPath with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
         }
 
         $savedContentUpns = @()
@@ -245,7 +257,7 @@ try {
         $requiredResourceIds += '00000015-0000-0000-c000-000000000000' # Dynamics ERP
     }
     # Check if the user needs the app registration created
-    # With -UseConfig, a ClientId in config.json means use that existing app registration; otherwise one is created.
+    # With -ConfigPath, a ClientId in config.json means use that existing app registration; otherwise one is created.
     $hasAppRegistration = if ($UseConfig) { -not [string]::IsNullOrWhiteSpace($config.Settings.ClientId) } else { Read-YesNo "Do you have an existing Application Registration? Please review the README.md file for the level of permissions required." -Default $false }
     Write-InstallLogInput -Prompt "Do you have an existing Application Registration?" -Response $(if ($hasAppRegistration) { "Yes" } else { "No" })
 
@@ -280,7 +292,7 @@ try {
     }
     else {
         # If they don't have an app reg create one.
-        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your application registration (default: WorkIQStarterPack)" }
+        $appName = if ($UseConfig) { $config.Settings.AppRegistrationName } else { Read-Host "Enter the name for your new application registration (default: WorkIQStarterPack)" }
         if ([string]::IsNullOrWhiteSpace($appName)) {
             $appName = "WorkIQStarterPack"
         }
@@ -396,8 +408,11 @@ try {
         #Confirm the tenant has Copilot credits available or PayGo is enabled
         $copilotCreditsAvailable = Test-CopilotCreditBalance
 
+        #Confirm that the licenses are available
+        $licensesAvailable = Test-License-PreRequisites -Settings $provisioningSettings
+
         $powerPlatformPermissionsMet = $true
-        if ($isGlobalAdmin -eq $true -and $preRequisitesMet -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
+        if ($isGlobalAdmin -eq $true -and $licensesAvailable -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
             Add-Users -Settings $provisioningSettings
@@ -597,7 +612,8 @@ finally {
     if (Get-Variable installerAuthentication -ErrorAction SilentlyContinue) { $installerAuthentication.Clear() }
     $installerSignIn = $null
     # Always drop the PnP connection, whether the install succeeded or failed
-    Disconnect-PnPOnline -ErrorAction SilentlyContinue
+    # Disconnect-PnPOnline throws a terminating error when there is no connection, which -ErrorAction does not suppress.
+    try { Disconnect-PnPOnline } catch { }
 
     Save-InstallLog -Success ($installSucceeded -eq $true)
 

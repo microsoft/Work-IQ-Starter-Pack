@@ -459,7 +459,6 @@ function Connect-WorkIQPnP {
         return
     }
 
-    Disconnect-PnPOnline -ErrorAction SilentlyContinue
     Connect-PnPOnline -Url $SharePointUrl -ClientId $ClientId -Interactive
     $global:workIQPnPClientId = $ClientId
 }
