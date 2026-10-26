@@ -612,7 +612,8 @@ finally {
     if (Get-Variable installerAuthentication -ErrorAction SilentlyContinue) { $installerAuthentication.Clear() }
     $installerSignIn = $null
     # Always drop the PnP connection, whether the install succeeded or failed
-    Disconnect-PnPOnline -ErrorAction SilentlyContinue
+    # Disconnect-PnPOnline throws a terminating error when there is no connection, which -ErrorAction does not suppress.
+    try { Disconnect-PnPOnline } catch { }
 
     Save-InstallLog -Success ($installSucceeded -eq $true)
 

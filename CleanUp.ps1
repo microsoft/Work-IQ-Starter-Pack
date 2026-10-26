@@ -200,7 +200,7 @@ try {
             Write-InstallLogAction -Message 'PnP.PowerShell installation complete.' -Level Success
         }
         Import-Module PnP.PowerShell -ErrorAction Stop
-        Disconnect-PnPOnline -ErrorAction SilentlyContinue
+        try { Disconnect-PnPOnline } catch { }
         . (Join-Path $PSScriptRoot 'Installation/Services/AppRegService.ps1')
         . (Join-Path $PSScriptRoot 'Installation/Services/TeamsService.ps1')
         $sharePointUrl = "https://$($config.Settings.TenantPrefix).sharepoint.com"
@@ -365,7 +365,7 @@ finally {
     if (Get-Variable cleanupAuthentication -ErrorAction SilentlyContinue) { $cleanupAuthentication.Clear() }
     $signIn = $null
     if (Get-Command Disconnect-PnPOnline -ErrorAction SilentlyContinue) {
-        Disconnect-PnPOnline -ErrorAction SilentlyContinue
+        try { Disconnect-PnPOnline } catch { }
     }
     if (-not $logsRemoved) { Save-InstallLog -Success $cleanupSucceeded }
     if (-not $logsRemoved) { Write-Host "Cleanup log: $script:installLogPath" }
