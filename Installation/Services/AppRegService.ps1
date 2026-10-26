@@ -5,12 +5,6 @@ $WorkIQSettingsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRo
 $WorkIQAppRegistrationPermissions = (Get-Content -Path $WorkIQSettingsPath -Raw | ConvertFrom-Json).AppRegistrationPermissions
 $WorkIQGraphDelegatePermissions = @($WorkIQAppRegistrationPermissions.GraphDelegate)
 $WorkIQGraphApplicationPermissions = @($WorkIQAppRegistrationPermissions.GraphApplication)
-$WorkIQSharePointDelegatePermissions = @($WorkIQAppRegistrationPermissions.SharePointDelegate)
-
-# appIds of the Microsoft Graph and SharePoint Online service principals.
-$GraphResourceAppId = "00000003-0000-0000-c000-000000000000"
-$SharePointResourceAppId = "00000003-0000-0ff1-ce00-000000000000"
-
 
 function Get-AppRegBrowserAccessToken {
     param(
@@ -569,8 +563,6 @@ function Initialize-TeamsChatMigrationCertificate {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ClientId,
-        [Parameter(Mandatory = $true)]
-        [string]$SharePointUrl,
         [string]$CertificateDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Installation/.certs'))
     )
 
