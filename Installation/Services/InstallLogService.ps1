@@ -36,7 +36,21 @@ function Initialize-InstallLog {
     $script:installLogTitle = $Title
     $script:installLogIncludePasswords = $IncludePasswords
     $script:installLogStartTime = Get-Date
-    $script:installLogPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Logs/$FileName"))
+
+    # Each run gets its own file (e.g. InstallLog-2026102701.md) so earlier logs, and the passwords in them, are kept
+    $logDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Logs"))
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($FileName)
+    $extension = [System.IO.Path]::GetExtension($FileName)
+    $datePart = Get-Date -Format "yyyyMMdd"
+    $lastRun = 0
+    if (Test-Path $logDir) {
+        foreach ($existing in Get-ChildItem -Path $logDir -File -Filter "$baseName-$datePart*$extension") {
+            if ($existing.Name -match "^$([regex]::Escape($baseName))-$datePart(\d{2,})$([regex]::Escape($extension))$") {
+                $lastRun = [Math]::Max($lastRun, [int]$Matches[1])
+            }
+        }
+    }
+    $script:installLogPath = Join-Path -Path $logDir -ChildPath ("{0}-{1}{2:00}{3}" -f $baseName, $datePart, ($lastRun + 1), $extension)
     $script:installLogInputs = [System.Collections.Generic.List[object]]::new()
     $script:installLogActions = [System.Collections.Generic.List[object]]::new()
     $script:installLogPasswords = [System.Collections.Generic.List[object]]::new()

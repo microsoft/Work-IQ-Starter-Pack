@@ -28,7 +28,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 
 ## Requirements
 - PowerShell 7.4.0 or later ([install](https://learn.microsoft.com/powershell/scripting/install/installing-powershell)). It is available for Windows, Linux and Mac.
-- The `PnP.PowerShell` module. The installer installs it for the current user if it is missing.
+- The `PnP.PowerShell` module. The installer installs it for the current user if it is missing. It is required to have version 3.4.1 or later.
 - The `Microsoft.PowerApps.Administration.PowerShell` module, used for Dynamics provisioning. It is installed for the current user if it is missing.
 - When Microsoft 365 content is selected, the Work IQ service principal (app ID `fdcc1f02-fc51-4226-8753-f668596af7f7`, set as `WorkIQAppId` in settings.json) must exist and be enabled in the tenant. The installer creates it if it is missing and stops if it is disabled.
 - A **Global Administrator** account (see [Permissions](#permissions)).
@@ -102,7 +102,7 @@ The demo needs 5 users, one for each role. With `InstallDemoUsers: true` the ins
 | Finance 2 | Charlotte Waltson | VP Procurement |
 | Sales | David Power | Sales Director |
 
-New users get a temporary password and must change it at first sign-in. The passwords are written to `Logs/InstallLog.md`. Users that already exist are not recreated or edited (an empty usage location is filled in). License assignment runs only when Microsoft 365 content is selected.
+New users get a temporary password and must change it at first sign-in. The passwords are written to the install log (`Logs/InstallLog-YYYYMMDDXX.md`) of the run that creates the users. Users that already exist are not recreated or edited (an empty usage location is filled in). License assignment runs only when Microsoft 365 content is selected.
 
 To use your own users instead, answer "no" when the installer asks about demo users and enter 5 UPNs, or set `InstallDemoUsers: false` and `RealUserUpns` in the config file. Enter them in the order Marketing, Finance, Security/Governance, Finance 2, Sales. The installer looks them up in Entra ID and replaces the demo names and emails in the content with theirs. Demo user photos are only applied to demo users.
 
@@ -110,10 +110,11 @@ To use your own users instead, answer "no" when the installer asks about demo us
 When Microsoft 365 content is selected, each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps. Dynamics license assignment also runs when Sales & Customer Service content is selected alongside Microsoft 365. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
 
 - **Copilot:** `Microsoft_365_Copilot`, `M365_Copilot`, `M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS`
-- **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`
+- **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`, `Microsoft_365_E5_(no_Teams)`
+- **Teams:** `Microsoft_Teams_Enterprise_New`, `Microsoft_Teams_EEA_New`, `Teams_Ess`, `TEAMS_ESSENTIALS_AAD`, `TEAMS_EXPLORATORY`, `MS_TEAMS_IW`, `M365_TEAMS_PREMIUM` and others listed in settings.json. Only needed when the Office license does not include Teams (its name contains `(no_Teams)` or `w/o Teams`).
 - **Dynamics:** `DYN365_ENTERPRISE_SALES_CUSTOMERSERVICE`, `DYN365_ENTERPRISE_SALES`, `DYN365_ENTERPRISE_CUSTOMER_SERVICE`, `DYN365_FINANCE`
 
-For a new set of 5 demo users, you need 5 available seats each of Copilot and Office. For existing users, the prerequisite check counts only the licenses they are missing.
+For a new set of 5 demo users, you need 5 available seats each of Copilot and Office (plus Teams if your Office SKU has no Teams). For existing users, the prerequisite check counts only the licenses they are missing.
 
 For a Dynamics-only installation (`InstallM365Content: false`), the installer does not check or assign Office, Copilot, or Dynamics licenses. A Copilot license is not required by this installation path; ensure the users have the appropriate Dynamics licenses separately.
 
@@ -160,7 +161,7 @@ The two application permissions are used with certificate authentication. The in
 2. Answer the prompts: tenant prefix, demo or real users, content packs (Microsoft 365, Dynamics 365 Sales & Customer Service, and/or Finance & Operations), environment URLs where applicable, and the app registration. For Sales & Customer Service, you can choose to create a new Dataverse environment instead. If you do not already have an app registration with the required permissions above, answer "no" and the installer creates one.
 3. Sign in when asked and approve admin consent. Sign-in opens a browser; it happens for several of the steps.
 4. Wait for the installer to finish all selected Microsoft 365 and Dynamics operations. Answer any applicable environment creation, F&O setup, and optional Dynamics SharePoint document prompts. Some steps wait for Microsoft 365 to catch up (team and site provisioning, mailbox creation for photos and email, and consent and certificate propagation, which can take a few minutes).
-5. Review `Logs/InstallLog.md`.
+5. Review the install log in `Logs/` (`InstallLog-YYYYMMDDXX.md`).
 
 The installer can be run again. Existing Teams are kept, but their owners and members are reset. Chat history is skipped if the channel was already imported. Emails are deleted and re-delivered.
 
@@ -200,7 +201,7 @@ Depending on the selected packs, it will:
 - Optionally create the F&O customers, products, and sales orders.
 - Optionally deploy SharePoint documents connected to the Dynamics records.
 
-All installation operations are recorded in `Logs/InstallLog.md`.
+All installation operations are recorded in `Logs/InstallLog-YYYYMMDDXX.md`, where `XX` is the run number for that day. Each run writes a new file, so earlier logs are kept.
 
 Use `./CleanUp.ps1` to remove Dynamics data and optionally Microsoft 365 content in the same run. It asks which parts to remove; see [Cleanup](#cleanup).
 
@@ -209,7 +210,7 @@ These are git-ignored:
 - `Content/content.custom.json`: the content with your tenant prefix and users applied. It also records the imported email message IDs.
 - `Configuration/users.custom.json`: your resolved users (real users only).
 - `Installation/.certs/`: the certificate.
-- `Logs/InstallLog.md` and `Logs/CleanUpLog.md`: a run summary, your inputs, and the actions taken for all selected Microsoft 365 and Dynamics operations. The install log also lists the demo user passwords in plain text, so store or delete it securely.
+- `Logs/InstallLog-YYYYMMDDXX.md` and `Logs/CleanUpLog-YYYYMMDDXX.md` (one file per run): a run summary, your inputs, and the actions taken for all selected Microsoft 365 and Dynamics operations. The install log also lists the demo user passwords in plain text, so store or delete it securely.
 
 ## Cleanup
 Run `./CleanUp.ps1` to selectively remove what the installer created, including Dynamics 365 data. It is always interactive and requires PowerShell 7.4 or later and an existing app registration with the required permissions and admin consent already granted. It prompts for the tenant prefix and client ID, using the saved configuration values as defaults. Use `InstallWorkIQStarterPack.ps1` to create or configure the app registration before cleanup if needed.
@@ -223,7 +224,7 @@ It asks which operations to perform:
 
 Dynamics cleanup prompts for the relevant environment URLs, using saved values as defaults. F&O cleanup also requires `DynamicsFOLegalEntityId` in the configuration. Selecting Dynamics cleanup does not automatically select Microsoft 365 cleanup or delete users and Teams.
 
-All selected cleanup operations are recorded in `Logs/CleanUpLog.md`, unless you choose to delete the logs.
+All selected cleanup operations are recorded in `Logs/CleanUpLog-YYYYMMDDXX.md`, unless you choose to delete the logs.
 
 If a site cannot be fully removed (it stays active, is not confirmed purged from the recycle bin, or an error occurs), the cleanup lists those sites at the end with the reason. Remove them manually in the SharePoint admin center, from both Active sites and Deleted sites, and purge any matching deleted group in the Microsoft 365 admin center.
 
