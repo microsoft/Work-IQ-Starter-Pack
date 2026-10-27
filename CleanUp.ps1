@@ -1,4 +1,8 @@
 #Requires -Version 7.4
+param(
+    # Path to the config.json file to read and update. Defaults to Configuration/config.json.
+    [string]$ConfigPath
+)
 
 # Clean selected Microsoft 365, Dynamics Sales & CS, and D365 F&O demo content.
 $ErrorActionPreference = 'Stop'
@@ -64,7 +68,15 @@ function Invoke-MiniCleanupStep {
 }
 
 try {
-    $configPath = Join-Path $PSScriptRoot 'Configuration/config.json'
+    if (-not [string]::IsNullOrWhiteSpace($ConfigPath)) {
+        if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
+            throw "The file passed to -ConfigPath was not found: $ConfigPath"
+        }
+        $configPath = (Resolve-Path -LiteralPath $ConfigPath).ProviderPath
+    }
+    else {
+        $configPath = Join-Path $PSScriptRoot 'Configuration/config.json'
+    }
     $config = Get-Content -LiteralPath $configPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $dynamicsContentPath = Join-Path $PSScriptRoot 'Content/contentDynamics.json'
     $content = Get-Content -LiteralPath $dynamicsContentPath -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
@@ -136,7 +148,7 @@ try {
     if ($deleteDynamics -or $deleteSharePoint) { $requiredSettings += 'DynamicsEnvironmentUrl' }
     if ($deleteFO) { $requiredSettings += @('DynamicsFOEnvironmentUrl','DynamicsFOLegalEntityId') }
     foreach ($setting in $requiredSettings) {
-        if ([string]::IsNullOrWhiteSpace($config.Settings.$setting)) { throw "Settings.$setting is required in Configuration/config.json." }
+        if ([string]::IsNullOrWhiteSpace($config.Settings.$setting)) { throw "Settings.$setting is required in $configPath." }
     }
     $config.Settings.ClientId = $clientId
     $cleanupTokens = @{}
@@ -188,8 +200,8 @@ try {
             Write-InstallLogAction -Message 'PnP.PowerShell installation complete.' -Level Success
         }
         Import-Module PnP.PowerShell -ErrorAction Stop
-        Disconnect-PnPOnline -ErrorAction SilentlyContinue
-        . (Join-Path $PSScriptRoot 'Installation/Services/AppRegistrationService.ps1')
+        try { Disconnect-PnPOnline } catch { }
+        . (Join-Path $PSScriptRoot 'Installation/Services/AppRegService.ps1')
         . (Join-Path $PSScriptRoot 'Installation/Services/TeamsService.ps1')
         $sharePointUrl = "https://$($config.Settings.TenantPrefix).sharepoint.com"
         Connect-PnPOnline -Url $sharePointUrl -ClientId $clientId -Interactive -ErrorAction Stop
@@ -353,7 +365,7 @@ finally {
     if (Get-Variable cleanupAuthentication -ErrorAction SilentlyContinue) { $cleanupAuthentication.Clear() }
     $signIn = $null
     if (Get-Command Disconnect-PnPOnline -ErrorAction SilentlyContinue) {
-        Disconnect-PnPOnline -ErrorAction SilentlyContinue
+        try { Disconnect-PnPOnline } catch { }
     }
     if (-not $logsRemoved) { Save-InstallLog -Success $cleanupSucceeded }
     if (-not $logsRemoved) { Write-Host "Cleanup log: $script:installLogPath" }

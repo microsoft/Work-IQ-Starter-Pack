@@ -18,7 +18,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 
 [Content/content.json](./Content/content.json) describes the Microsoft 365 demo. The installer reads it and uses PnP PowerShell and Microsoft Graph to create:
 
-- Users (optional), their licenses, and profile photos
+- Users (demo users, or your own existing users), their licenses, and profile photos
 - Entra security groups named in a site's optional `Groups` array (no site in the shipped `content.json` defines one), containing the same demo or resolved real users used by `Add-Users`. Existing assigned, non-mail-enabled security groups are reused and missing members added; other members are retained. These security groups are not removed by `CleanUp.ps1`.
 - Microsoft Teams and their SharePoint sites, with channels
 - Documents uploaded with the right authors and dates, and past Teams meetings created on each team's calendar with their transcripts (Word documents) linked from the channel
@@ -85,7 +85,7 @@ The main installer and cleanup use these additional settings for Dynamics operat
 The Microsoft 365 content pack installs the Market Research, Finance, and Procurement teams from `content.json`. When both Microsoft 365 and Sales & Customer Service content are selected, the installer also adds the Sales Team (the site flagged `DynamicsContent`). Dynamics 365 data is provisioned directly by the same installer, even when Microsoft 365 content is not selected. [Configuration/settings.json](./Configuration/settings.json) holds the static installer data: the app registration permissions, the supported license SKUs, and the demo users.
 
 ### Unattended install
-Run `./InstallWorkIQStarterPack.ps1 -UseConfig` to skip every install question and use the values in config.json instead. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
+Run `./InstallWorkIQStarterPack.ps1 -ConfigPath <path-to-config.json>` (for example `-ConfigPath ./Configuration/config.json`) to skip every install question and use the values in that file instead. Without `-ConfigPath` the installer asks its questions and uses `Configuration/config.json`. The installer writes values it learns (such as the `ClientId` of a new app registration) back to the file you pass. The browser sign-in is still required. For a new app registration the admin consent URL is printed and the installer does not wait for it.
 
 The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, `InstallDynamicsFOContent`, `DeployDynamicsDocuments`, `ProvisionUserEmails`, and `ClientId` (set = use that existing app registration; empty = create one, named by `AppRegistrationName`). If `InstallDemoUsers` is false, `RealUserUpns` must contain exactly 5 UPNs.
 
@@ -180,13 +180,13 @@ The sample documents live under [Content/Documents](./Content/Documents), in the
 [Prompts/DocumentGenerationPrompt.md](./Content/Documents/Prompts/DocumentGenerationPrompt.md) is the prompt used to author the demo content: documents, meeting transcripts, email threads, and Teams chats. It fixes the product, supplier, and raw-material names so everything stays consistent across the demos.
 
 To generate new content:
-1. Open this repository in Claude.
+1. Open this repository in an AI assistant that can read and write files.
 2. Ask it to create documents based on the `Content/Documents/Prompts/DocumentGenerationPrompt.md` prompt, for example: "Create documents based on the DocumentGenerationPrompt.md prompt."
 3. Review the generated files under `Content/Documents/<DemoName>/`.
 4. Make sure any new items are registered in [Content/content.json](./Content/content.json) so the installer uploads them.
 5. Run the installer again (see [Instructions](#instructions)).
 
-To change the scenario or the names used, edit the prompt before asking Claude to generate the content.
+To change the scenario or the names used, edit the prompt before asking the assistant to generate the content.
 
 ## Dynamics 365 content
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
