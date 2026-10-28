@@ -79,6 +79,7 @@ function Add-Users {
         }
         catch {
             Write-Host "Failed to process $($user.Email): $($_.Exception.Message)" -ForegroundColor Red
+            throw
         }
     }
 }
