@@ -7,9 +7,6 @@ $WorkIQGraphDelegatePermissions = @($WorkIQAppRegistrationPermissions.GraphDeleg
 $WorkIQGraphApplicationPermissions = @($WorkIQAppRegistrationPermissions.GraphApplication)
 $WorkIQSharePointDelegatePermissions = @($WorkIQAppRegistrationPermissions.SharePointDelegate)
 
-# appIds of the Microsoft Graph and SharePoint Online service principals.
-$GraphResourceAppId = "00000003-0000-0000-c000-000000000000"
-$SharePointResourceAppId = "00000003-0000-0ff1-ce00-000000000000"
 
 
 function Get-AppRegBrowserAccessToken {

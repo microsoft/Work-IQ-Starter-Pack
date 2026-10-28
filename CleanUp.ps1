@@ -289,6 +289,7 @@ try {
         try {
             . (Join-Path $PSScriptRoot 'Installation/Services/UserService.ps1')
             . (Join-Path $PSScriptRoot 'Installation/Services/EmailService.ps1')
+            . (Join-Path $PSScriptRoot 'Installation/Services/SharePointService.ps1')
             # Load the installation settings file from file system
             $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
             $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
@@ -322,6 +323,7 @@ try {
 
             # Tear down in the reverse order the installer creates things: Teams/groups/sites first, then users.
             Remove-Teams -ContentPath $contentPath -Config $config
+            Remove-SiteTermGroup
             Remove-Users -Settings $settings
 
             # Generated files: the real-user mapping and persona-swapped content from "existing users" installs
