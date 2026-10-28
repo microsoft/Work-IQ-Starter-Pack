@@ -117,5 +117,19 @@
         "PermissionId":  "7fe904eb-5276-4ddc-ab01-67e4d708b664",
         "PermissionName":  "CopilotCostManagement-Policy.Read.All",
         "PermissionType":  "Scope"
+    },
+    {
+        "ResourceId":  "00000003-0000-0ff1-ce00-000000000000",
+        "ResourceName":  "SharePoint",
+        "PermissionId":  "59a198b5-0420-45a8-ae59-6da1cb640505",
+        "PermissionName":  "TermStore.ReadWrite.All",
+        "PermissionType":  "Scope"
+    },
+    {
+        "ResourceId":  "00000003-0000-0000-c000-000000000000",
+        "ResourceName":  "Microsoft Graph",
+        "PermissionId":  "39d65650-9d3e-4223-80db-a335590d027e",
+        "PermissionName":  "TeamSettings.ReadWrite.All",
+        "PermissionType":  "Scope"
     }
 ]

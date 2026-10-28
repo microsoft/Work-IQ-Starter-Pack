@@ -1,15 +1,25 @@
-#Requires -Version 7.4
+# Requires -Version 7.4
 param(
     # Path to the config.json file to read and update. Defaults to Configuration/config.json.
-    [string]$ConfigPath
+    [Alias('Config')]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConfigPath = (Join-Path $PSScriptRoot 'Configuration/config.json')
 )
 
 # Clean selected Microsoft 365, Dynamics Sales & CS, and D365 F&O demo content.
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Installation/Services/ConfigurationService.ps1')
+$configurationPaths = Get-WorkIQConfigurationPaths -ConfigPath $ConfigPath -RepositoryRoot $PSScriptRoot
+$configPath = $configurationPaths.ConfigPath
+$customContentPath = $configurationPaths.CustomContentPath
+$customUsersPath = $configurationPaths.CustomUsersPath
+$migrationCertificatePath = $configurationPaths.CertificatePath
+$logsPath = $configurationPaths.LogDirectory
 $cleanupSucceeded = $false
 $logsRemoved = $false
 . (Join-Path $PSScriptRoot 'Installation/Services/InstallLogService.ps1')
-Initialize-InstallLog -Title 'WorkIQ Starter Pack Cleanup Log' -FileName 'CleanUpLog.md' -IncludePasswords $false
+Initialize-InstallLog -Title 'WorkIQ Starter Pack Cleanup Log' -FileName 'CleanUpLog.md' -IncludePasswords $false -LogDirectory $logsPath
+Write-InstallLogInput -Prompt 'Configuration file' -Response $configPath
 
 function Remove-GeneratedFile {
     param(
@@ -17,8 +27,8 @@ function Remove-GeneratedFile {
         [string]$Description
     )
 
-    if (Test-Path $Path) {
-        Remove-Item -Path $Path -Recurse -Force
+    if (Test-Path -LiteralPath $Path) {
+        Remove-Item -LiteralPath $Path -Recurse -Force
         Write-InstallLogAction -Message "Removed $Description at $Path."
     }
     else {
@@ -114,7 +124,7 @@ try {
     }
 
     $removeMicrosoft365 = Read-MiniCleanupChoice 'Do you want to remove the demo Teams (and their groups and sites), demo users, imported emails, and generated files?' -Default $true
-    $removeLogs = Read-MiniCleanupChoice "Do you also want to delete the installation logs (Logs/ - these contain the demo users' temporary passwords)?"
+    $removeLogs = Read-MiniCleanupChoice "Do you also want to delete the installation logs ($logsPath - these contain the demo users' temporary passwords)?"
     $removeAppRegistration = Read-MiniCleanupChoice "Do you also want to remove the application registration (ClientId: $clientId) and its service principal from Entra ID, and delete the local Teams chat migration certificate? Only do this if this script originally created the app registration for you - skip if you supplied a pre-existing one."
     Write-Host 'D365 Sales & CS cleanup deletes demo Emails, Cases, Invoices, Orders, Quotes, Opportunities, Leads, Accounts, and Product catalog records by their IDs in Content/contentDynamics.json.'
     $deleteDynamics = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Sales and Customer Service (D365 Sales & CS) demo data?'
@@ -192,7 +202,6 @@ try {
     if ($deleteSharePoint) { $null = & $cleanupTokenProvider "https://$($config.Settings.TenantPrefix).sharepoint.com/.default" }
     $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath -ErrorAction Stop
 
-    $logsPath = Join-Path $PSScriptRoot 'Logs'
     if ($removeMicrosoft365 -or $removeAppRegistration) {
         if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
             Write-InstallLogAction -Message 'PnP.PowerShell is missing. Installing it for the current user...'
@@ -289,6 +298,7 @@ try {
         try {
             . (Join-Path $PSScriptRoot 'Installation/Services/UserService.ps1')
             . (Join-Path $PSScriptRoot 'Installation/Services/EmailService.ps1')
+            . (Join-Path $PSScriptRoot 'Installation/Services/SharePointService.ps1')
             # Load the installation settings file from file system
             $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
             $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
@@ -299,19 +309,14 @@ try {
             # The sites to remove always come from the pristine content.json; the custom (persona-swapped)
             # copy defines the same sites.
             $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.json"
-            $customContentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
-            $customUsersPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/users.custom.json"
-            $logsPath = Join-Path -Path $PSScriptRoot -ChildPath "Logs"
-
             # Deleting from real user mailboxes requires a Teams chat migration certificate and access token.
-            $migrationCertificatePath = Join-Path -Path $PSScriptRoot -ChildPath "Installation/.certs/teams-chat-migration.pfx"
-            if (((Test-Path $customUsersPath) -or (Test-Path $customContentPath)) -and (Test-Path $migrationCertificatePath)) {
+            if (((Test-Path -LiteralPath $customUsersPath) -or (Test-Path -LiteralPath $customContentPath)) -and (Test-Path -LiteralPath $migrationCertificatePath)) {
                 try {
                     $mailToken = Get-TeamsChatMigrationAccessToken -ClientId $config.Settings.ClientId `
                         -TenantPrefix $config.Settings.TenantPrefix -CertificatePath $migrationCertificatePath
                     $mailSettings = $null
-                    if (Test-Path $customUsersPath) {
-                        $mailSettings = [PSCustomObject]@{ Users = (Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json) }
+                    if (Test-Path -LiteralPath $customUsersPath) {
+                        $mailSettings = [PSCustomObject]@{ Users = (Get-Content -LiteralPath $customUsersPath -Raw | ConvertFrom-Json) }
                     }
                     Remove-ImportedEmails -Settings $mailSettings -ContentPath $customContentPath -MailHeaders @{ Authorization = "Bearer $mailToken" }
                 }
@@ -322,6 +327,7 @@ try {
 
             # Tear down in the reverse order the installer creates things: Teams/groups/sites first, then users.
             Remove-Teams -ContentPath $contentPath -Config $config
+            Remove-SiteTermGroup
             Remove-Users -Settings $settings
 
             # Generated files: the real-user mapping and persona-swapped content from "existing users" installs
@@ -347,7 +353,7 @@ try {
     if ($failures.Count) { throw ($failures -join ' | ') }
     if ($removeAppRegistration) {
         Remove-AppRegistration -ClientId $clientId
-        Remove-TeamsChatMigrationCertificate
+        Remove-TeamsChatMigrationCertificate -CertificateDirectory $configurationPaths.CertificateDirectory
     }
     if ($removeLogs) {
         Remove-GeneratedFile -Path $logsPath -Description 'installation logs'

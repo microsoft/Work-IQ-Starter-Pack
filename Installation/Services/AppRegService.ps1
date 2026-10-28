@@ -1,16 +1,10 @@
-﻿# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
+# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
 # Runtime SharePoint, Graph token, and certificate helpers retain installer compatibility.
 # get the permissions from the settings file.
 $WorkIQSettingsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Configuration/settings.json"))
 $WorkIQAppRegistrationPermissions = (Get-Content -Path $WorkIQSettingsPath -Raw | ConvertFrom-Json).AppRegistrationPermissions
 $WorkIQGraphDelegatePermissions = @($WorkIQAppRegistrationPermissions.GraphDelegate)
 $WorkIQGraphApplicationPermissions = @($WorkIQAppRegistrationPermissions.GraphApplication)
-$WorkIQSharePointDelegatePermissions = @($WorkIQAppRegistrationPermissions.SharePointDelegate)
-
-# appIds of the Microsoft Graph and SharePoint Online service principals.
-$GraphResourceAppId = "00000003-0000-0000-c000-000000000000"
-$SharePointResourceAppId = "00000003-0000-0ff1-ce00-000000000000"
-
 
 function Get-AppRegBrowserAccessToken {
     param(
@@ -580,18 +574,17 @@ function Initialize-TeamsChatMigrationCertificate {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ClientId,
-        [Parameter(Mandatory = $true)]
-        [string]$SharePointUrl
+        [string]$CertificateDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Installation/.certs'))
     )
 
     $step = "prepare the certificate files"
 
     try {
-        $certDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Installation/.certs"))
+        $certDir = $CertificateDirectory
         $pfxPath = Join-Path -Path $certDir -ChildPath "teams-chat-migration.pfx"
         $cerPath = Join-Path -Path $certDir -ChildPath "teams-chat-migration.cer"
 
-        if ((Test-Path $pfxPath) -and (Test-Path $cerPath)) {
+        if ((Test-Path -LiteralPath $pfxPath) -and (Test-Path -LiteralPath $cerPath)) {
             Write-Host "Reusing existing Teams chat migration certificate files at $certDir."
         }
         else {
@@ -669,11 +662,13 @@ function Remove-AppRegistration {
 }
 
 function Remove-TeamsChatMigrationCertificate {
-    try {
-        $certDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Installation/.certs"))
+    param([string]$CertificateDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Installation/.certs')))
 
-        if (Test-Path $certDir) {
-            Remove-Item -Path $certDir -Recurse -Force
+    try {
+        $certDir = $CertificateDirectory
+
+        if (Test-Path -LiteralPath $certDir) {
+            Remove-Item -LiteralPath $certDir -Recurse -Force
             Write-InstallLogAction "Removed local Teams chat migration certificate files at $certDir."
         }
         else {
