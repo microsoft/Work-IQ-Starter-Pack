@@ -210,6 +210,8 @@ function Add-SiteTermSets {
                 Write-InstallLogAction -Message "Term set '$($column.TermSet)' already exists, skipping creation."
             }
 
+            # Give the term store a moment to propagate the new term group/set before adding terms.
+            Start-Sleep -Seconds 30
             $existingTerms = @(Get-PnPTerm -TermSet $column.TermSet -TermGroup $groupName -Connection $Connection -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
             foreach ($termName in @($column.Terms | Where-Object { $_ })) {
                 if ($existingTerms -contains $termName) {
