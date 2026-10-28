@@ -431,10 +431,11 @@ function Set-AppRegistrationConfig {
     )
 
     try {
-        $config = Get-Content -LiteralPath $ConfigPath -Raw | ConvertFrom-Json
-        $config.Settings.ClientId = $ClientId
-        $config.Settings.TenantPrefix = $TenantPrefix
-        $config | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $ConfigPath
+        $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
+        # Add-Member -Force so a config.json that omits these keys still gets them.
+        $config.Settings | Add-Member -NotePropertyName ClientId -NotePropertyValue $ClientId -Force
+        $config.Settings | Add-Member -NotePropertyName TenantPrefix -NotePropertyValue $TenantPrefix -Force
+        $config | ConvertTo-Json -Depth 20 | Set-Content -Path $ConfigPath
         Write-InstallLogAction -Message "Updated config.json with ClientId: $ClientId and TenantPrefix: $TenantPrefix"
         return $true
     }

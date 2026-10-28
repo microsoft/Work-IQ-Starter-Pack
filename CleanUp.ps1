@@ -5,6 +5,7 @@ param(
 )
 
 param(
+    # Path to the config.json file to read and update. Defaults to Configuration/config.json.
     [Alias('Config')]
     [ValidateNotNullOrEmpty()]
     [string]$ConfigPath = (Join-Path $PSScriptRoot 'Configuration/config.json')
