@@ -42,6 +42,15 @@ function Add-TeamSite {
             Remove-TeamAccess -GroupId $groupId -Site $Site | Out-Null
             Add-TeamAccess -GroupId $groupId -Site $Site | Out-Null
         }
+        # Applies to new and existing teams
+        try {
+            $logoPath = Join-Path $PSScriptRoot "../../Content/UserPhotos/CaldovaLogo.png"
+            Set-PnPTeamsTeamPicture -Team $groupId -Path $logoPath
+            Write-InstallLogAction -Message "Set team photo for '$($Site.Title)'."
+        }
+        catch {
+            Write-InstallLogAction -Message "Failed to set team photo for '$($Site.Title)': $($_.Exception.Message)" -Level Warning
+        }
         Remove-DefaultChannelTabs -GroupId $groupId -Site $Site
         return $true
     }

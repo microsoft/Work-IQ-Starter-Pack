@@ -1,14 +1,14 @@
 param(
-    # Path to a config.json file. When supplied, every install question is skipped and the installer runs
-    # straight from that file (for CLI/automated installs). Omit it to be prompted and use Configuration/config.json.
-    [string]$ConfigPath
+    # Read install choices from the selected file; browser sign-in is still required.
+    [Alias('Config')]
+    [ValidateNotNullOrEmpty()]
+    [string]$ConfigPath = (Join-Path $PSScriptRoot 'Configuration/config.json')
 )
 
-# Passing -ConfigPath is what switches the installer to unattended mode.
-$UseConfig = -not [string]::IsNullOrWhiteSpace($ConfigPath)
-if ($UseConfig -and -not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
-    throw "The file passed to -ConfigPath was not found: $ConfigPath"
-}
+$UseConfig = $PSBoundParameters.ContainsKey('ConfigPath')
+. (Join-Path $PSScriptRoot 'Installation/Services/ConfigurationService.ps1')
+$configurationPaths = Get-WorkIQConfigurationPaths -ConfigPath $ConfigPath -RepositoryRoot $PSScriptRoot
+$configPath = $configurationPaths.ConfigPath
 
 try {
     if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
@@ -50,13 +50,7 @@ try {
     }
     Write-Host ""
     # Load the configuration file from file system
-    if ($UseConfig) {
-        $configPath = (Resolve-Path -LiteralPath $ConfigPath).ProviderPath
-    }
-    else {
-        $configPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/config.json"
-    }
-    $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+    $config = $configurationPaths.Config
 
     # Load the installation settings file from file system
     $settingsPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/settings.json"
@@ -66,9 +60,10 @@ try {
     # InstallDemoUsers is false, the real users' resolved identities and the persona-swapped
     # content live in these separate "custom" files instead, so the demo definitions are never
     # overwritten.
-    $customUsersPath = Join-Path -Path $PSScriptRoot -ChildPath "Configuration/users.custom.json"
+    $customUsersPath = $configurationPaths.CustomUsersPath
     $contentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.json"
-    $customContentPath = Join-Path -Path $PSScriptRoot -ChildPath "Content/content.custom.json"
+    $customContentPath = $configurationPaths.CustomContentPath
+    New-Item -Path (Split-Path $customContentPath -Parent) -ItemType Directory -Force | Out-Null
 
     #Load App Registration Service file
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/AppRegService.ps1")
@@ -76,12 +71,13 @@ try {
     # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/InstallLogService.ps1")
-    Initialize-InstallLog
+    Initialize-InstallLog -LogDirectory $configurationPaths.LogDirectory
+    Write-InstallLogInput -Prompt 'Configuration file' -Response $configPath
 
     $currentTenant = $config.Settings.TenantPrefix
     if ($UseConfig) {
         if ([string]::IsNullOrWhiteSpace($currentTenant)) {
-            throw "-ConfigPath requires Settings.TenantPrefix in config.json."
+            throw "-Config requires Settings.TenantPrefix in '$configPath'."
         }
         $tenant = $currentTenant
     }
@@ -99,7 +95,7 @@ try {
     }
 
     $config.Settings.TenantPrefix = ($tenant -replace '\.onmicrosoft\.com$', '')
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
     Write-InstallLogInput -Prompt "Tenant prefix" -Response $config.Settings.TenantPrefix
 
     foreach ($user in $settings.Users) {
@@ -109,7 +105,7 @@ try {
     # slots at real, existing users instead. The UPNs are collected here.
     $provisionDemoUsers = if ($UseConfig) { [bool]$config.Settings.InstallDemoUsers } else { Read-YesNo "Do you want to provision the built-in demo users?" -Default $true }
     $config.Settings.InstallDemoUsers = $provisionDemoUsers
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
     Write-InstallLogInput -Prompt "Provision the built-in demo users?" -Response $(if ($provisionDemoUsers) { "Yes" } else { "No" })
 
     # Persisted so the email import step can be gated on it later. Demo users always get emails.
@@ -138,7 +134,7 @@ try {
 
         $configUpns = @($config.Settings.RealUserUpns)
         if ($UseConfig -and ($configUpns.Count -ne $demoRoles.Count -or @($configUpns | Where-Object { [string]::IsNullOrWhiteSpace($_) }).Count -gt 0)) {
-            throw "-ConfigPath with InstallDemoUsers=false requires Settings.RealUserUpns in config.json to list $($demoRoles.Count) UPNs."
+            throw "-Config with InstallDemoUsers=false requires Settings.RealUserUpns in '$configPath' to list $($demoRoles.Count) UPNs."
         }
 
         $savedContentUpns = @()
@@ -177,7 +173,7 @@ try {
 
     # Add-Member -Force so configs that predate this setting still work.
     $config.Settings | Add-Member -NotePropertyName ProvisionUserEmails -NotePropertyValue $provisionEmails -Force
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
 
     $installM365Content = if ($UseConfig) { [bool]$config.Settings.InstallM365Content } else { Read-YesNo "Do you want to install the M365 WorkIQ Starter Pack Content?" -Default $true }
     Write-InstallLogInput -Prompt "Install the M365 WorkIQ Starter Pack Content?" -Response $(if ($installM365Content) { "Yes" } else { "No" })
@@ -213,7 +209,8 @@ try {
         Write-InstallLogInput -Prompt "D365 Sales & CS environment URL" -Response $environmentUrl
         }
     }
-    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
+    # Declining D365 Sales & CS skips the remaining Dynamics questions in interactive mode.
+    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } elseif (-not $installDynamicsContent) { $false } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
     Write-InstallLogInput -Prompt "Install the D365 F&O WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsFOContent) { "Yes" } else { "No" })
     if ($installDynamicsFOContent) {
         $foEnvironmentUrl = $config.Settings.DynamicsFOEnvironmentUrl
@@ -242,7 +239,7 @@ try {
     }
     $config.Settings.InstallDynamicsContent = $installDynamicsContent
     $config.Settings | Add-Member -NotePropertyName InstallDynamicsFOContent -NotePropertyValue $installDynamicsFOContent -Force
-    $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
 
     # Scope app registration creation, updates, and consent to the selected APIs.
     $requiredResourceIds = @(
@@ -257,7 +254,7 @@ try {
         $requiredResourceIds += '00000015-0000-0000-c000-000000000000' # Dynamics ERP
     }
     # Check if the user needs the app registration created
-    # With -ConfigPath, a ClientId in config.json means use that existing app registration; otherwise one is created.
+    # With -Config, a ClientId in the selected file means use that app registration; otherwise one is created.
     $hasAppRegistration = if ($UseConfig) { -not [string]::IsNullOrWhiteSpace($config.Settings.ClientId) } else { Read-YesNo "Do you have an existing Application Registration? Please review the README.md file for the level of permissions required." -Default $false }
     Write-InstallLogInput -Prompt "Do you have an existing Application Registration?" -Response $(if ($hasAppRegistration) { "Yes" } else { "No" })
 
@@ -283,7 +280,7 @@ try {
         Write-InstallLogInput -Prompt "Application registration client ID" -Response $clientId
 
         $config.Settings.ClientId = $clientId
-        $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+        $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
 
         Write-InstallLogAction -Message "Client ID saved to $configPath" -Level Success
 
@@ -302,7 +299,7 @@ try {
         Set-AppRegistrationConfig -ClientId $registration.ClientId -TenantPrefix $registration.TenantPrefix -ConfigPath $configPath | Out-Null
 
         # Reload configuration in case Set-AppRegistrationConfig updated config.json.
-        $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+        $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
     }
 
     # One browser sign-in for the registered app; reuse its refresh token for APIs.
@@ -334,12 +331,6 @@ try {
     $global:graphBaseUrl = 'https://graph.microsoft.com/v1.0'
     $global:headers = @{ Authorization = "Bearer $(& $installerTokenProvider 'https://graph.microsoft.com/.default')" }
 
-    if ($installM365Content) {
-        Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
-        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com"
-        . (Join-Path $PSScriptRoot 'Installation/Services/WorkIQService.ps1')
-        Enable-WorkIQServicePrincipal -Settings $settings | Out-Null
-    }
     if ([string]::IsNullOrWhiteSpace($config.Settings.ClientId)) {
         throw "No application registration client ID was found in config.json."
     }
@@ -347,7 +338,7 @@ try {
     # If the installer opted out of the demo users, look up each supplied UPN's real profile in
     # Entra ID. Resolved users go into Configuration/users.custom.json and the persona-swapped content into
     # Content/content.custom.json - settings.json's
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1") -ImportedPostsPath $configurationPaths.ImportedPostsPath
     if ($null -eq $realUserUpns) {
         Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -TenantPrefix $config.Settings.TenantPrefix
     }
@@ -357,56 +348,84 @@ try {
         $demoUsers = $settings.Users | ForEach-Object { $_.PSObject.Copy() }
         $customUsersSettings = [PSCustomObject]@{ Users = ($settings.Users | ForEach-Object { $_.PSObject.Copy() }) }
         $customUsersSettings = Resolve-RealUsers -Settings $customUsersSettings -RealUserUpns $realUserUpns
-        $customUsersSettings.Users | ConvertTo-Json -Depth 10 | Set-Content -Path $customUsersPath
+        $customUsersSettings.Users | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $customUsersPath
 
         Update-ContentPersonas -SourcePath $contentPath -OutputPath $customContentPath -TenantPrefix $config.Settings.TenantPrefix -DemoUsers $demoUsers -RealUsers $customUsersSettings.Users -RealUserUpns $realUserUpns
     }
 
     # ---------------------Start App Configuration------------------------------------
-    # The Global Administrator check is shared with the Dynamics installer.
+    # Check the lab prerequisites for every content pack before provisioning.
     . (Join-Path $PSScriptRoot 'Installation/Services/PowerPlatformService.ps1') -AccessTokenProvider $installerTokenProvider
+    $isGlobalAdmin = Test-GlobalAdminPreRequisite
+    if (-not $isGlobalAdmin) {
+        throw "One or more prerequisites were not met. Please review the messages above."
+    }
+
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
+
+    $provisioningSettings = $settings
+    if (-not $config.Settings.InstallDemoUsers) {
+        $provisioningSettings = $settings.PSObject.Copy()
+        $provisioningSettings.Users = Get-Content -LiteralPath $customUsersPath -Raw | ConvertFrom-Json
+    }
+
+    $preRequisitesMet = Test-License-PreRequisites -Settings $provisioningSettings
+    $copilotCreditsAvailable = Test-CopilotCreditBalance
+    if (-not $preRequisitesMet -or -not $copilotCreditsAvailable) {
+        throw "One or more prerequisites were not met. Please review the messages above."
+    }
+
+    Enable-WorkIQServicePrincipal -Settings $settings | Out-Null
+    $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
+    if (-not $workIQEnabled) {
+        throw "One or more prerequisites were not met. Please review the messages above."
+    }
+    Write-Host "All pre-requisites are met. Proceeding with user provisioning."
+
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
+    Invoke-InstallStep -Description 'Provisioning Users and Licenses' -Action {
+        Add-Users -Settings $provisioningSettings
+    }
 
     # M365 provisioning runs only when its content pack was selected.
     if ($installM365Content) {
+        Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
+        Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -CertificateDirectory $configurationPaths.CertificateDirectory
+
         #Load services files
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/TeamsService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/SharePointService.ps1")
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1")
+        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/ContentService.ps1") -ImportedPostsPath $configurationPaths.ImportedPostsPath
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/EmailService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/MeetingService.ps1")
 
 
         # Teams chat history import uses Microsoft Graph's message migration API - need a seprate connection specifically for migration using a cert.
-        $migrationCertificatePath = Join-Path -Path $PSScriptRoot -ChildPath "Installation/.certs/teams-chat-migration.pfx"
-        if (-not (Test-Path $migrationCertificatePath)) {
+        $migrationCertificatePath = $configurationPaths.CertificatePath
+        if (-not (Test-Path -LiteralPath $migrationCertificatePath)) {
             throw "Teams chat migration certificate not found at $migrationCertificatePath. Run InstallWorkIQStarterPack.ps1 again once admin consent has been granted."
         }
         $migrationToken = Get-TeamsChatMigrationAccessToken -ClientId $config.Settings.ClientId `
             -TenantPrefix $config.Settings.TenantPrefix -CertificatePath $migrationCertificatePath
         $migrationHeaders = @{ Authorization = "Bearer $migrationToken" }
 
-        # Demo users provisioned -> use settings.json's own Users and Content/content.json as-is.
-        # Existing users instead -> swap in the resolved identities from users.custom.json and
-        # the persona-swapped content.custom.json, without ever touching the demo definitions.
-        $provisioningSettings = $settings
         $activeContentPath = $customContentPath
-        if (-not $config.Settings.InstallDemoUsers) {
-            $customUsers = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
-            $provisioningSettings = $settings.PSObject.Copy()
-            $provisioningSettings.Users = $customUsers
+
+        if ($config.Settings.InstallDemoUsers) {
+            Add-UserPhotos -Settings $provisioningSettings
         }
 
-        #Check to see if the current user is a Global Administrator before checking license availability
-        $isGlobalAdmin = Test-GlobalAdminPreRequisite
-        
-        #Check to see if WorkIQ service principal is enabled
-        $workIQEnabled = Test-WorkIQServicePrincipalEnabled -Settings $settings
+        # Parse the content file once and provision it one site at a time: each site gets its team,
+        # documents, lists/libraries, chats and emails before moving on to the next.
+        $contentConfig = Get-Content -LiteralPath $activeContentPath -Raw | ConvertFrom-Json
+        $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
 
-        #Confirm the tenant has Copilot credits available or PayGo is enabled
-        $copilotCreditsAvailable = Test-CopilotCreditBalance
+        # The same certificate token carries Mail.ReadWrite, so it also serves the inbox import.
+        # $settings.Users are always the demo personas the email markdown is written with.
+        if (-not $config.Settings.ProvisionUserEmails) {
+            Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
+        }
 
         #Confirm that the licenses are available
         $licensesAvailable = Test-License-PreRequisites -Settings $provisioningSettings
@@ -415,64 +434,27 @@ try {
         if ($isGlobalAdmin -eq $true -and $licensesAvailable -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
             Write-Host "All pre-requisites are met. Proceeding with user provisioning."
 
-            Add-Users -Settings $provisioningSettings
-            if ($config.Settings.InstallDemoUsers) {
-                Add-UserPhotos -Settings $provisioningSettings
+            Add-Groups -Site $site -Settings $provisioningSettings
+
+            if (-not (Add-TeamSite -Site $site -Config $config)) {
+                Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
+                continue
             }
 
-            # Parse the content file once and provision it one site at a time: each site gets its team,
-            # documents, lists/libraries, chats and emails before moving on to the next.
-            $contentConfig = Get-Content -Path $activeContentPath -Raw | ConvertFrom-Json
-            $runJitter = [TimeSpan]::FromMilliseconds((Get-Date).Second * 1000 + (Get-Date).Millisecond)
-
-            # The same certificate token carries Mail.ReadWrite, so it also serves the inbox import.
-            # $settings.Users are always the demo personas the email markdown is written with.
-            if (-not $config.Settings.ProvisionUserEmails) {
-                Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
+            Import-SiteDocuments -Site $site -Config $config
+            Add-SiteListsAndLibraries -Site $site -Config $config
+            # The meeting posts are imported with the chats: a channel can only be migrated once.
+            $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
+            Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
+            if ($config.Settings.ProvisionUserEmails) {
+                Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
             }
-
-            foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
-                Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
-
-                Add-Groups -Site $site -Settings $provisioningSettings
-
-                if (-not (Add-TeamSite -Site $site -Config $config)) {
-                    Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
-                    continue
-                }
-
-                Import-SiteDocuments -Site $site -Config $config
-                Add-SiteListsAndLibraries -Site $site -Config $config
-                # The meeting posts are imported with the chats: a channel can only be migrated once.
-                $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
-                Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
-                if ($config.Settings.ProvisionUserEmails) {
-                    Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
-                }
-            }
-        }
-        else {
-            Write-InstallLogAction -Message "One or more prerequisites were not met. Please review the messages above." -Level Error
-            exit 1
         }
     }
 
     if ($installDynamicsContent -or $installDynamicsFOContent) {
         # Dynamics provisioning reuses the shared identities and app registration.
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1") -AccessTokenProvider $installerTokenProvider
-        $provisioningSettings = $settings
-        if (-not $config.Settings.InstallDemoUsers) {
-            $provisioningSettings = $settings.PSObject.Copy()
-            $provisioningSettings.Users = Get-Content -Path $customUsersPath -Raw | ConvertFrom-Json
-        }
-
-        if (-not $installM365Content) {
-            $isGlobalAdmin = Test-GlobalAdminPreRequisite
-            if (-not $isGlobalAdmin) {
-                throw "One or more prerequisites were not met. Please review the messages above."
-            }
-        }
 
         if ($config.Settings.InstallDynamicsContent -eq $true) {
             if ($createDynamicsEnvironment) {
@@ -505,17 +487,11 @@ try {
                 $environmentUrl = $newEnvironmentUri.GetLeftPart([UriPartial]::Authority)
                 $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentId -NotePropertyValue $newEnvironment.environmentId -Force
                 $config.Settings | Add-Member -NotePropertyName DynamicsEnvironmentUrl -NotePropertyValue $environmentUrl -Force
-                $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+                $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
                 Write-InstallLogAction -Message "Using new Dataverse environment '$($newEnvironment.environmentId)' at $environmentUrl. Configuration saved." -Level Success
             }
             $dynamicsEnvironment = Show-DynamicsEnvironmentSecurityGroup -Config $config
         }
-        if (-not $installM365Content) {
-            Invoke-InstallStep -Description 'Provisioning Demo Users' -Action {
-                Add-Users -Settings $provisioningSettings -SkipLicenses
-            }
-        }
-
         if ($config.Settings.InstallDynamicsContent -eq $true) {
             Invoke-InstallStep -Description 'Synchronizing Users with Dataverse' -Action {
                 Initialize-PowerPlatformUsers -Config $config -Settings $provisioningSettings -Environment $dynamicsEnvironment
@@ -574,7 +550,7 @@ try {
             }
             $deployDynamicsDocuments = if ($UseConfig) { [bool]$config.Settings.DeployDynamicsDocuments } else { Read-YesNo 'Do you want to deploy the SharePoint Documents connected to D365 Sales & CS?' -Default $false }
             $config.Settings | Add-Member -NotePropertyName DeployDynamicsDocuments -NotePropertyValue $deployDynamicsDocuments -Force
-            $config | ConvertTo-Json -Depth 10 | Set-Content -Path $configPath
+            $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
             Write-InstallLogInput -Prompt 'Deploy SharePoint Documents connected to D365 Sales & CS?' -Response $(if ($deployDynamicsDocuments) { 'Yes' } else { 'No' })
             if ($deployDynamicsDocuments) {
                 . (Join-Path $PSScriptRoot 'Installation/Services/DynamicsSharePointService.ps1') -AccessTokenProvider $installerTokenProvider
@@ -614,10 +590,11 @@ finally {
     # Always drop the PnP connection, whether the install succeeded or failed
     # Disconnect-PnPOnline throws a terminating error when there is no connection, which -ErrorAction does not suppress.
     try { Disconnect-PnPOnline } catch { }
+    $global:workIQPnPClientId = $null
 
     Save-InstallLog -Success ($installSucceeded -eq $true)
 
-    if (Test-Path $script:installLogPath) {
+    if (Test-Path -LiteralPath $script:installLogPath) {
         # file:// URI makes this a clickable link in terminals that support it (e.g. VS Code's).
         $logLink = "file://$($script:installLogPath -replace '\\', '/')"
         Write-Host ""

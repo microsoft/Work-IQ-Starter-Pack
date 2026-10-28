@@ -30,13 +30,28 @@ function Initialize-InstallLog {
     param(
         [string]$Title = "WorkIQ Starter Pack Installation Log",
         [string]$FileName = "InstallLog.md",
-        [bool]$IncludePasswords = $true
+        [bool]$IncludePasswords = $true,
+        [string]$LogDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Logs'))
     )
 
     $script:installLogTitle = $Title
     $script:installLogIncludePasswords = $IncludePasswords
     $script:installLogStartTime = Get-Date
-    $script:installLogPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Logs/$FileName"))
+
+    # Each run gets its own file (e.g. InstallLog-2026102701.md) so earlier logs, and the passwords in them, are kept
+    $logDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Logs"))
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($FileName)
+    $extension = [System.IO.Path]::GetExtension($FileName)
+    $datePart = Get-Date -Format "yyyyMMdd"
+    $lastRun = 0
+    if (Test-Path $logDir) {
+        foreach ($existing in Get-ChildItem -Path $logDir -File -Filter "$baseName-$datePart*$extension") {
+            if ($existing.Name -match "^$([regex]::Escape($baseName))-$datePart(\d{2,})$([regex]::Escape($extension))$") {
+                $lastRun = [Math]::Max($lastRun, [int]$Matches[1])
+            }
+        }
+    }
+    $script:installLogPath = Join-Path -Path $logDir -ChildPath ("{0}-{1}{2:00}{3}" -f $baseName, $datePart, ($lastRun + 1), $extension)
     $script:installLogInputs = [System.Collections.Generic.List[object]]::new()
     $script:installLogActions = [System.Collections.Generic.List[object]]::new()
     $script:installLogPasswords = [System.Collections.Generic.List[object]]::new()
@@ -99,7 +114,7 @@ function Save-InstallLog {
     }
 
     $logDir = Split-Path -Path $script:installLogPath -Parent
-    if (-not (Test-Path $logDir)) {
+    if (-not (Test-Path -LiteralPath $logDir)) {
         New-Item -Path $logDir -ItemType Directory -Force | Out-Null
     }
 
@@ -159,5 +174,5 @@ function Save-InstallLog {
         $lines.Add("")
     }
 
-    Set-Content -Path $script:installLogPath -Value ($lines -join "`n")
+    Set-Content -LiteralPath $script:installLogPath -Value ($lines -join "`n")
 }

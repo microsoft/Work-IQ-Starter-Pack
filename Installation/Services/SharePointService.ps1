@@ -111,6 +111,56 @@ function Get-SiteColumnDefinitions {
     return $columns.Values
 }
 
+function Confirm-TermStoreAdministrator {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Connection
+    )
+
+    # The term store is tenant-wide, so only check once per install run
+    # if ($script:TermStoreAdminChecked) {
+    #     return
+    # }
+    # $script:TermStoreAdminChecked = $true
+
+    $upn = Get-CurrentUserUpn
+
+    try {
+        $loginName = "i:0#.f|membership|$upn"
+
+        $siteUrl = $Connection.Url.TrimEnd('/')
+        # Default resource is Graph; the termStore endpoint needs a token for the SharePoint host
+        $token = Get-PnPAccessToken -ResourceTypeName SharePoint -Connection $Connection
+        $headers = @{ Authorization = "Bearer $token"; Accept = "application/json" }
+
+        $current = Invoke-RestMethod -Method Get -Uri "$siteUrl/_api/v2.1/termStore?select=administrators" -Headers $headers
+        $admins = @($current.administrators)
+
+        $isAdmin = @($admins | Where-Object { $_.user.userPrincipalName -ieq $loginName }).Count -gt 0
+        if ($isAdmin) {
+            Write-InstallLogAction -Message "$upn is already a Term Store Administrator."
+            return
+        }
+
+        # PATCH replaces the administrators list, so send the existing admins plus the new one
+        $admins += @{
+            user = @{
+                email             = $upn
+                userPrincipalName = $loginName
+                displayName       = $upn
+            }
+        }
+        $body = @{ administrators = $admins } | ConvertTo-Json -Depth 5
+
+        Invoke-RestMethod -Method Patch -Uri "$siteUrl/_api/v2.1/termStore?select=*,administrators" -Headers $headers -ContentType "application/json" -Body $body | Out-Null
+        Write-InstallLogAction -Message "Added $upn as a Term Store Administrator."
+    }
+    catch {
+        $detail = if ($_.ErrorDetails.Message) { $_.ErrorDetails.Message } else { $_.Exception.Message }
+        Write-InstallLogAction -Message "Failed to verify or add $upn as a Term Store Administrator: $detail" -Level Warning
+    }
+}
+
 function Add-SiteTermSets {
     param(
         [Parameter(Mandatory = $true)]
@@ -130,6 +180,8 @@ function Add-SiteTermSets {
     if (-not $taxonomyColumns) {
         return
     }
+
+    Confirm-TermStoreAdministrator -Connection $Connection
 
     $groupName = $script:SharePointContentGroup
     try {
@@ -151,25 +203,50 @@ function Add-SiteTermSets {
         try {
             $termSet = Get-PnPTermSet -Identity $column.TermSet -TermGroup $groupName -Connection $Connection -ErrorAction SilentlyContinue
             if (-not $termSet) {
-                $termSet = New-PnPTermSet -Name $column.TermSet -TermGroup $groupName -Connection $Connection
+                $termSet = New-PnPTermSet -Name $column.TermSet -TermGroup $groupName -Owner (Get-CurrentUserUpn) -Connection $Connection
                 Write-InstallLogAction -Message "Created term set '$($column.TermSet)'."
             }
             else {
                 Write-InstallLogAction -Message "Term set '$($column.TermSet)' already exists, skipping creation."
             }
 
+            # Give the term store a moment to propagate the new term group/set before adding terms.
+            Start-Sleep -Seconds 30
             $existingTerms = @(Get-PnPTerm -TermSet $column.TermSet -TermGroup $groupName -Connection $Connection -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
             foreach ($termName in @($column.Terms | Where-Object { $_ })) {
                 if ($existingTerms -contains $termName) {
                     continue
                 }
-                New-PnPTerm -Name $termName -TermSet $column.TermSet -TermGroup $groupName -Connection $Connection | Out-Null
+                New-PnPTerm -Name $termName -TermSet $termSet.Id -TermGroup $termGroup.Id -Connection $Connection | Out-Null
                 Write-InstallLogAction -Message "Added term '$termName' to term set '$($column.TermSet)'."
             }
         }
         catch {
             Write-InstallLogAction -Message "Failed to provision term set '$($column.TermSet)': $($_.Exception.Message)" -Level Error
         }
+    }
+}
+
+function Remove-SiteTermGroup {
+    $groupName = $script:SharePointContentGroup
+    try {
+        $termGroup = Get-PnPTermGroup -Identity $groupName -ErrorAction SilentlyContinue
+        if (-not $termGroup) {
+            Write-InstallLogAction -Message "Term group '$groupName' does not exist, skipping deletion."
+            return
+        }
+
+        # Remove-PnPTermGroup only works on empty groups, so delete the term sets first.
+        foreach ($termSet in @(Get-PnPTermSet -TermGroup $groupName -ErrorAction SilentlyContinue)) {
+            Remove-PnPTermSet -Identity $termSet.Id -TermGroup $groupName -Force
+            Write-InstallLogAction -Message "Removed term set '$($termSet.Name)'."
+        }
+
+        Remove-PnPTermGroup -Identity $groupName -Force
+        Write-InstallLogAction -Message "Removed term group '$groupName'."
+    }
+    catch {
+        Write-InstallLogAction -Message "Failed to remove term group '$groupName': $($_.Exception.Message)" -Level Warning
     }
 }
 

@@ -1,3 +1,7 @@
+param(
+    [string]$ImportedPostsPath = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../.state/imported-posts.json'))
+)
+
 function Update-ContentPersonas {
     param(
         [Parameter(Mandatory = $true)]
@@ -61,9 +65,9 @@ function Update-ContentPersonas {
     $newContent | Add-Member -NotePropertyName RealUserUpns -NotePropertyValue @($selectedUpns) -Force
 
     $previousIds = @{}
-    if (Test-Path $OutputPath) {
+    if (Test-Path -LiteralPath $OutputPath) {
         try {
-            $previousContent = Get-Content -Path $OutputPath -Raw | ConvertFrom-Json
+            $previousContent = Get-Content -LiteralPath $OutputPath -Raw | ConvertFrom-Json
             foreach ($site in $previousContent.Sites) {
                 foreach ($thread in @($site.Content.EmailThreads)) {
                     if ($thread -and $thread.Path -and $thread.Messages) { $previousIds[$thread.Path] = @($thread.Messages) }
@@ -84,7 +88,7 @@ function Update-ContentPersonas {
     }
 
     $contentText = $newContent | ConvertTo-Json -Depth 20
-    Set-Content -Path $OutputPath -Value $contentText -Encoding UTF8
+    Set-Content -LiteralPath $OutputPath -Value $contentText -Encoding UTF8
 }
 
 function Get-EligibleSites {
@@ -398,18 +402,16 @@ function ConvertTo-TeamsChatMessageBody {
 # Which meeting posts were imported into which channel. The migration API can't de-duplicate and reading a
 # channel's messages needs another permission, so the installer keeps its own record, keyed by channel id
 # (a recreated channel has a new id and starts clean).
-$ImportedPostsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../.state/imported-posts.json"))
-
 function Get-ImportedPostSubjects {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ChannelId
     )
 
-    if (-not (Test-Path $ImportedPostsPath)) {
+    if (-not (Test-Path -LiteralPath $ImportedPostsPath)) {
         return @()
     }
-    $state = Get-Content -Path $ImportedPostsPath -Raw | ConvertFrom-Json
+    $state = Get-Content -LiteralPath $ImportedPostsPath -Raw | ConvertFrom-Json
     return @($state.$ChannelId)
 }
 
@@ -424,13 +426,13 @@ function Add-ImportedPostSubjects {
         return
     }
     $state = [ordered]@{}
-    if (Test-Path $ImportedPostsPath) {
-        $existing = Get-Content -Path $ImportedPostsPath -Raw | ConvertFrom-Json
+    if (Test-Path -LiteralPath $ImportedPostsPath) {
+        $existing = Get-Content -LiteralPath $ImportedPostsPath -Raw | ConvertFrom-Json
         foreach ($property in $existing.PSObject.Properties) { $state[$property.Name] = @($property.Value) }
     }
     $state[$ChannelId] = @(@($state[$ChannelId]) + $Subjects | Where-Object { $_ } | Select-Object -Unique)
     $null = New-Item -Path (Split-Path $ImportedPostsPath) -ItemType Directory -Force
-    $state | ConvertTo-Json -Depth 4 | Set-Content -Path $ImportedPostsPath
+    $state | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $ImportedPostsPath
 }
 
 function Import-TeamsChatMessages {

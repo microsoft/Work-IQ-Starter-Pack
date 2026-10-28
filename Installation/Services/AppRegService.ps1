@@ -1,16 +1,10 @@
-﻿# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
+# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
 # Runtime SharePoint, Graph token, and certificate helpers retain installer compatibility.
 # get the permissions from the settings file.
 $WorkIQSettingsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Configuration/settings.json"))
 $WorkIQAppRegistrationPermissions = (Get-Content -Path $WorkIQSettingsPath -Raw | ConvertFrom-Json).AppRegistrationPermissions
 $WorkIQGraphDelegatePermissions = @($WorkIQAppRegistrationPermissions.GraphDelegate)
 $WorkIQGraphApplicationPermissions = @($WorkIQAppRegistrationPermissions.GraphApplication)
-$WorkIQSharePointDelegatePermissions = @($WorkIQAppRegistrationPermissions.SharePointDelegate)
-
-# appIds of the Microsoft Graph and SharePoint Online service principals.
-$GraphResourceAppId = "00000003-0000-0000-c000-000000000000"
-$SharePointResourceAppId = "00000003-0000-0ff1-ce00-000000000000"
-
 
 function Get-AppRegBrowserAccessToken {
     param(
@@ -221,6 +215,11 @@ function Invoke-AppRegProvisioning {
         else { Write-Host 'All required API permissions are already configured. No app registration update is needed.' }
     }
     else {
+        $escapedName = [Uri]::EscapeDataString($AppName.Replace("'", "''"))
+        $existing = @((Invoke-Graph -Path "applications?`$filter=displayName eq '$escapedName'&`$select=id,appId,displayName").value)
+        if ($existing.Count) {
+            throw "An app registration named '$AppName' already exists (client ID: $($existing[0].appId)). Choose a different name, or re-run and answer yes to using an existing application registration."
+        }
         Write-Host 'Creating the app registration with the required API permissions...'
         $app = Invoke-RestMethod -Method Post -Uri 'https://graph.microsoft.com/v1.0/applications' `
             -Headers $headers -ContentType 'application/json' -Body $body
@@ -433,8 +432,9 @@ function Set-AppRegistrationConfig {
 
     try {
         $config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
-        $config.Settings.ClientId = $ClientId
-        $config.Settings.TenantPrefix = $TenantPrefix
+        # Add-Member -Force so a config.json that omits these keys still gets them.
+        $config.Settings | Add-Member -NotePropertyName ClientId -NotePropertyValue $ClientId -Force
+        $config.Settings | Add-Member -NotePropertyName TenantPrefix -NotePropertyValue $TenantPrefix -Force
         $config | ConvertTo-Json -Depth 20 | Set-Content -Path $ConfigPath
         Write-InstallLogAction -Message "Updated config.json with ClientId: $ClientId and TenantPrefix: $TenantPrefix"
         return $true
@@ -455,7 +455,12 @@ function Connect-WorkIQPnP {
         [switch]$Force
     )
 
-    if (-not $Force -and $global:workIQPnPClientId -eq $ClientId -and (Get-PnPConnection -ErrorAction SilentlyContinue)) {
+    # Get-PnPConnection throws a terminating error when there is no connection, which -ErrorAction does not suppress.
+    $existingConnection = $null
+    if (-not $Force -and $global:workIQPnPClientId -eq $ClientId) {
+        try { $existingConnection = Get-PnPConnection } catch { }
+    }
+    if ($existingConnection) {
         return
     }
 
@@ -569,18 +574,17 @@ function Initialize-TeamsChatMigrationCertificate {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ClientId,
-        [Parameter(Mandatory = $true)]
-        [string]$SharePointUrl
+        [string]$CertificateDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Installation/.certs'))
     )
 
     $step = "prepare the certificate files"
 
     try {
-        $certDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Installation/.certs"))
+        $certDir = $CertificateDirectory
         $pfxPath = Join-Path -Path $certDir -ChildPath "teams-chat-migration.pfx"
         $cerPath = Join-Path -Path $certDir -ChildPath "teams-chat-migration.cer"
 
-        if ((Test-Path $pfxPath) -and (Test-Path $cerPath)) {
+        if ((Test-Path -LiteralPath $pfxPath) -and (Test-Path -LiteralPath $cerPath)) {
             Write-Host "Reusing existing Teams chat migration certificate files at $certDir."
         }
         else {
@@ -658,11 +662,13 @@ function Remove-AppRegistration {
 }
 
 function Remove-TeamsChatMigrationCertificate {
-    try {
-        $certDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Installation/.certs"))
+    param([string]$CertificateDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Installation/.certs')))
 
-        if (Test-Path $certDir) {
-            Remove-Item -Path $certDir -Recurse -Force
+    try {
+        $certDir = $CertificateDirectory
+
+        if (Test-Path -LiteralPath $certDir) {
+            Remove-Item -LiteralPath $certDir -Recurse -Force
             Write-InstallLogAction "Removed local Teams chat migration certificate files at $certDir."
         }
         else {
