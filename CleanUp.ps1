@@ -1,9 +1,4 @@
-#Requires -Version 7.4
-param(
-    # Path to the config.json file to read and update. Defaults to Configuration/config.json.
-    [string]$ConfigPath
-)
-
+# Requires -Version 7.4
 param(
     # Path to the config.json file to read and update. Defaults to Configuration/config.json.
     [Alias('Config')]

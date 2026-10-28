@@ -203,6 +203,7 @@ function Add-SiteTermSets {
         try {
             $termSet = Get-PnPTermSet -Identity $column.TermSet -TermGroup $groupName -Connection $Connection -ErrorAction SilentlyContinue
             if (-not $termSet) {
+                Start-Sleep -Seconds 30
                 $termSet = New-PnPTermSet -Name $column.TermSet -TermGroup $groupName -Owner (Get-CurrentUserUpn) -Connection $Connection
                 Write-InstallLogAction -Message "Created term set '$($column.TermSet)'."
             }

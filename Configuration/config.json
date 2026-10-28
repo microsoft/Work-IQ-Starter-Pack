@@ -23,7 +23,7 @@
       "abc4@testiq2026oct.onmicrosoft.com"
     ],
     "DynamicsEnvironmentUrl": "https://finance2026oct.crm17.dynamics.com",
-    "ClientId": "c18198d3-1c30-432e-a6f4-743b28678d2d",
+    "ClientId": "0987cf43-8752-4e38-97bb-f006d7339589",
     "TenantPrefix": "sympdcp",
     "ProvisionUserEmails": true,
     "InstallDynamicsFOContent": false
