@@ -298,7 +298,21 @@ function Set-LicenseForUser {
 
         if ($licensesToAssign.Count -gt 0) {
             $licenseBody = @{ addLicenses = $licensesToAssign; removeLicenses = @() } | ConvertTo-Json -Depth 5
-            $currentLicenses = (Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody).assignedLicenses
+            Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody | Out-Null
+
+            # The assignLicense response can be empty or stale (Entra is eventually consistent), so
+            # re-read the user's licenses and give the assignment time to propagate.
+            for ($attempt = 1; $attempt -le 6; $attempt++) {
+                $currentLicenses = (Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId`?`$select=assignedLicenses" -Headers $headers -Method Get).assignedLicenses
+                if (($currentLicenses | Where-Object { $officeSkuIds -contains $_.skuId }) -and
+                    ($currentLicenses | Where-Object { $copilotSkuIds -contains $_.skuId })) {
+                    break
+                }
+                if ($attempt -lt 6) {
+                    Write-InstallLogAction -Message "Licenses for user with ID: $UserId not visible yet, retrying ($attempt/6)..."
+                    Start-Sleep -Seconds 5
+                }
+            }
         }
         else {
             Write-InstallLogAction -Message "No licenses needed to be assigned to this UserId: $UserId" -Level Warning
