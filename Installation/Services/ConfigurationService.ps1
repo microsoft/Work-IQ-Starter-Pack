@@ -34,7 +34,7 @@ function Get-WorkIQConfigurationPaths {
         $importedPostsPath = Join-Path $generatedRoot '.state/imported-posts.json'
         $logDirectory = Join-Path $generatedRoot 'Logs'
     }
-
+    Write-Host -Message "Certificate directory: $certificateDirectory., Certificate path: $(Join-Path $certificateDirectory 'teams-chat-migration.pfx')"
     return [PSCustomObject]@{
         ConfigPath = $file.FullName
         Config = $config
