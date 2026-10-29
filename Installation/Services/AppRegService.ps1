@@ -578,6 +578,7 @@ function Initialize-TeamsChatMigrationCertificate {
     )
 
     $step = "prepare the certificate files"
+    Write-InstallLogAction -Message "Preparing to create the certificate." -Level Info
 
     try {
         $certDir = $CertificateDirectory
@@ -585,18 +586,20 @@ function Initialize-TeamsChatMigrationCertificate {
         $cerPath = Join-Path -Path $certDir -ChildPath "teams-chat-migration.cer"
 
         if ((Test-Path -LiteralPath $pfxPath) -and (Test-Path -LiteralPath $cerPath)) {
-            Write-Host "Reusing existing Teams chat migration certificate files at $certDir."
+            Write-InstallLogAction -Message "Reusing existing Teams chat migration certificate files at $certDir." -Level Info
         }
         else {
+            Write-InstallLogAction -Message "Creating the .certs directory at $certDir." -Level Info
             New-Item -ItemType Directory -Path $certDir -Force | Out-Null
 
+            Write-InstallLogAction -Message "Start creating the cert at $certDir with $pfxPath and $cerPath." -Level Info
             New-PnPAzureCertificate `
                 -CommonName "WorkIQStarterPack-TeamsChatMigration" `
                 -OutPfx $pfxPath `
                 -OutCert $cerPath `
                 -ValidYears 2 | Out-Null
 
-            Write-Host "Created new certificate files."
+            Write-InstallLogAction -Message "Created new certificate files at $certDir." -Level Info
         }
 
         $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($cerPath)
@@ -608,7 +611,7 @@ function Initialize-TeamsChatMigrationCertificate {
 
         $alreadyRegistered = $application.keyCredentials | Where-Object { $_.customKeyIdentifier -eq $thumbprintBase64 }
         if ($alreadyRegistered) {
-            Write-Host "The Teams chat migration certificate is already registered on the app registration."
+            Write-InstallLogAction -Message "The Teams chat migration certificate is already registered on the app registration." -Level Info
             return
         }
 
@@ -625,7 +628,7 @@ function Initialize-TeamsChatMigrationCertificate {
         $step = "update the app registration's keyCredentials"
         Invoke-RestMethod -Uri "$graphBaseUrl/applications/$($application.id)" -Headers $headers -Method Patch -ContentType "application/json" -Body $body
 
-        Write-Host "Registered the Teams chat migration certificate on the app registration."
+        Write-InstallLogAction -Message "Registered the Teams chat migration certificate on the app registration." -Level Info
     }
     catch {
         $message = "Failed to register the Teams chat migration certificate (could not $step): $($_.Exception.Message)"
