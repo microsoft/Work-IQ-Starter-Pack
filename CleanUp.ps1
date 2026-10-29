@@ -124,7 +124,7 @@ try {
     }
 
     $removeMicrosoft365 = Read-MiniCleanupChoice 'Do you want to remove the demo Teams (and their groups and sites), demo users, imported emails, and generated files?' -Default $true
-    $removeLogs = Read-MiniCleanupChoice "Do you also want to delete the installation logs ($logsPath - these contain the demo users' temporary passwords)?"
+    $removeLogs = Read-MiniCleanupChoice "Do you also want to delete the most recent installation log (in $logsPath - it contains the demo users' temporary passwords)?"
     $removeAppRegistration = Read-MiniCleanupChoice "Do you also want to remove the application registration (ClientId: $clientId) and its service principal from Entra ID, and delete the local Teams chat migration certificate? Only do this if this script originally created the app registration for you - skip if you supplied a pre-existing one."
     Write-Host 'D365 Sales & CS cleanup deletes demo Emails, Cases, Invoices, Orders, Quotes, Opportunities, Leads, Accounts, and Product catalog records by their IDs in Content/contentDynamics.json.'
     $deleteDynamics = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Sales and Customer Service (D365 Sales & CS) demo data?'
@@ -356,8 +356,18 @@ try {
         Remove-TeamsChatMigrationCertificate -CertificateDirectory $configurationPaths.CertificateDirectory
     }
     if ($removeLogs) {
-        Remove-GeneratedFile -Path $logsPath -Description 'installation logs'
-        $logsRemoved = $true
+        # Names are InstallLog-yyyyMMddNN.md, so the highest name is the most recent run. The cleanup log is left alone.
+        $latestInstallLog = $null
+        if (Test-Path -LiteralPath $logsPath) {
+            $latestInstallLog = Get-ChildItem -LiteralPath $logsPath -File -Filter 'InstallLog-*.md' |
+                Sort-Object -Property Name -Descending | Select-Object -First 1
+        }
+        if ($latestInstallLog) {
+            Remove-GeneratedFile -Path $latestInstallLog.FullName -Description 'most recent installation log'
+        }
+        else {
+            Write-InstallLogAction -Message 'No installation log found, skipping.'
+        }
     }
     $cleanupSucceeded = $true
     Write-InstallLogAction -Message 'Selected cleanup operations complete.' -Level Success

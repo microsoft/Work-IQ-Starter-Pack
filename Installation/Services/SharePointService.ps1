@@ -237,12 +237,6 @@ function Remove-SiteTermGroup {
             return
         }
 
-        # Remove-PnPTermGroup only works on empty groups, so delete the term sets first.
-        foreach ($termSet in @(Get-PnPTermSet -TermGroup $groupName -ErrorAction SilentlyContinue)) {
-            Remove-PnPTermSet -Identity $termSet.Id -TermGroup $groupName -Force
-            Write-InstallLogAction -Message "Removed term set '$($termSet.Name)'."
-        }
-
         Remove-PnPTermGroup -Identity $groupName -Force
         Write-InstallLogAction -Message "Removed term group '$groupName'."
     }
