@@ -581,7 +581,7 @@ function Initialize-TeamsChatMigrationCertificate {
     Write-InstallLogAction -Message "Preparing to create the certificate." -Level Info
 
     try {
-        $certDir = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Installation/.certs"))
+        $certDir = $CertificateDirectory
         $pfxPath = Join-Path -Path $certDir -ChildPath "teams-chat-migration.pfx"
         $cerPath = Join-Path -Path $certDir -ChildPath "teams-chat-migration.cer"
 
