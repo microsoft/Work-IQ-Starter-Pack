@@ -57,7 +57,9 @@
             "DYN365_ENTERPRISE_CUSTOMER_SERVICE",
             "DYN365_SALES_PREMIUM",
             "D365_SALES_PRO",
-            "D365_SALES_PRO_IW",
+            "D365_SALES_PRO_IW"
+        ],
+        "DynamicsFO": [
             "DYN365_FINANCE"
         ]
     },
