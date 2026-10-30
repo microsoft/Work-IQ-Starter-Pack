@@ -1,6 +1,5 @@
 {
   "Settings": {
-    "SkipPreReqCheck": true,
     "InstallM365Content": true,
     "InstallDynamicsContent": false,
     "InstallDemoUsers": true,
