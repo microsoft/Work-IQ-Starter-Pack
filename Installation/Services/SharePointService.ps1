@@ -35,7 +35,7 @@ function Add-SiteListsAndLibraries {
         $tabTarget = $null
         if ($Site.EnableMicrosoftTeams) {
             try {
-                $teamId = (Invoke-RestMethod -Uri "$graphBaseUrl/groups?`$filter=mailNickname eq '$($Site.URL)'&`$select=id" -Headers $headers -Method Get).value | Select-Object -First 1 -ExpandProperty id
+                $teamId = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/groups?`$filter=mailNickname eq '$($Site.URL)'&`$select=id" -Headers $headers -Method Get).value | Select-Object -First 1 -ExpandProperty id
                 $channelName = if ($Site.Channels -and $Site.Channels[0].Title) { $Site.Channels[0].Title } else { "General" }
                 $tabTarget = @{ TeamId = $teamId; ChannelId = (Get-TeamChannelId -TeamId $teamId -ChannelName $channelName) }
             }

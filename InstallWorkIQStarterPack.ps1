@@ -71,6 +71,7 @@ try {
     # Load the install log service and start recording this run's inputs/actions so
     # they're captured to a Markdown report under Logs/, even if the run fails partway through.
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/InstallLogService.ps1")
+    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
     Initialize-InstallLog -LogDirectory $configurationPaths.LogDirectory
     Write-InstallLogInput -Prompt 'Configuration file' -Response $configPath
 
@@ -362,7 +363,6 @@ try {
     }
 
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/LicensingService.ps1")
-    . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/WorkIQService.ps1")
 
     $provisioningSettings = $settings
     if (-not $config.Settings.InstallDemoUsers) {

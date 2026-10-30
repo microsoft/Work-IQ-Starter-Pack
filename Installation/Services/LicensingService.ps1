@@ -1,5 +1,5 @@
 ## Get the available SKUs in the tenant before everything loads
-$availableSkus = (Invoke-RestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
+$availableSkus = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
 
 function Get-AvailableSkusCount{
     param(
@@ -61,7 +61,7 @@ function Get-UserLicenseStatus {
     $upn = $User.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
     $status = [PSCustomObject]@{ Exists = $false; HasOffice = $false; HasCopilot = $false; NeedsTeams = $false; HasDynamics = $false }
 
-    $graphUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$upn'&`$select=id,assignedLicenses" -Headers $headers -Method Get).value | Select-Object -First 1
+    $graphUser = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$upn'&`$select=id,assignedLicenses" -Headers $headers -Method Get).value | Select-Object -First 1
     if (-not $graphUser) {
         # Not provisioned yet: Teams is needed if the Office SKU that will be assigned has no Teams
         $officeSku = Get-OfficeSkuToAssign -Settings $Settings
@@ -101,7 +101,7 @@ function Test-License-PreRequisites {
     )
     $retVal = $false;
     try {
-        $availableSkus = (Invoke-RestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
+        $availableSkus = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
         
         $copilotLicenseCount = 0
         $officeLicenseCount = 0
@@ -240,8 +240,8 @@ function Set-LicenseForUser {
         $UserId
     )
     try {
-        $availableSkus = (Invoke-RestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
-        $currentLicenses = (Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId`?`$select=assignedLicenses" -Headers $headers -Method Get).assignedLicenses
+        $availableSkus = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
+        $currentLicenses = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$UserId`?`$select=assignedLicenses" -Headers $headers -Method Get).assignedLicenses
         $officeSkuIds = @($availableSkus | Where-Object { $settings.Licenses.Office -contains $_.skuPartNumber } | ForEach-Object { $_.skuId })
         $copilotSkuIds = @($availableSkus | Where-Object { $settings.Licenses.Copilot -contains $_.skuPartNumber } | ForEach-Object { $_.skuId })
 
@@ -327,12 +327,12 @@ function Set-LicenseForUser {
 
         if ($licensesToAssign.Count -gt 0) {
             $licenseBody = @{ addLicenses = $licensesToAssign; removeLicenses = @() } | ConvertTo-Json -Depth 5
-            Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody | Out-Null
+            Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$UserId/assignLicense" -Headers $headers -Method Post -ContentType "application/json" -Body $licenseBody | Out-Null
 
             # The assignLicense response can be empty or stale (Entra is eventually consistent), so
             # re-read the user's licenses and give the assignment time to propagate.
             for ($attempt = 1; $attempt -le 6; $attempt++) {
-                $currentLicenses = (Invoke-RestMethod -Uri "$graphBaseUrl/users/$UserId`?`$select=assignedLicenses" -Headers $headers -Method Get).assignedLicenses
+                $currentLicenses = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$UserId`?`$select=assignedLicenses" -Headers $headers -Method Get).assignedLicenses
                 if (($currentLicenses | Where-Object { $officeSkuIds -contains $_.skuId }) -and
                     ($currentLicenses | Where-Object { $copilotSkuIds -contains $_.skuId }) -and
                     ($config.Settings.InstallDynamicsContent -ne $true -or ($currentLicenses | Where-Object { $dynamicsSkuIds -contains $_.skuId }))) {

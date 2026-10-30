@@ -8,7 +8,7 @@
 
     foreach ($index in $RealUserUpns.Keys) {
         $upn = $RealUserUpns[$index]
-        $graphUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$upn'&`$select=id,givenName,surname,jobTitle,department,userPrincipalName,usageLocation" -Headers $headers -Method Get).value | Select-Object -First 1
+        $graphUser = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$upn'&`$select=id,givenName,surname,jobTitle,department,userPrincipalName,usageLocation" -Headers $headers -Method Get).value | Select-Object -First 1
 
         if (-not $graphUser) {
             throw "Could not find a user with UPN '$upn' in Entra ID. Please verify the UPN and try again."
@@ -40,7 +40,7 @@ function Add-Users {
 
     foreach ($user in $Settings.Users) {
         try {
-            $existingUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'&`$select=id,userPrincipalName,usageLocation" -Headers $headers -Method Get).value | Select-Object -First 1
+            $existingUser = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'&`$select=id,userPrincipalName,usageLocation" -Headers $headers -Method Get).value | Select-Object -First 1
 
             if (-not $existingUser) {
                 $tempPassword = "Wiq!" + [System.Guid]::NewGuid().ToString("N").Substring(0, 10) + "9"
@@ -60,7 +60,7 @@ function Add-Users {
                     }
                 }
 
-                $existingUser = Invoke-RestMethod -Uri "$graphBaseUrl/users" -Headers $headers -Method Post -ContentType "application/json" -Body ($newUser | ConvertTo-Json -Depth 5)
+                $existingUser = Invoke-GraphRestMethod -Uri "$graphBaseUrl/users" -Headers $headers -Method Post -ContentType "application/json" -Body ($newUser | ConvertTo-Json -Depth 5)
                 Write-InstallLogAction -Message "Created $($user.Email) with temporary password: $tempPassword"
                 Write-InstallLogPassword -Email $user.Email -Password $tempPassword
             }
@@ -69,7 +69,7 @@ function Add-Users {
                 # Never overwrite an existing user's usageLocation - only fill it in when Entra ID
                 # doesn't already have one set, so real users' existing data is never clobbered.
                 if ([string]::IsNullOrWhiteSpace($existingUser.usageLocation) -and -not [string]::IsNullOrWhiteSpace($user.UsageLocation)) {
-                    Invoke-RestMethod -Uri "$graphBaseUrl/users/$($existingUser.id)" -Headers $headers -Method Patch -ContentType "application/json" -Body (@{ usageLocation = $user.UsageLocation } | ConvertTo-Json)
+                    Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$($existingUser.id)" -Headers $headers -Method Patch -ContentType "application/json" -Body (@{ usageLocation = $user.UsageLocation } | ConvertTo-Json)
                 }
             }
 
@@ -100,7 +100,7 @@ function Add-Groups {
             $groups = @()
             $uri = "$graphBaseUrl/groups?`$filter=displayName eq '$escapedName'&`$select=id,displayName,securityEnabled,mailEnabled,groupTypes"
             do {
-                $page = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get
+                $page = Invoke-GraphRestMethod -Uri $uri -Headers $headers -Method Get
                 $groups += @($page.value)
                 $uri = $page.'@odata.nextLink'
             } while ($uri)
@@ -124,14 +124,14 @@ function Add-Groups {
                     securityEnabled = $true
                     groupTypes      = @()
                 } | ConvertTo-Json -Depth 5
-                $group = Invoke-RestMethod -Uri "$graphBaseUrl/groups" -Headers $headers -Method Post -ContentType "application/json" -Body $body
+                $group = Invoke-GraphRestMethod -Uri "$graphBaseUrl/groups" -Headers $headers -Method Post -ContentType "application/json" -Body $body
                 Write-InstallLogAction -Message "Created security group '$groupName'." -Level Success
             }
 
             $memberIds = @{}
             $uri = "$graphBaseUrl/groups/$($group.id)/members?`$select=id"
             do {
-                $page = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get
+                $page = Invoke-GraphRestMethod -Uri $uri -Headers $headers -Method Get
                 foreach ($member in $page.value) { $memberIds[$member.id] = $true }
                 $uri = $page.'@odata.nextLink'
             } while ($uri)
@@ -139,12 +139,12 @@ function Add-Groups {
             foreach ($user in $Settings.Users) {
                 try {
                     $userUpn = [Uri]::EscapeDataString($user.Email)
-                    $graphUser = Invoke-RestMethod -Uri "$graphBaseUrl/users/$userUpn`?`$select=id" -Headers $headers -Method Get
+                    $graphUser = Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$userUpn`?`$select=id" -Headers $headers -Method Get
                     if ($memberIds.ContainsKey($graphUser.id)) {
                         continue
                     }
                     $body = @{ '@odata.id' = "$graphBaseUrl/directoryObjects/$($graphUser.id)" } | ConvertTo-Json
-                    Invoke-RestMethod -Uri "$graphBaseUrl/groups/$($group.id)/members/`$ref" -Headers $headers -Method Post -ContentType "application/json" -Body $body | Out-Null
+                    Invoke-GraphRestMethod -Uri "$graphBaseUrl/groups/$($group.id)/members/`$ref" -Headers $headers -Method Post -ContentType "application/json" -Body $body | Out-Null
                     $memberIds[$graphUser.id] = $true
                     Write-InstallLogAction -Message "Added $($user.Email) to security group '$groupName'."
                 }
@@ -187,7 +187,7 @@ function Add-UserPhotos {
                 continue
             }
 
-            $existingUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'&`$select=id" -Headers $headers -Method Get).value | Select-Object -First 1
+            $existingUser = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'&`$select=id" -Headers $headers -Method Get).value | Select-Object -First 1
             if (-not $existingUser) {
                 Write-InstallLogAction -Message "$($user.Email) does not exist, skipping photo upload."
                 continue
@@ -212,7 +212,7 @@ function Add-UserPhotos {
             $delaySeconds = 20
             for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
                 try {
-                    Invoke-RestMethod -Uri $photoUri -Headers $headers -Method Put -ContentType $contentType -InFile $photoFile.FullName
+                    Invoke-GraphRestMethod -Uri $photoUri -Headers $headers -Method Put -ContentType $contentType -InFile $photoFile.FullName
                     Write-InstallLogAction -Message "Set profile photo for $($user.Email) from $($photoFile.Name)."
                     break
                 }
@@ -247,16 +247,16 @@ function Remove-Users {
                 continue
             }
 
-            $existingUser = (Invoke-RestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'" -Headers $headers -Method Get).value | Select-Object -First 1
+            $existingUser = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'" -Headers $headers -Method Get).value | Select-Object -First 1
 
             if ($existingUser) {
-                Invoke-RestMethod -Uri "$graphBaseUrl/users/$($existingUser.id)" -Headers $headers -Method Delete
+                Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$($existingUser.id)" -Headers $headers -Method Delete
                 Write-InstallLogAction "Deleted default demo user $($user.Email)."
 
                 # Deleting a user only moves them to the Entra ID deleted items bin (restorable for
                 # 30 days) - permanently delete this user so the demo can be reinstalled cleanly.
                 try {
-                    Invoke-RestMethod -Uri "$graphBaseUrl/directory/deletedItems/$($existingUser.id)" -Headers $headers -Method Delete
+                    Invoke-GraphRestMethod -Uri "$graphBaseUrl/directory/deletedItems/$($existingUser.id)" -Headers $headers -Method Delete
                     Write-InstallLogAction "Permanently deleted $($user.Email) from the deleted items bin."
                 }
                 catch {

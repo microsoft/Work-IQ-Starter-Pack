@@ -9,7 +9,11 @@ function Add-TeamSite {
     # Returns $true when the team is ready, $false on failure so the caller can skip the site's other steps.
     try {
         $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($Site.URL)"
+        
         $existingTeam = Get-PnPTeamsTeam -Identity $Site.URL -ErrorAction SilentlyContinue
+        if (-not $existingTeam) {
+            $existingTeam = Get-PnPTeamsTeam -ErrorAction SilentlyContinue | Where-Object { $_.MailNickName -eq $Site.URL } | Select-Object -First 1
+        }
 
         if (-not $existingTeam) {
             $visibility = if ($Site.IsPublic) { "Public" } else { "Private" }
@@ -95,10 +99,10 @@ function Remove-DefaultChannelTabs {
 
     # Removes the default Notes (OneNote) and Loop ("Page") tabs from every channel of the team.
     try {
-        $channels = (Invoke-RestMethod -Uri "$graphBaseUrl/teams/$GroupId/channels" -Headers $headers -Method Get).value
+        $channels = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/teams/$GroupId/channels" -Headers $headers -Method Get).value
         foreach ($channel in $channels) {
             $tabsUri = "$graphBaseUrl/teams/$GroupId/channels/$($channel.id)/tabs"
-            $tabs = (Invoke-RestMethod -Uri "$tabsUri`?`$expand=teamsApp" -Headers $headers -Method Get).value
+            $tabs = (Invoke-GraphRestMethod -Uri "$tabsUri`?`$expand=teamsApp" -Headers $headers -Method Get).value
             Write-InstallLogAction -Message "Tabs in channel '$($channel.displayName)' of site '$($Site.URL)': $(($tabs | ForEach-Object { "$($_.displayName) [app: $($_.teamsApp.displayName)]" }) -join '; ')"
             foreach ($tab in $tabs) {
                 $appName = $tab.teamsApp.displayName
@@ -106,7 +110,7 @@ function Remove-DefaultChannelTabs {
                     continue
                 }
                 try {
-                    Invoke-RestMethod -Uri "$tabsUri/$($tab.id)" -Headers $headers -Method Delete | Out-Null
+                    Invoke-GraphRestMethod -Uri "$tabsUri/$($tab.id)" -Headers $headers -Method Delete | Out-Null
                     Write-InstallLogAction -Message "Removed tab '$($tab.displayName)' from channel '$($channel.displayName)' in site '$($Site.URL)'."
                 }
                 catch {
@@ -143,20 +147,20 @@ function Add-ChannelTab {
     $tabsUri = "$graphBaseUrl/teams/$TeamId/channels/$ChannelId/tabs"
 
     try {
-        $teamsAppId = (Invoke-RestMethod -Uri "$graphBaseUrl/appCatalogs/teamsApps?`$filter=displayName eq '$appName' and distributionMethod eq 'store'" -Headers $headers -Method Get).value |
+        $teamsAppId = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/appCatalogs/teamsApps?`$filter=displayName eq '$appName' and distributionMethod eq 'store'" -Headers $headers -Method Get).value |
             Select-Object -First 1 -ExpandProperty id
         if (-not $teamsAppId) {
             throw "The '$appName' Teams app was not found in the app catalog."
         }
 
-        $existingTabs = (Invoke-RestMethod -Uri "$tabsUri`?`$expand=teamsApp" -Headers $headers -Method Get).value
+        $existingTabs = (Invoke-GraphRestMethod -Uri "$tabsUri`?`$expand=teamsApp" -Headers $headers -Method Get).value
         foreach ($existingTab in @($existingTabs | Where-Object { $_.displayName -eq $DisplayName })) {
             if ($existingTab.teamsApp.id -eq $teamsAppId) {
                 Write-InstallLogAction -Message "Tab '$DisplayName' already exists in the channel, skipping."
                 return
             }
             # Same name but a different app (e.g. created by an earlier run with the wrong app) - replace it.
-            Invoke-RestMethod -Uri "$tabsUri/$($existingTab.id)" -Headers $headers -Method Delete | Out-Null
+            Invoke-GraphRestMethod -Uri "$tabsUri/$($existingTab.id)" -Headers $headers -Method Delete | Out-Null
             Write-InstallLogAction -Message "Removed tab '$DisplayName' that used the wrong app ($($existingTab.teamsApp.displayName))."
         }
 
@@ -172,7 +176,7 @@ function Add-ChannelTab {
             }
         } | ConvertTo-Json -Depth 5
 
-        Invoke-RestMethod -Uri $tabsUri -Headers $headers -Method Post -ContentType "application/json" -Body $body | Out-Null
+        Invoke-GraphRestMethod -Uri $tabsUri -Headers $headers -Method Post -ContentType "application/json" -Body $body | Out-Null
         Write-InstallLogAction -Message "Added $Kind tab '$DisplayName' to the channel."
     }
     catch {
@@ -395,7 +399,7 @@ function Remove-TeamAccess {
 }
 
 function Get-CurrentUserUpn {
-    (Invoke-RestMethod -Uri "$graphBaseUrl/me?`$select=userPrincipalName" -Headers $headers -Method Get).userPrincipalName
+    (Invoke-GraphRestMethod -Uri "$graphBaseUrl/me?`$select=userPrincipalName" -Headers $headers -Method Get).userPrincipalName
 }
 
 function Add-GroupRoleMember {

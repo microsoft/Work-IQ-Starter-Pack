@@ -18,6 +18,7 @@ $logsPath = $configurationPaths.LogDirectory
 $cleanupSucceeded = $false
 $logsRemoved = $false
 . (Join-Path $PSScriptRoot 'Installation/Services/InstallLogService.ps1')
+. (Join-Path $PSScriptRoot 'Installation/Services/WorkIQService.ps1')
 Initialize-InstallLog -Title 'WorkIQ Starter Pack Cleanup Log' -FileName 'CleanUpLog.md' -IncludePasswords $false -LogDirectory $logsPath
 Write-InstallLogInput -Prompt 'Configuration file' -Response $configPath
 
@@ -124,8 +125,8 @@ try {
     }
 
     $removeMicrosoft365 = Read-MiniCleanupChoice 'Do you want to remove the demo Teams (and their groups and sites), demo users, imported emails, and generated files?' -Default $true
-    $removeLogs = Read-MiniCleanupChoice "Do you also want to delete the most recent installation log (in $logsPath - it contains the demo users' temporary passwords)?"
-    $removeAppRegistration = Read-MiniCleanupChoice "Do you also want to remove the application registration (ClientId: $clientId) and its service principal from Entra ID, and delete the local Teams chat migration certificate? Only do this if this script originally created the app registration for you - skip if you supplied a pre-existing one."
+    $removeLogs = Read-MiniCleanupChoice "Delete most recent log files? (contains the demo users' temporary passwords)"
+    $removeAppRegistration = Read-MiniCleanupChoice "Delete application registration (ClientId: $clientId)?"
     Write-Host 'D365 Sales & CS cleanup deletes demo Emails, Cases, Invoices, Orders, Quotes, Opportunities, Leads, Accounts, and Product catalog records by their IDs in Content/contentDynamics.json.'
     $deleteDynamics = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Sales and Customer Service (D365 Sales & CS) demo data?'
     $removeSolution = $false
@@ -356,7 +357,8 @@ try {
         Remove-TeamsChatMigrationCertificate -CertificateDirectory $configurationPaths.CertificateDirectory
     }
     if ($removeLogs) {
-        # Names are InstallLog-yyyyMMddNN.md, so the highest name is the most recent run. The cleanup log is left alone.
+        # Names are InstallLog-yyyyMMddNN.md, so the highest name is the most recent run. Older cleanup logs are removed too,
+        # keeping only this run's log.
         $latestInstallLog = $null
         if (Test-Path -LiteralPath $logsPath) {
             $latestInstallLog = Get-ChildItem -LiteralPath $logsPath -File -Filter 'InstallLog-*.md' |
@@ -367,6 +369,18 @@ try {
         }
         else {
             Write-InstallLogAction -Message 'No installation log found, skipping.'
+        }
+        $currentLogPath = [IO.Path]::GetFullPath($script:installLogPath)
+        $previousCleanupLogs = @()
+        if (Test-Path -LiteralPath $logsPath) {
+            $previousCleanupLogs = @(Get-ChildItem -LiteralPath $logsPath -File -Filter 'CleanUpLog-*.md' |
+                Where-Object { [IO.Path]::GetFullPath($_.FullName) -ne $currentLogPath })
+        }
+        foreach ($previousCleanupLog in $previousCleanupLogs) {
+            Remove-GeneratedFile -Path $previousCleanupLog.FullName -Description 'previous cleanup log'
+        }
+        if (-not $previousCleanupLogs) {
+            Write-InstallLogAction -Message 'No previous cleanup logs found, skipping.'
         }
     }
     $cleanupSucceeded = $true
