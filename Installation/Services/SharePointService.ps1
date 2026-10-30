@@ -116,13 +116,6 @@ function Confirm-TermStoreAdministrator {
         [Parameter(Mandatory = $true)]
         $Connection
     )
-
-    # The term store is tenant-wide, so only check once per install run
-    # if ($script:TermStoreAdminChecked) {
-    #     return
-    # }
-    # $script:TermStoreAdminChecked = $true
-
     $upn = Get-CurrentUserUpn
 
     try {

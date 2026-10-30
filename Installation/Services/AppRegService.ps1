@@ -1,6 +1,3 @@
-# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
-# Runtime SharePoint, Graph token, and certificate helpers retain installer compatibility.
-# get the permissions from the settings file.
 $WorkIQSettingsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Configuration/settings.json"))
 $WorkIQAppRegistrationPermissions = (Get-Content -Path $WorkIQSettingsPath -Raw | ConvertFrom-Json).AppRegistrationPermissions
 $WorkIQGraphDelegatePermissions = @($WorkIQAppRegistrationPermissions.GraphDelegate)
@@ -414,11 +411,6 @@ function Update-AppRegistrationPermissions {
     if ($PSBoundParameters.ContainsKey('RequiredResourceIds')) { $options.RequiredResourceIds = $RequiredResourceIds }
     $null = Invoke-AppRegProvisioning -TenantPrefix $TenantPrefix -ClientId $ClientId -AuthenticationClientId $AuthenticationClientId @options
     return $true
-}
-
-function Add-DynamicsAppRegistrationPermissions {
-    param([string]$ClientId, [string]$TenantPrefix)
-    Update-AppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
 }
 
 function Set-AppRegistrationConfig {

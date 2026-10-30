@@ -318,12 +318,3 @@ function New-PowerPlatformDataverseEnvironment {
         Wait-InstallPollingInterval -Activity 'Waiting for the Dataverse Environment to Become Ready' -Seconds 30
     }
 }
-
-function Test-PowerPlatformEnvironmentPermissions {
-    param(
-        [Parameter(Mandatory = $false)]
-        $Settings
-    )
-    # TODO: Stubbed until Power Platform auth/module scaffolding is added to this installer.
-    return $true
-}
