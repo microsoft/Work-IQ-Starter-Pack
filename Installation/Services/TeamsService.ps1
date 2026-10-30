@@ -285,8 +285,8 @@ function Wait-ForTeamProvisioned {
         [string]$MailNickName
     )
 
-    $pollIntervalSeconds = 5
-    $timeoutSeconds = 300
+    $pollIntervalSeconds = 10
+    $timeoutSeconds = 600
     $elapsedSeconds = 0
     $site = $null
     $groupId = $null

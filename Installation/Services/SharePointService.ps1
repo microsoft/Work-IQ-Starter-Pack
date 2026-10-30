@@ -241,7 +241,7 @@ function Add-SiteTermSets {
                 }
 
                 $maxAttempts = 6
-                $delaySeconds = 5
+                $delaySeconds = 10
                 $added = $false
                 $lastError = $null
                 for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
