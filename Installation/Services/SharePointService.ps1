@@ -184,10 +184,31 @@ function Add-SiteTermSets {
     Confirm-TermStoreAdministrator -Connection $Connection
 
     $groupName = $script:SharePointContentGroup
+
+    # New-PnPTermSet defaults -Lcid to the session culture, which can be invariant (127) and is rejected by the term store.
+    $lcid = $null
+    try {
+        $lcid = [int](Get-PnPWeb -Includes Language -Connection $Connection).Language
+    }
+    catch {
+        Write-InstallLogAction -Message "Could not read the site language: $($_.Exception.Message)" -Level Warning
+    }
+    if (-not $lcid -or $lcid -le 0) {
+        $cultureLcid = (Get-Culture).LCID
+        if ($cultureLcid -and $cultureLcid -ne 127) {
+            $lcid = $cultureLcid
+        }
+    }
+    if (-not $lcid -or $lcid -le 0) {
+        Write-InstallLogAction -Message "Unable to determine a language (LCID) for term sets, skipping term set provisioning." -Level Error
+        return
+    }
+    Write-InstallLogAction -Message "Using LCID $lcid for term set creation."
+
     try {
         $termGroup = Get-PnPTermGroup -Identity $groupName -Connection $Connection -ErrorAction SilentlyContinue
         if (-not $termGroup) {
-            $termGroup = New-PnPTermGroup -Name $groupName -Connection $Connection
+            $termGroup = New-PnPTermGroup -Name $groupName -Managers (Get-CurrentUserUpn) -Connection $Connection
             Write-InstallLogAction -Message "Created term group '$groupName'."
         }
         else {
@@ -204,7 +225,7 @@ function Add-SiteTermSets {
             $termSet = Get-PnPTermSet -Identity $column.TermSet -TermGroup $groupName -Connection $Connection -ErrorAction SilentlyContinue
             if (-not $termSet) {
                 Start-Sleep -Seconds 30
-                $termSet = New-PnPTermSet -Name $column.TermSet -TermGroup $groupName -Owner (Get-CurrentUserUpn) -Connection $Connection
+                $termSet = New-PnPTermSet -Name $column.TermSet -TermGroup $groupName -Lcid $lcid -Owner (Get-CurrentUserUpn) -Connection $Connection
                 Write-InstallLogAction -Message "Created term set '$($column.TermSet)'."
             }
             else {
@@ -218,8 +239,32 @@ function Add-SiteTermSets {
                 if ($existingTerms -contains $termName) {
                     continue
                 }
-                New-PnPTerm -Name $termName -TermSet $termSet.Id -TermGroup $termGroup.Id -Connection $Connection | Out-Null
-                Write-InstallLogAction -Message "Added term '$termName' to term set '$($column.TermSet)'."
+
+                $maxAttempts = 6
+                $delaySeconds = 5
+                $added = $false
+                $lastError = $null
+                for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+                    try {
+                        New-PnPTerm -Name $termName -TermSet $termSet.Id -TermGroup $termGroup.Id -Connection $Connection -ErrorAction Stop | Out-Null
+                        $added = $true
+                        break
+                    }
+                    catch {
+                        $lastError = $_.Exception.Message
+                        if ($attempt -lt $maxAttempts) {
+                            Write-InstallLogAction -Message "Attempt $attempt of $maxAttempts to add term '$termName' failed: $lastError. Retrying in $delaySeconds seconds." -Level Warning
+                            Start-Sleep -Seconds $delaySeconds
+                        }
+                    }
+                }
+
+                if ($added) {
+                    Write-InstallLogAction -Message "Added term '$termName' to term set '$($column.TermSet)' (attempt $attempt of $maxAttempts)."
+                }
+                else {
+                    Write-InstallLogAction -Message "Failed to add term '$termName' to term set '$($column.TermSet)' after $maxAttempts attempts: $lastError" -Level Error
+                }
             }
         }
         catch {
