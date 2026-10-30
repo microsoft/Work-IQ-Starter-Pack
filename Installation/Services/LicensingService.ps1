@@ -102,21 +102,13 @@ function Test-License-PreRequisites {
     $retVal = $false;
     try {
         $availableSkus = (Invoke-RestMethod -Uri "$graphBaseUrl/subscribedSkus" -Headers $headers -Method Get).value
-        $dynamicsLicenseCount = 0
-        $dynamicsNeeded = 0
-        if ($config.Settings.InstallDynamicsContent -eq $true) {
-            if (-not $Settings.Licenses.Dynamics) {
-                throw "No supported SKUs configured for Dynamics 365 Sales & Customer Service."
-            }
-            foreach ($skuPartNumber in $Settings.Licenses.Dynamics) {
-                $dynamicsLicenseCount += Get-AvailableSkusCount -SkuPartNumber $skuPartNumber
-            }
-        }
+        
         $copilotLicenseCount = 0
         $officeLicenseCount = 0
         $teamsLicenseCount = 0
+        $dynamicsLicenseCount = 0
         Write-InstallLogAction -Message "Checking license availability. Copilot SKUs: $($Settings.Licenses.Copilot -join ', '). Office SKUs: $($Settings.Licenses.Office -join ', ')."
-        #Get the number of available Copilot and Office licenses in the tenant
+        #Get the number of available Copilot, Office, Teams, and Dynamics in the tenant
         foreach ($skuPartNumber in $Settings.Licenses.Copilot) {
             $copilotLicenseCount += Get-AvailableSkusCount -SkuPartNumber $skuPartNumber
         }
@@ -126,12 +118,18 @@ function Test-License-PreRequisites {
         foreach ($skuPartNumber in $Settings.Licenses.Teams) {
             $teamsLicenseCount += Get-AvailableSkusCount -SkuPartNumber $skuPartNumber
         }
+        if ($config.Settings.InstallDynamicsContent -eq $true) {
+            foreach ($skuPartNumber in $Settings.Licenses.Dynamics) {
+                $dynamicsLicenseCount += Get-AvailableSkusCount -SkuPartNumber $skuPartNumber
+            }
+        }
 
         #Only count seats for users that actually need a license. Demo users who are not provisioned
         #yet need both; provisioned demo users and real users only need whichever one they are missing.
         $copilotNeeded = 0
         $officeNeeded = 0
         $teamsNeeded = 0
+        $dynamicsNeeded = 0
         foreach ($user in $Settings.Users) {
             $userStatus = Get-UserLicenseStatus -User $user -Settings $Settings
             $label = $user.Email -replace '<TENANTPREFIX>', $config.Settings.TenantPrefix
@@ -143,13 +141,13 @@ function Test-License-PreRequisites {
             }
             if (-not $userStatus.HasOffice) { $officeNeeded++ }
             if (-not $userStatus.HasCopilot) { $copilotNeeded++ }
-            if ($config.Settings.InstallDynamicsContent -eq $true) {
-                Write-InstallLogAction -Message "User $label - Dynamics 365 Sales & Customer Service license: $($userStatus.HasDynamics)"
-                if (-not $userStatus.HasDynamics) { $dynamicsNeeded++ }
-            }
             if ($userStatus.NeedsTeams) {
                 Write-InstallLogAction -Message "User $label has an Office license without Teams; a Teams license will be needed."
                 $teamsNeeded++
+            }
+            if ($config.Settings.InstallDynamicsContent -eq $true) {
+                Write-InstallLogAction -Message "User $label - Dynamics 365 Sales & Customer Service license: $($userStatus.HasDynamics)"
+                if (-not $userStatus.HasDynamics) { $dynamicsNeeded++ }
             }
         }
 
@@ -166,12 +164,9 @@ function Test-License-PreRequisites {
             if ($dynamicsLicenseCount -lt $dynamicsNeeded) {
                 Write-InstallLogAction -Message "Not enough Dynamics 365 Sales & Customer Service licenses available. Required: $dynamicsNeeded, Available: $dynamicsLicenseCount. SKUs checked: $($Settings.Licenses.Dynamics -join ', ')." -Level Error
             }
-            else {
-                Write-InstallLogAction -Message "Dynamics 365 Sales & Customer Service licenses: $dynamicsNeeded needed, $dynamicsLicenseCount available." -Level Success
-            }
         }
         if($dynamicsLicenseCount -ge $dynamicsNeeded -and $copilotLicenseCount -ge $copilotNeeded -and $officeLicenseCount -ge $officeNeeded -and ($teamsNeeded -eq 0 -or $teamsLicenseCount -ge $teamsNeeded)) {
-           Write-InstallLogAction -Message "Enough licenses available. Copilot: $copilotNeeded needed, $copilotLicenseCount available. Office: $officeNeeded needed, $officeLicenseCount available. Teams: $teamsNeeded needed, $teamsLicenseCount available." -Level Success
+           Write-InstallLogAction -Message "Enough licenses available. Copilot: $copilotNeeded needed, $copilotLicenseCount available. Office: $officeNeeded needed, $officeLicenseCount available. Teams: $teamsNeeded needed, $teamsLicenseCount available. Dynamics: $dynamicsNeeded needed, $dynamicsLicenseCount available." -Level Success
            $retVal = $true
         }
     }
