@@ -19,7 +19,6 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 [Content/content.json](./Content/content.json) describes the Microsoft 365 demo. The installer reads it and uses PnP PowerShell and Microsoft Graph to create:
 
 - Users (demo users, or your own existing users), their licenses, and profile photos
-- Entra security groups named in a site's optional `Groups` array (no site in the shipped `content.json` defines one), containing the same demo or resolved real users used by `Add-Users`. Existing assigned, non-mail-enabled security groups are reused and missing members added; other members are retained. These security groups are not removed by `CleanUp.ps1`.
 - Microsoft Teams and their SharePoint sites, with channels
 - Documents uploaded with the right authors and dates, and past Teams meetings created on each team's calendar with their transcripts (Word documents) linked from the channel
 - SharePoint lists, libraries, content types, views, and managed-metadata term sets
@@ -30,7 +29,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 - PowerShell 7.4.0 or later ([install](https://learn.microsoft.com/powershell/scripting/install/installing-powershell)). It is available for Windows, Linux and Mac.
 - The `PnP.PowerShell` module. The installer installs it for the current user if it is missing. It is required to have version 3.4.1 or later.
 - The `Microsoft.PowerApps.Administration.PowerShell` module, used for Dynamics provisioning. It is installed for the current user if it is missing.
-- The Work IQ service principal (app ID `fdcc1f02-fc51-4226-8753-f668596af7f7`, set as `WorkIQAppId` in settings.json) must exist and be enabled in the tenant for all content packs. The installer creates it if it is missing and stops if it is disabled.
+- The Work IQ service principal (app ID `fdcc1f02-fc51-4226-8753-f668596af7f7`) is enabled in the course of the set up. It is required for this demo.
 - A **Global Administrator** account (see [Permissions](#permissions)).
 - Licenses for the users (see [Licenses](#licenses)).
 - Copilot credits available in the tenant or pay-as-you-go billing enabled, for all content packs (see [Pre-requisite checks](#pre-requisite-checks)).
@@ -51,7 +50,27 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
     "InstallDynamicsContent": true,
     "InstallDynamicsFOContent": false,
     "DeployDynamicsDocuments": false,
-    "ProvisionUserEmails": true
+    "ProvisionUserEmails": true,
+    "AppRegistrationName": "WorkIQStarterPack",
+    "RealUserUpns": [
+      "user1@contoso.onmicrosoft.com",
+      "user2@contoso.onmicrosoft.com",
+      "user3@contoso.onmicrosoft.com",
+      "user4@contoso.onmicrosoft.com",
+      "user5@contoso.onmicrosoft.com"
+    ],
+    "DynamicsEnvironmentUrl": "https://org.crm.dynamics.com",
+    "DynamicsEnvironmentId": "",
+    "DynamicsFOEnvironmentUrl": "https://org.operations.dynamics.com",
+    "DynamicsFOLegalEntityId": "ITCO",
+    "DynamicsFOCustomerGroupId": "STD",
+    "DynamicsFOLanguageId": "en-us",
+    "DynamicsFOProductTemplateCompany": "ITCO",
+    "DynamicsFOProductTemplateItemNumber": "ITEM",
+    "DynamicsFOShippingCompany": "ITCO",
+    "DynamicsFOShippingWarehouseId": "11",
+    "DynamicsFOSalesCurrencyCode": "",
+    "DynamicsFOShippingSiteId": ""
   }
 }
 ```
@@ -130,7 +149,7 @@ For every content pack, each user needs a Microsoft 365 Copilot license and a Mi
 - **Copilot:** `Microsoft_365_Copilot`, `M365_Copilot`, `M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS`
 - **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`, `Microsoft_365_E5_(no_Teams)`
 - **Teams:** `Microsoft_Teams_Enterprise_New`, `Microsoft_Teams_EEA_New`, `Teams_Ess`, `TEAMS_ESSENTIALS_AAD`, `TEAMS_EXPLORATORY`, `MS_TEAMS_IW`, `M365_TEAMS_PREMIUM` and others listed in settings.json. Only needed when the Office license does not include Teams (its name contains `(no_Teams)` or `w/o Teams`).
-- **Dynamics:** `DYN365_ENTERPRISE_SALES_CUSTOMERSERVICE`, `DYN365_ENTERPRISE_SALES`, `DYN365_ENTERPRISE_CUSTOMER_SERVICE`, `DYN365_FINANCE`
+- **Dynamics:** `DYN365_SALES_PREMIUM`, `D365_SALES_PRO` `D365_SALES_PRO_IW`, `DYN365_ENTERPRISE_SALES_CUSTOMERSERVICE`, `DYN365_ENTERPRISE_SALES`, `DYN365_ENTERPRISE_CUSTOMER_SERVICE`, `DYN365_FINANCE`
 
 For a new set of 5 demo users, you need 5 available seats each of Copilot and Office (plus Teams if your Office SKU has no Teams). For existing users, the prerequisite check counts only the licenses they are missing.
 
@@ -155,6 +174,7 @@ The app registration needs the permissions below. They are defined in [Configura
 - Application.ReadWrite.All
 - TeamMember.ReadWrite.All
 - TeamsTab.ReadWrite.All (adds the lists and libraries as channel tabs)
+- TeamSettings.ReadWrite.All
 - AppCatalog.Read.All
 - CopilotCostManagement.Read.All (Copilot credit check)
 - CopilotCostManagement-Policy.Read.All (reading Copilot spending policies; optional, the check still works without it)
@@ -165,6 +185,7 @@ The app registration needs the permissions below. They are defined in [Configura
 
 #### SharePoint Delegated Permissions
 - AllSites.FullControl
+- TermStore.ReadWrite.All
 
 #### Dynamics and Power Platform Delegated Permissions (Dynamics 365 content)
 - Dynamics CRM: user_impersonation
