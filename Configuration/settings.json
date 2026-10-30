@@ -24,7 +24,8 @@
         "Copilot": [
             "Microsoft_365_Copilot",
             "M365_Copilot",
-            "M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS"
+            "M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS",
+            "MICROSOFT_365_E7"
         ],
         "Office": [
             "SPE_E5",
@@ -34,7 +35,8 @@
             "Microsoft_365_E3_(no_Teams)",
             "O365_w/o Teams Bundle_M3",
             "Microsoft_365_E3_EEA_(no_Teams)_Unattended_License",
-            "Microsoft_365_E5_(no_Teams)"
+            "Microsoft_365_E5_(no_Teams)",
+            "MICROSOFT_365_E7"
         ],
         "Teams": [
             "Microsoft_Teams_Enterprise_New",
