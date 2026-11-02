@@ -183,11 +183,11 @@ function Add-TeamMeetings {
                 $transcriptLink = "<a href=`"$transcriptUrl`">$(& $encode $meeting.Title) - transcript</a>"
 
                 $escapedSubject = $meeting.Title.Replace("'", "''")
-                $existing = (Invoke-RestMethod -Uri "$graphBaseUrl/groups/$groupId/events?`$filter=subject eq '$escapedSubject'&`$select=id,subject" -Headers $headers -Method Get).value | Select-Object -First 1
+                $existing = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/groups/$groupId/events?`$filter=subject eq '$escapedSubject'&`$select=id,subject" -Headers $headers -Method Get).value | Select-Object -First 1
 
                 if ($existing) {
                     Write-InstallLogAction -Message "Meeting '$($meeting.Title)' already exists on the '$($Site.URL)' calendar - skipping creation."
-                    $calendarEvent = Invoke-RestMethod -Uri "$graphBaseUrl/groups/$groupId/events/$($existing.id)?`$select=id,onlineMeeting,onlineMeetingUrl" -Headers $headers -Method Get
+                    $calendarEvent = Invoke-GraphRestMethod -Uri "$graphBaseUrl/groups/$groupId/events/$($existing.id)?`$select=id,onlineMeeting,onlineMeetingUrl" -Headers $headers -Method Get
                 }
                 else {
                     $eventBody = @{
@@ -203,7 +203,7 @@ function Add-TeamMeetings {
                         onlineMeetingProvider  = "teamsForBusiness"
                     } | ConvertTo-Json -Depth 8
 
-                    $calendarEvent = Invoke-RestMethod -Uri "$graphBaseUrl/groups/$groupId/events" -Headers $headers -Method Post -ContentType "application/json" -Body $eventBody
+                    $calendarEvent = Invoke-GraphRestMethod -Uri "$graphBaseUrl/groups/$groupId/events" -Headers $headers -Method Post -ContentType "application/json" -Body $eventBody
                     if (-not $calendarEvent.id) {
                         throw "Graph returned no event id when creating the meeting."
                     }

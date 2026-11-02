@@ -122,7 +122,7 @@ function Add-InboxMessage {
     $delaySeconds = 20
     for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
         try {
-            $response = Invoke-RestMethod -Uri $uri -Headers $MailHeaders -Method Post -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
+            $response = Invoke-GraphRestMethod -Uri $uri -Headers $MailHeaders -Method Post -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
             return $response.id
         }
         catch {
@@ -150,7 +150,7 @@ function Remove-InboxMessage {
     )
 
     try {
-        Invoke-RestMethod -Uri "$graphBaseUrl/users/$MailboxEmail/messages/$MessageId" -Headers $MailHeaders -Method Delete | Out-Null
+        Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$MailboxEmail/messages/$MessageId" -Headers $MailHeaders -Method Delete | Out-Null
     }
     catch {
         # Already deleted (or the mailbox is gone) - nothing left to remove.
@@ -304,9 +304,9 @@ function Remove-ImportedEmails {
             $uri = "$graphBaseUrl/users/$($user.Email)/messages?`$filter=categories/any(c:c eq '$script:ImportedEmailCategory')&`$select=id&`$top=50"
             $removed = 0
             while ($uri) {
-                $page = Invoke-RestMethod -Uri $uri -Headers $MailHeaders -Method Get
+                $page = Invoke-GraphRestMethod -Uri $uri -Headers $MailHeaders -Method Get
                 foreach ($message in $page.value) {
-                    Invoke-RestMethod -Uri "$graphBaseUrl/users/$($user.Email)/messages/$($message.id)" -Headers $MailHeaders -Method Delete | Out-Null
+                    Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$($user.Email)/messages/$($message.id)" -Headers $MailHeaders -Method Delete | Out-Null
                     $removed++
                 }
                 # Deleting shifts the result set, so re-query from the start until nothing is left.

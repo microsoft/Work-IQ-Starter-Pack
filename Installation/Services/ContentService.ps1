@@ -277,7 +277,7 @@ function Get-TeamChannelId {
     )
 
     $escapedName = $ChannelName.Replace("'", "''")
-    $channel = (Invoke-RestMethod -Uri "$graphBaseUrl/teams/$TeamId/channels?`$filter=displayName eq '$escapedName'" -Headers $headers -Method Get).value | Select-Object -First 1
+    $channel = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/teams/$TeamId/channels?`$filter=displayName eq '$escapedName'" -Headers $headers -Method Get).value | Select-Object -First 1
 
     if (-not $channel) {
         throw "The '$ChannelName' channel for team '$TeamId' could not be found."
@@ -307,7 +307,7 @@ function Resolve-TeamsChatUserIdentity {
         return $null
     }
 
-    $graphUser = Invoke-RestMethod -Uri "$graphBaseUrl/users/$($matchedUser.Email)?`$select=id,displayName" -Headers $headers -Method Get
+    $graphUser = Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$($matchedUser.Email)?`$select=id,displayName" -Headers $headers -Method Get
 
     $identity = @{
         id                = $graphUser.id
@@ -455,7 +455,7 @@ function Import-TeamsChatMessages {
 
     $migrationBaseUrl = "$graphBaseUrl/teams/$TeamId/channels/$ChannelId"
 
-    $channel = Invoke-RestMethod -Uri "$migrationBaseUrl`?`$select=migrationMode,createdDateTime" -Headers $headers -Method Get
+    $channel = Invoke-GraphRestMethod -Uri "$migrationBaseUrl`?`$select=migrationMode,createdDateTime" -Headers $headers -Method Get
 
     if ($channel.migrationMode -eq "completed") {
         # A completed channel can be migrated into again (startMigration), but the API does not de-duplicate.
@@ -476,7 +476,7 @@ function Import-TeamsChatMessages {
         $anchor = if ($channelCreatedDateTime -lt $earliestMessageTimestamp) { $channelCreatedDateTime } else { $earliestMessageTimestamp }
         $conversationCreationDateTime = $anchor.AddSeconds(-60).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
 
-        $null = Invoke-RestMethod -Uri "$migrationBaseUrl/startMigration" -Headers $MigrationHeaders -Method Post `
+        $null = Invoke-GraphRestMethod -Uri "$migrationBaseUrl/startMigration" -Headers $MigrationHeaders -Method Post `
             -ContentType "application/json" -Body (@{ conversationCreationDateTime = $conversationCreationDateTime } | ConvertTo-Json)
     }
 
@@ -528,7 +528,7 @@ function Import-TeamsChatMessages {
 
             $body = $bodyProperties | ConvertTo-Json -Depth 8
 
-            $createdMessage = Invoke-RestMethod -Uri $postUrl -Headers $MigrationHeaders -Method Post -ContentType "application/json" -Body $body
+            $createdMessage = Invoke-GraphRestMethod -Uri $postUrl -Headers $MigrationHeaders -Method Post -ContentType "application/json" -Body $body
 
             if ($isTopicStarter) {
                 $topicStarterIds[$message.ChatTitle] = $createdMessage.id
@@ -537,7 +537,7 @@ function Import-TeamsChatMessages {
 
         # Only seal the migration once every message has actually been sent - completing it after a
         # partial failure would permanently lock in a half-imported channel.
-        $null = Invoke-RestMethod -Uri "$migrationBaseUrl/completeMigration" -Headers $MigrationHeaders -Method Post
+        $null = Invoke-GraphRestMethod -Uri "$migrationBaseUrl/completeMigration" -Headers $MigrationHeaders -Method Post
         Add-ImportedPostSubjects -ChannelId $ChannelId -Subjects @($Messages | Where-Object { $_.Html } | ForEach-Object { $_.ChatTitle })
         return $Messages.Count
     }
