@@ -210,8 +210,7 @@ try {
         Write-InstallLogInput -Prompt "D365 Sales & CS environment URL" -Response $environmentUrl
         }
     }
-    # Declining D365 Sales & CS skips the remaining Dynamics questions in interactive mode.
-    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } elseif (-not $installDynamicsContent) { $false } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
+    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
     Write-InstallLogInput -Prompt "Install the D365 F&O WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsFOContent) { "Yes" } else { "No" })
     if ($installDynamicsFOContent) {
         $foEnvironmentUrl = $config.Settings.DynamicsFOEnvironmentUrl
