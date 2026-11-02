@@ -1,6 +1,3 @@
-# App registration uses browser PKCE sign-in and REST consent from appreg_mini.ps1.
-# Runtime SharePoint, Graph token, and certificate helpers retain installer compatibility.
-# get the permissions from the settings file.
 $WorkIQSettingsPath = [System.IO.Path]::GetFullPath((Join-Path -Path $PSScriptRoot -ChildPath "../../Configuration/settings.json"))
 $WorkIQAppRegistrationPermissions = (Get-Content -Path $WorkIQSettingsPath -Raw | ConvertFrom-Json).AppRegistrationPermissions
 $WorkIQGraphDelegatePermissions = @($WorkIQAppRegistrationPermissions.GraphDelegate)
@@ -176,7 +173,7 @@ function Invoke-AppRegProvisioning {
         }
         # New applications and principals can take time to become available.
         for ($attempt = 1; $attempt -le 6; $attempt++) {
-            try { return Invoke-RestMethod @request }
+            try { return Invoke-GraphRestMethod @request }
             catch {
                 $status = if ($_.Exception.Response) { [int]$_.Exception.Response.StatusCode } else { 0 }
                 if ($status -ne 404 -or $attempt -eq 6) { throw }
@@ -221,7 +218,7 @@ function Invoke-AppRegProvisioning {
             throw "An app registration named '$AppName' already exists (client ID: $($existing[0].appId)). Choose a different name, or re-run and answer yes to using an existing application registration."
         }
         Write-Host 'Creating the app registration with the required API permissions...'
-        $app = Invoke-RestMethod -Method Post -Uri 'https://graph.microsoft.com/v1.0/applications' `
+        $app = Invoke-GraphRestMethod -Method Post -Uri 'https://graph.microsoft.com/v1.0/applications' `
             -Headers $headers -ContentType 'application/json' -Body $body
     }
     Write-Host "App registration: $($app.appId) (object ID: $($app.id))"
@@ -317,7 +314,7 @@ function Get-AppRegistrationPermissionStatus {
     $readHeaders = @{ Authorization = "Bearer $AccessToken" }
     function Get-AppRegReadOnly {
         param([string]$Path)
-        Invoke-RestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/$Path" -Headers $readHeaders -ErrorAction Stop
+        Invoke-GraphRestMethod -Method Get -Uri "https://graph.microsoft.com/v1.0/$Path" -Headers $readHeaders -ErrorAction Stop
     }
     function Get-AppRegReadOnlyCollection {
         param([string]$Path)
@@ -414,11 +411,6 @@ function Update-AppRegistrationPermissions {
     if ($PSBoundParameters.ContainsKey('RequiredResourceIds')) { $options.RequiredResourceIds = $RequiredResourceIds }
     $null = Invoke-AppRegProvisioning -TenantPrefix $TenantPrefix -ClientId $ClientId -AuthenticationClientId $AuthenticationClientId @options
     return $true
-}
-
-function Add-DynamicsAppRegistrationPermissions {
-    param([string]$ClientId, [string]$TenantPrefix)
-    Update-AppRegistrationPermissions -ClientId $ClientId -TenantPrefix $TenantPrefix
 }
 
 function Set-AppRegistrationConfig {
@@ -607,7 +599,7 @@ function Initialize-TeamsChatMigrationCertificate {
         $thumbprintBase64 = [Convert]::ToBase64String($cert.GetCertHash())
 
         $step = "read the app registration"
-        $application =Invoke-RestMethod -Uri "$graphBaseUrl/applications(appId='$ClientId')?`$select=id,keyCredentials" -Headers $headers -Method Get
+        $application =Invoke-GraphRestMethod -Uri "$graphBaseUrl/applications(appId='$ClientId')?`$select=id,keyCredentials" -Headers $headers -Method Get
 
         $alreadyRegistered = $application.keyCredentials | Where-Object { $_.customKeyIdentifier -eq $thumbprintBase64 }
         if ($alreadyRegistered) {
@@ -626,7 +618,7 @@ function Initialize-TeamsChatMigrationCertificate {
         $body = @{ keyCredentials = $mergedCredentials } | ConvertTo-Json -Depth 6
 
         $step = "update the app registration's keyCredentials"
-        Invoke-RestMethod -Uri "$graphBaseUrl/applications/$($application.id)" -Headers $headers -Method Patch -ContentType "application/json" -Body $body
+        Invoke-GraphRestMethod -Uri "$graphBaseUrl/applications/$($application.id)" -Headers $headers -Method Patch -ContentType "application/json" -Body $body
 
         Write-InstallLogAction -Message "Registered the Teams chat migration certificate on the app registration." -Level Info
     }
@@ -649,14 +641,14 @@ function Remove-AppRegistration {
     )
 
     try {
-        $application = (Invoke-RestMethod -Uri "$graphBaseUrl/applications?`$filter=appId eq '$ClientId'" -Headers $headers -Method Get).value | Select-Object -First 1
+        $application = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/applications?`$filter=appId eq '$ClientId'" -Headers $headers -Method Get).value | Select-Object -First 1
 
         if (-not $application) {
             Write-InstallLogAction "No application registration found for ClientId $ClientId, skipping." -Level Warning
             return
         }
 
-        Invoke-RestMethod -Uri "$graphBaseUrl/applications/$($application.id)" -Headers $headers -Method Delete
+        Invoke-GraphRestMethod -Uri "$graphBaseUrl/applications/$($application.id)" -Headers $headers -Method Delete
         Write-InstallLogAction "Deleted application registration '$($application.displayName)' (ClientId: $ClientId)."
     }
     catch {

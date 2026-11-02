@@ -83,7 +83,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 | `InstallM365Content` | Install the Microsoft 365 content pack. At least one of Microsoft 365, Dynamics 365 Sales & Customer Service, or Finance & Operations must be selected. |
 | `InstallDynamicsContent` | Install the Dynamics 365 Sales & Customer Service data, including the Caldova Field Engagement solution, and enable Dynamics license assignment. When Microsoft 365 content is also selected, this adds the Sales Team. |
 | `InstallDynamicsFOContent` | Install the Dynamics 365 Finance & Operations data. Can be selected independently of the other packs. |
-| `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from the selected file with `-Config`. |
+| `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from the selected file with `-Config`. Requires [SharePoint integration for Dataverse](#sharepoint-integration-for-dataverse). |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
 | `AppRegistrationName` | Optional, used with `-Config` only. Name for a new app registration (default `WorkIQStarterPack`). |
 | `RealUserUpns` | Used with `-Config` and `InstallDemoUsers: false` only. A list of 5 UPNs (see [Users](#users)). |
@@ -114,7 +114,7 @@ The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `Instal
 
 When Sales & Customer Service is selected, configure `DynamicsEnvironmentUrl` for an existing Dataverse environment; `-Config` does not create a new environment. When F&O is selected, configure `DynamicsFOEnvironmentUrl` and the applicable F&O settings above.
 
-The SharePoint document deployment choice is read from `DeployDynamicsDocuments`. If enabled and SharePoint integration or document management for the Account table is not ready, the installer prompts you to configure it or skip document deployment, even with `-Config`.
+The SharePoint document deployment choice is read from `DeployDynamicsDocuments`. If enabled and SharePoint integration or document management for the Account table is not ready, the installer prompts you to configure it or skip document deployment, even with `-Config`. Follow [SharePoint integration for Dataverse](#sharepoint-integration-for-dataverse) before continuing.
 
 ### Multiple configurations
 Keep each tenant's configuration in a separate directory, for example `tenants/tenant-a/config.json` and `tenants/tenant-b/config.json`:
@@ -144,16 +144,16 @@ New users get a temporary password and must change it at first sign-in. The pass
 To use your own users instead, answer "no" when the installer asks about demo users and enter 5 UPNs, or set `InstallDemoUsers: false` and `RealUserUpns` in the config file. Enter them in the order Marketing, Finance, Security/Governance, Finance 2, Sales. The installer looks them up in Entra ID and replaces the demo names and emails in the content with theirs. Demo user photos are only applied to demo users.
 
 ### Licenses
-For every content pack, each user needs a Microsoft 365 Copilot license and a Microsoft 365 license that includes Office apps. Dynamics license assignment also runs when Sales & Customer Service content is selected. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
+For every content pack, each user needs Office apps and Microsoft 365 Copilot. These requirements can be met by separate licenses or a single Microsoft 365 E7 license. Dynamics license assignment also runs when Sales & Customer Service content is selected. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
 
-- **Copilot:** `Microsoft_365_Copilot`, `M365_Copilot`, `M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS`
-- **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`, `Microsoft_365_E5_(no_Teams)`
+- **Copilot:** `Microsoft_365_Copilot`, `M365_Copilot`, `M365_COPILOT_SPECIAL_BENEFIT_PROGRAMS`, `MICROSOFT_365_E7`
+- **Office:** `SPE_E5`, `SPE_E3`, `SPB`, `O365_w/o_Teams_Bundle_M5`, `Microsoft_365_E3_(no_Teams)`, `O365_w/o Teams Bundle_M3`, `Microsoft_365_E3_EEA_(no_Teams)_Unattended_License`, `Microsoft_365_E5_(no_Teams)`, `MICROSOFT_365_E7`
 - **Teams:** `Microsoft_Teams_Enterprise_New`, `Microsoft_Teams_EEA_New`, `Teams_Ess`, `TEAMS_ESSENTIALS_AAD`, `TEAMS_EXPLORATORY`, `MS_TEAMS_IW`, `M365_TEAMS_PREMIUM` and others listed in settings.json. Only needed when the Office license does not include Teams (its name contains `(no_Teams)` or `w/o Teams`).
 - **Dynamics:** `DYN365_SALES_PREMIUM`, `D365_SALES_PRO` `D365_SALES_PRO_IW`, `DYN365_ENTERPRISE_SALES_CUSTOMERSERVICE`, `DYN365_ENTERPRISE_SALES`, `DYN365_ENTERPRISE_CUSTOMER_SERVICE`, `DYN365_FINANCE`
 
-For a new set of 5 demo users, you need 5 available seats each of Copilot and Office (plus Teams if your Office SKU has no Teams). For existing users, the prerequisite check counts only the licenses they are missing.
+For a new set of 5 demo users, you need 5 available seats each of Copilot and Office, or 5 Microsoft 365 E7 seats (plus Teams if your Office SKU has no Teams). The prerequisite check counts only missing licenses and reserves each new SKU once per user, even when it covers several requirements. Existing supported licenses are checked before selecting new SKUs in the configured order.
 
-Office and Copilot licenses are assigned through the same process for all content packs, including Dynamics-only installations (`InstallM365Content: false`). Existing supported licenses are retained. The installer verifies that each user has both licenses and stops before provisioning content if user creation or licensing fails. Ensure F&O users have the appropriate Dynamics licenses assigned separately.
+Office and Copilot licenses are assigned through the same process for all content packs, including Dynamics-only installations (`InstallM365Content: false`). Existing supported licenses are retained, including when using your own users (`InstallDemoUsers: false`). A SKU is assigned at most once per user, and users whose requirements are already covered receive no license assignment request. The installer verifies actual assignments and stops before provisioning content if user creation or licensing fails. Ensure F&O users have the appropriate Dynamics licenses assigned separately.
 
 ### Pre-requisite checks
 Before provisioning users, environments, or content, `InstallWorkIQStarterPack.ps1` checks the following for all selected content packs, including Dynamics-only installations.
@@ -249,6 +249,8 @@ To change the scenario or the names used, edit the prompt before generating the 
 
 The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 content pack. At least one of the three packs must be selected. When run interactively, it prompts for the relevant environment URLs and can create a new Dataverse environment, saving its ID and URL to the selected configuration file. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). See [Environment preparation](#environment-preparation) for the existing-environment requirements and interactive creation options.
 
+In interactive mode, the F&O content question is always shown, even if you decline Sales & Customer Service content; its default is **No**. To install only F&O content, answer **No** to Microsoft 365, **No** to Sales & Customer Service, and **Yes** to F&O. This path asks for the F&O environment URL but skips the Sales & Customer Service environment URL, Dataverse environment creation, and Sales & Customer Service provisioning.
+
 Dynamics-only labs still require Microsoft 365 and Microsoft 365 Copilot licenses, plus Copilot credits or pay-as-you-go billing. They run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations; see [Licenses](#licenses) and [Pre-requisite checks](#pre-requisite-checks) for the shared requirements and the separate Dynamics license requirements.
 
 Depending on the selected packs, it will:
@@ -277,6 +279,69 @@ For the Dataverse environment, follow Microsoft's [Work IQ pilot setup (preview)
 **Finance & Operations**
 
 F&O requires an existing environment; the installer does not create one. Set `DynamicsFOEnvironmentUrl` and confirm that the selected legal entity, customer group, shipping warehouse, and released product used as a setup template are available. See the F&O settings in [Configuration](#configuration) and the license requirements in [Licenses](#licenses). The Dataverse environment creation steps above apply to Sales & Customer Service.
+
+### SharePoint integration for Dataverse
+
+This optional setup is required only when deploying SharePoint documents for **Dynamics 365 Sales & Customer Service** (`InstallDynamicsContent: true` and `DeployDynamicsDocuments: true`). Documents are stored in SharePoint and linked to Dataverse Account records. It is separate from Business Applications in Work IQ, Microsoft 365 Teams provisioning, and F&O setup.
+
+The starter pack checks the integration and deploys the account documents, but **does not enable server-based SharePoint integration or Account document management for you**. Configure them before document deployment, or in another browser tab when the installer asks you to do so.
+
+#### Prerequisites
+
+- A ready Dataverse environment with Sales & Customer Service installed (see [Environment preparation](#environment-preparation)).
+- The **System Administrator** security role or equivalent permissions in that environment, in addition to the installer's [administrator requirements](#permissions).
+- An existing SharePoint Online site in the **same Microsoft 365 tenant**, for example `https://contoso.sharepoint.com/sites/DataverseDemo`. Its hostname must match the configured `TenantPrefix`. Use the site URL, not a document library, folder, or sharing link. The installer can use this site even when `InstallM365Content` is `false`.
+- Appropriate SharePoint permissions for the administrator to manage libraries and upload documents, and for the demo users to access those documents. Dataverse security roles do **not** automatically grant SharePoint access; assign users or groups permissions on the target site separately.
+
+#### 1. Enable server-based SharePoint integration
+
+1. Sign in to the [Power Platform admin center](https://admin.powerplatform.microsoft.com/).
+2. Go to **Manage > Environments**, select the environment matching `DynamicsEnvironmentUrl`, and select **Settings**.
+3. In the environment's Settings page, expand **Integration** in the right-hand column and click **Document management settings**, highlighted in red below, to open the configuration page.
+
+   ![Power Platform admin center environment settings, with Document management settings highlighted under Integration](./assets/sharepoint-dataverse-document-management-settings.png)
+
+4. On the Document Management page, click **Configure server-based SharePoint integration** (called **Enable server-based SharePoint integration** in some interfaces) to open the wizard.
+5. Select **Next** on the introduction step. On **Select site location**, choose **Online**, highlighted in red below, and select **Next**.
+
+   ![Server-based SharePoint integration wizard, with Configure server-based SharePoint integration and the Online site location highlighted](./assets/sharepoint-dataverse-integration-online.png)
+
+6. On **Enter integration site URL**, enter your SharePoint site's HTTPS URL in the **URL** field, for example `https://contoso.sharepoint.com/sites/DataverseDemo`, and select **Next**.
+
+   ![Server-based SharePoint integration wizard, with the SharePoint site URL field highlighted on the Connection step](./assets/sharepoint-dataverse-integration-site-url.png)
+
+7. Resolve any validation errors, continue through the remaining wizard steps, and select **Finish** to apply the configuration.
+
+If server-based integration is already enabled, review the existing configuration instead of enabling it again. Under **SharePoint Sites** on the Document Management page, confirm the intended site is active and set as the default. The starter pack requires **exactly one active default SharePoint Online site** in Dataverse and uses that site's URL for document deployment.
+
+See Microsoft's [server-based SharePoint Online setup instructions](https://learn.microsoft.com/en-us/power-platform/admin/set-up-dynamics-365-online-to-use-sharepoint-online). Once enabled, server-based integration cannot be reverted to the previous client-based integration.
+
+#### 2. Enable document management for Account
+
+1. On the same Document Management page, open **Document management settings**.
+2. On **Select Entities**, select the checkbox for **Account** (logical name `account`), highlighted in red below, then select **Next**. Other tables can remain selected if required for your environment, but the starter pack's document deployment uses Account only.
+
+   ![Document Management Settings wizard, with the Document management settings command and Account checkbox highlighted](./assets/sharepoint-dataverse-document-management-account.png)
+
+3. On **Enter Sharepoint URL**, enter or confirm the default site's HTTPS URL in the **SharePoint site** field. Click **Validate URL**, resolve any validation errors, then select **Next**.
+
+   ![Document Management Settings wizard, with the SharePoint site field and Validate URL button highlighted](./assets/sharepoint-dataverse-document-management-site-url.png)
+
+4. Complete the remaining wizard steps, including any folder-structure choices and library creation prompts, and confirm creation succeeds.
+5. Open the SharePoint site's **Site contents** and verify the Account library or folder exists. The installer expects exactly one existing root named `Account`, either at the site root or inside `Documents` / `Shared Documents`. It creates the individual demo account folders, not this table-level root.
+
+Use the English environment specified in [Environment preparation](#environment-preparation) and preserve the generated Account root. If the wizard reports a library creation error or the root is missing, resolve the document management configuration before resuming the installer.
+
+See Microsoft's [instructions for enabling document management on specific tables](https://learn.microsoft.com/en-us/power-platform/admin/enable-sharepoint-document-management-specific-entities).
+
+#### 3. Deploy and verify the demo documents
+
+1. Run the installer and answer **yes** to **Do you want to deploy the SharePoint Documents connected to D365 Sales & CS?** Alternatively, set `InstallDynamicsContent` and `DeployDynamicsDocuments` to `true` in the selected configuration and run `./InstallWorkIQStarterPack.ps1 -Config <path>`.
+2. If the installer is waiting for configuration, enter `ok` after completing the steps above. It rechecks the integration and Account document management. Enter `cancel` to skip document deployment and continue the remaining installation steps; this prompt can also appear with `-Config`.
+3. Review the installation log for the selected default SharePoint site, the existing Account root, and successful document deployment. The configuration check is not a live SharePoint connectivity test; upload errors still need to be resolved.
+4. In **Sales Hub**, open a demo account with supplied documents and select **Related > Documents**. Confirm its documents are listed and can be opened. Use **Open Location** to verify the corresponding SharePoint folder, and repeat the access check as a demo user.
+
+If documents cannot be deployed or opened, check the environment URL, the active default site, Account document management, the Account root, and the affected user's SharePoint permissions. After correcting deployment errors, rerun the installer with the same configuration. To remove the uploaded demo account folders later, select **Dynamics SharePoint cleanup** (see [Cleanup](#cleanup)).
 
 ## Generated files and logs
 For the default `Configuration/config.json`, these locations are unchanged and git-ignored:

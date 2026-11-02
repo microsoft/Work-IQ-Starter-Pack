@@ -28,7 +28,7 @@ function Show-DynamicsEnvironmentSecurityGroup {
         }
         $groupId = [Guid]::Parse($groupId).ToString()
         $graphToken = if ($AccessTokenProvider) { & $AccessTokenProvider 'https://graph.microsoft.com/.default' } else { Get-PnPAccessToken -Scopes 'https://graph.microsoft.com/.default' -ErrorAction Stop }
-        $group = Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/groups/$($groupId)?`$select=id,displayName" -Headers @{Authorization="Bearer $graphToken"} -Method Get -ErrorAction Stop
+        $group = Invoke-GraphRestMethod -Uri "https://graph.microsoft.com/v1.0/groups/$($groupId)?`$select=id,displayName" -Headers @{Authorization="Bearer $graphToken"} -Method Get -ErrorAction Stop
         Write-InstallLogAction -Message "D365 Sales & CS environment: $($environment.displayName) ($($environment.id)). Associated security group: $($group.displayName) ($groupId)." -Level Success
         return [PSCustomObject]@{EnvironmentId=$environment.id;SecurityGroupId=$groupId}
     }
@@ -50,22 +50,22 @@ function Initialize-PowerPlatformUsers {
         if ([string]::IsNullOrWhiteSpace($upn)) { throw 'A provisioning user has no email/UPN.' }
         try {
             $encodedUpn = [Uri]::EscapeDataString($upn)
-            $user = Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/users/$($encodedUpn)?`$select=id,userPrincipalName" -Headers $graphHeaders -Method Get -ErrorAction Stop
+            $user = Invoke-GraphRestMethod -Uri "https://graph.microsoft.com/v1.0/users/$($encodedUpn)?`$select=id,userPrincipalName" -Headers $graphHeaders -Method Get -ErrorAction Stop
             $userId = [Guid]::Parse($user.id).ToString()
             if ($groupId) {
                 $memberUrl = "https://graph.microsoft.com/v1.0/groups/$groupId/members/$userId"
                 $isMember = $false
                 try {
-                    Invoke-RestMethod -Uri $memberUrl -Headers $graphHeaders -Method Get -ErrorAction Stop | Out-Null
+                    Invoke-GraphRestMethod -Uri $memberUrl -Headers $graphHeaders -Method Get -ErrorAction Stop | Out-Null
                     $isMember = $true
                 } catch { if (-not $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw } }
                 if (-not $isMember) {
                     $body = @{'@odata.id'="https://graph.microsoft.com/v1.0/directoryObjects/$userId"} | ConvertTo-Json
-                    Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/groups/$groupId/members/`$ref" -Headers $graphHeaders -Method Post -ContentType 'application/json' -Body $body -ErrorAction Stop | Out-Null
+                    Invoke-GraphRestMethod -Uri "https://graph.microsoft.com/v1.0/groups/$groupId/members/`$ref" -Headers $graphHeaders -Method Post -ContentType 'application/json' -Body $body -ErrorAction Stop | Out-Null
                     # Directory membership may not be immediately visible after the write.
                     for ($membershipAttempt=1; $membershipAttempt -le 31; $membershipAttempt++) {
                         try {
-                            Invoke-RestMethod -Uri $memberUrl -Headers $graphHeaders -Method Get -ErrorAction Stop | Out-Null
+                            Invoke-GraphRestMethod -Uri $memberUrl -Headers $graphHeaders -Method Get -ErrorAction Stop | Out-Null
                             $isMember = $true
                             break
                         } catch { if (-not $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw } }
@@ -115,7 +115,7 @@ function Set-PowerPlatformUserSecurityRoles {
     foreach ($upn in @($Settings.Users.Email | Select-Object -Unique)) {
         try {
             $encodedUpn = [Uri]::EscapeDataString($upn)
-            $entraUser = Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/users/$($encodedUpn)?`$select=id" -Headers @{Authorization="Bearer $graphToken"} -Method Get -ErrorAction Stop
+            $entraUser = Invoke-GraphRestMethod -Uri "https://graph.microsoft.com/v1.0/users/$($encodedUpn)?`$select=id" -Headers @{Authorization="Bearer $graphToken"} -Method Get -ErrorAction Stop
             $entraId = [Guid]::Parse($entraUser.id).ToString()
             $filter = [Uri]::EscapeDataString("azureactivedirectoryobjectid eq $entraId")
             $users = Invoke-RestMethod -Uri "$baseUrl/systemusers?`$select=systemuserid,_businessunitid_value&`$filter=$filter" -Headers $requestHeaders -Method Get -ErrorAction Stop
@@ -150,7 +150,7 @@ function Test-GlobalAdminPreRequisite {
     $retVal = $false
     try {
         $globalAdminRoleTemplateId = "62e90394-69f5-4237-9190-012177145e10"
-        $memberOfRoles = (Invoke-RestMethod -Uri "$graphBaseUrl/me/memberOf/microsoft.graph.directoryRole" -Headers $headers -Method Get).value
+        $memberOfRoles = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/me/memberOf/microsoft.graph.directoryRole" -Headers $headers -Method Get).value
 
         if ($memberOfRoles | Where-Object { $_.roleTemplateId -eq $globalAdminRoleTemplateId }) {
             Write-InstallLogAction -Message "Current user is a Global Administrator."
@@ -317,13 +317,4 @@ function New-PowerPlatformDataverseEnvironment {
         else { Write-InstallLogAction -Message "Environment '$DisplayName' is not listed yet." }
         Wait-InstallPollingInterval -Activity 'Waiting for the Dataverse Environment to Become Ready' -Seconds 30
     }
-}
-
-function Test-PowerPlatformEnvironmentPermissions {
-    param(
-        [Parameter(Mandatory = $false)]
-        $Settings
-    )
-    # TODO: Stubbed until Power Platform auth/module scaffolding is added to this installer.
-    return $true
 }
