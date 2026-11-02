@@ -16,7 +16,6 @@ function Select-DynamicsFORecord {
     if (-not $Records.Count) { throw "No records available: $Prompt" }
     if ($Records.Count -eq 1) {
         $message = "Automatically selected the only available entry: $($Records[0].$CodeField) - $($Records[0].$NameField)"
-        Write-Host $message
         Write-InstallLogAction -Message $message
         return $Records[0]
     }
@@ -52,7 +51,6 @@ function Add-DynamicsFOContent {
     $environmentUrl = $environmentUri.GetLeftPart([UriPartial]::Authority)
     $token = if ($AccessTokenProvider) { & $AccessTokenProvider "$environmentUrl/Odata.FullAccess" } else { Get-PnPAccessToken -Scopes "$environmentUrl/Odata.FullAccess" -ErrorAction Stop }
     $headers = @{Authorization="Bearer $token"; Accept='application/json'}
-    Write-Host 'Retrieving D365 F&O Companies...'
     Write-InstallLogAction -Message 'Retrieving D365 F&O Companies...'
     $companies = @(Get-DynamicsFORecords -Url "$environmentUrl/data/LegalEntities?cross-company=true&`$select=LegalEntityId,Name" -EnvironmentUrl $environmentUrl -Headers $headers | Sort-Object LegalEntityId)
     Write-Host "Retrieved $($companies.Count) Companies."
@@ -66,12 +64,15 @@ function Add-DynamicsFOContent {
     $ledgers = @(Get-DynamicsFORecords -Url "$environmentUrl/data/Ledgers?cross-company=true" -EnvironmentUrl $environmentUrl -Headers $headers |
         Where-Object { $_.LegalEntityId -eq $companyId })
     if ($ledgers.Count -ne 1 -or [string]::IsNullOrWhiteSpace($ledgers[0].AccountingCurrency)) {
-        throw "Could not resolve one ledger with an accounting currency for Company '$companyId'. Customer creation cannot continue."
+        $ledgerSetupUrl = 'https://learn.microsoft.com/en-us/dynamics365/finance/general-ledger/configure-ledger'
+        Write-Host "Could not resolve one ledger with an accounting currency for Company '$companyId'." -ForegroundColor Yellow
+        Write-Host "In F&O, select Company '$companyId' and configure Accounting currency under General ledger > Ledger setup > Ledger."
+        Write-Host "Microsoft ledger configuration instructions: $ledgerSetupUrl"
+        throw "Configure the ledger and accounting currency for Company '$companyId' before running the installer again. See $ledgerSetupUrl"
     }
     $salesCurrencyCode = [string]$ledgers[0].AccountingCurrency
     $Config.Settings | Add-Member -NotePropertyName DynamicsFOSalesCurrencyCode -NotePropertyValue $salesCurrencyCode -Force
     $Config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ConfigPath -Encoding UTF8
-    Write-Host "Default currency for ${companyId}: $salesCurrencyCode"
     Write-InstallLogAction -Message "Using D365 F&O Company '$companyId' accounting currency '$salesCurrencyCode' for Customers."
 
     Write-Host "Retrieving Customer Groups for $companyId..."
@@ -85,8 +86,7 @@ function Add-DynamicsFOContent {
 
     $content = Get-Content -LiteralPath $ContentPath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
     $failed = 0
-    Write-Host "Starting Customer creation in D365 F&O Company '$companyId' (existing Customer codes will be skipped)..."
-    Write-InstallLogAction -Message "Starting D365 F&O Customer creation in '$companyId'."
+    Write-InstallLogAction -Message "Starting D365 F&O Customer creation in '$companyId' (existing Customer codes will be skipped)..."
     foreach ($account in $content.Accounts) {
         try {
             if ([string]::IsNullOrWhiteSpace($account.AccountNumber) -or [string]::IsNullOrWhiteSpace($account.Name)) { throw 'Account requires AccountNumber and Name.' }
@@ -101,14 +101,13 @@ function Add-DynamicsFOContent {
                 dataAreaId=$companyId; CustomerAccount=$account.AccountNumber; PartyType='Organization'
                 Name=$account.Name; CustomerGroupId=$groupId; SalesCurrencyCode=$salesCurrencyCode
                 LanguageId= if ([string]::IsNullOrWhiteSpace($Config.Settings.DynamicsFOLanguageId)) { 'en-us' } else { $Config.Settings.DynamicsFOLanguageId }
-                DeliveryTerms='FOB'; DeliveryMode='10'; SalesTaxGroup='IL'; PaymentTerms='Cash'
                 TaxRegistrationId=''; DestinationCode=''; AddressCountryRegionId='USA'
                 AddressCity=$account.City; AddressState=$account.State
                 AddressZipCode=''; AddressStreet=''; AddressCounty=''; AddressBooks=''
                 PrimaryContactPhone=$account.Phone; PrimaryContactFax=''; PrimaryContactPhoneExtension=''
                 PrimaryContactEmail= if ($contact.Count -eq 1) { $contact[0].Email } else { '' }
             }
-            # Allow environment-specific reference codes without changing the demo accounts.
+            # Send these reference codes only when configured for the selected environment.
             foreach ($field in @('DeliveryTerms','DeliveryMode','SalesTaxGroup','PaymentTerms')) {
                 $settingName = 'DynamicsFO' + $field
                 if (-not [string]::IsNullOrWhiteSpace($Config.Settings.$settingName)) { $body[$field] = $Config.Settings.$settingName }
