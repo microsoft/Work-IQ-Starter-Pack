@@ -233,7 +233,7 @@ function Remove-Teams {
 
             # The site can stay bound to the deleted group for a while, so keep retrying the removal
             # until it leaves active use (or was never there).
-            $deadline = (Get-Date).AddMinutes(5)
+            $deadline = (Get-Date).AddMinutes(10)
             $siteInactive = $false
             do {
                 $activeSite = Get-PnPTenantSite -Identity $siteUrl -ErrorAction SilentlyContinue
@@ -259,7 +259,7 @@ function Remove-Teams {
                 continue
             }
 
-            $deadline = (Get-Date).AddMinutes(2)
+            $deadline = (Get-Date).AddMinutes(5)
             do {
                 $deletedSite = Get-PnPTenantDeletedSite -Identity $siteUrl -ErrorAction SilentlyContinue
                 if (-not $deletedSite -and $waitForBins) { Start-Sleep -Seconds 10 }
