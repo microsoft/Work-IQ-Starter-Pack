@@ -249,6 +249,8 @@ To change the scenario or the names used, edit the prompt before generating the 
 
 The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 content pack. At least one of the three packs must be selected. When run interactively, it prompts for the relevant environment URLs and can create a new Dataverse environment, saving its ID and URL to the selected configuration file. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). See [Environment preparation](#environment-preparation) for the existing-environment requirements and interactive creation options.
 
+In interactive mode, the F&O content question is always shown, even if you decline Sales & Customer Service content; its default is **No**. To install only F&O content, answer **No** to Microsoft 365, **No** to Sales & Customer Service, and **Yes** to F&O. This path asks for the F&O environment URL but skips the Sales & Customer Service environment URL, Dataverse environment creation, and Sales & Customer Service provisioning.
+
 Dynamics-only labs still require Microsoft 365 and Microsoft 365 Copilot licenses, plus Copilot credits or pay-as-you-go billing. They run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations; see [Licenses](#licenses) and [Pre-requisite checks](#pre-requisite-checks) for the shared requirements and the separate Dynamics license requirements.
 
 Depending on the selected packs, it will:
