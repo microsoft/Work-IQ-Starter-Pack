@@ -86,7 +86,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 | `InstallDemoUsers` | `true` creates the 5 built-in demo users. `false` maps the demo roles onto your own users (see [Users](#users)). |
 | `InstallM365Content` | Install the Microsoft 365 content pack. At least one of Microsoft 365, Dynamics 365 Sales & Customer Service, or Finance & Operations must be selected. |
 | `InstallDynamicsContent` | Install the Dynamics 365 Sales & Customer Service data, including the Caldova Field Engagement solution, and enable Dynamics license assignment. When Microsoft 365 content is also selected, this adds the Sales Team. |
-| `InstallDynamicsFOContent` | Install the Dynamics 365 Finance & Operations data. Can be selected independently of the other packs. |
+| `InstallDynamicsFOContent` | Install the Dynamics 365 Finance & Operations data. Can be selected independently of the other packs. See [Finance and Operations](#finance-and-operations) for environment preparation. |
 | `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from the selected file with `-Config`. Requires [SharePoint integration for Dataverse](#sharepoint-integration-for-dataverse). |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
 | `AppRegistrationName` | Optional, used with `-Config` only. Name for a new app registration (default `WorkIQStarterPack`). |
@@ -98,22 +98,8 @@ The main installer and cleanup use these additional settings for Dynamics operat
 |---|---|
 | `DynamicsEnvironmentUrl` | URL of the Dataverse environment for Sales & Customer Service (for example `https://org.crm.dynamics.com`). |
 | `DynamicsEnvironmentId` | ID of the Dataverse environment. Written by the installer when it creates an environment. |
-| `DynamicsFOEnvironmentUrl` | HTTPS root URL of an existing Finance & Operations environment, for example `https://org.operations.dynamics.com`. Do not include an application path, query string, or fragment. |
-| `DynamicsFOLegalEntityId` | Existing legal entity (company) fully configured for customer creation, product release, and sales-order entry, including a ledger with an accounting currency. See [Environment preparation](#environment-preparation) for operational setup requirements. |
-| `DynamicsFOCustomerGroupId` | Existing customer group in the selected legal entity, used for new demo customers. |
-| `DynamicsFOLanguageId` | Language for new F&O customers; defaults to `en-us` when empty. |
-| `DynamicsFODeliveryTerms` | Optional terms-of-delivery code for new customers. Use a code configured in your environment. |
-| `DynamicsFODeliveryMode` | Optional mode-of-delivery code for new customers. Use a code configured in your environment. |
-| `DynamicsFOSalesTaxGroup` | Optional sales tax group code for new customers. Use a group configured for the selected legal entity. |
-| `DynamicsFOPaymentTerms` | Optional payment terms code for new customers. Use terms configured for the selected legal entity. |
-| `DynamicsFOProductTemplateCompany`, `DynamicsFOProductTemplateItemNumber` | Company and item number of an existing released product configured for sales, used as the setup template for new demo products. The company must match `DynamicsFOLegalEntityId`. |
-| `DynamicsFOShippingCompany`, `DynamicsFOShippingWarehouseId` | Company and existing shipping warehouse for demo sales orders. The company must match `DynamicsFOLegalEntityId`. The warehouse must have an associated site and the applicable location setup described in [Environment preparation](#environment-preparation). |
-| `DynamicsFOSalesCurrencyCode` | Derived from the selected legal entity's ledger accounting currency. Leave empty; setting it manually does not replace ledger configuration. |
-| `DynamicsFOShippingSiteId` | Derived from the selected warehouse's site. Leave empty; configure the site and warehouse relationship in F&O. |
 
-The F&O company, customer group, item, and warehouse values shown above are examples; replace them with values from your environment. You can select these records interactively and reuse the saved settings with `-Config`.
-
-Add the optional delivery, tax, and payment settings manually under `Settings` in your configuration file, including for interactive installations; there are no prompts for these four fields. Populate them when your environment requires explicit values to create customers, or when you want particular defaults on the new customers. Leave them empty only when F&O provides suitable defaults or permits blank values. There are no universal codes for these settings. They apply to newly created customers; existing customers are skipped and are not updated.
+See [F&O configuration](#fo-configuration) for the Finance & Operations settings in the example above.
 
 The Microsoft 365 content pack installs the Market Research, Finance, and Procurement teams from `content.json`. When both Microsoft 365 and Sales & Customer Service content are selected, the installer also adds the Sales Team (the site flagged `DynamicsContent`). Dynamics 365 data is provisioned directly by the same installer, even when Microsoft 365 content is not selected. [Configuration/settings.json](./Configuration/settings.json) holds the static installer data: the app registration permissions, the supported license SKUs, and the demo users.
 
@@ -126,7 +112,7 @@ A fully non-interactive installation is not currently supported. Supporting it w
 
 The settings it reads are `TenantPrefix` (required), `InstallDemoUsers`, `InstallM365Content`, `InstallDynamicsContent`, `InstallDynamicsFOContent`, `DeployDynamicsDocuments`, `ProvisionUserEmails`, and `ClientId` (set = use that existing app registration; empty = create one, named by `AppRegistrationName`). If `InstallDemoUsers` is false, `RealUserUpns` must contain exactly 5 UPNs.
 
-When Sales & Customer Service is selected, configure `DynamicsEnvironmentUrl` for an existing Dataverse environment; `-Config` does not create a new environment. When F&O is selected, configure `DynamicsFOEnvironmentUrl` and the applicable F&O settings above.
+When Sales & Customer Service is selected, configure `DynamicsEnvironmentUrl` for an existing Dataverse environment; `-Config` does not create a new environment. When F&O is selected, configure `DynamicsFOEnvironmentUrl` and the applicable [F&O settings](#fo-configuration).
 
 The SharePoint document deployment choice is read from `DeployDynamicsDocuments`. If enabled and SharePoint integration or document management for the Account table is not ready, the installer prompts you to configure it or skip document deployment, even with `-Config`. Follow [SharePoint integration for Dataverse](#sharepoint-integration-for-dataverse) before continuing.
 
@@ -224,7 +210,7 @@ The installer can be run again. Existing Teams are kept, but their owners and me
 - **Procurement Team** (private Team): a "Capacity Planning" channel, 8 documents, 3 past Teams meetings, 4 email threads, and 3 chats. It also gets the Supplier Directory, Supplier Capacity Tracker, and RFPs lists.
 - **Sales Team** (private Team, only when both `InstallM365Content` and `InstallDynamicsContent` are `true`): a "Dynamics - D365 - Sales Hub" channel, 4 documents, 3 email threads, and 2 chats.
 - Profile photos for the demo users when Microsoft 365 content is selected.
-- **Dynamics 365 data**, when selected: Sales & Customer Service and/or Finance & Operations content (see [Dynamics 365 content](#dynamics-365-content)).
+- **Dynamics 365 data**, when selected: Sales & Customer Service and/or Finance & Operations content (see [Dynamics 365 content](#dynamics-365-content) and [Finance and Operations](#finance-and-operations)).
 
 The lists and libraries are added to the first channel as tabs, and the default Notes, Wiki, and Page tabs are removed.
 
@@ -261,9 +247,7 @@ To change the scenario or the names used, edit the prompt before generating the 
 ## Dynamics 365 content
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
 
-The installer lets you select Dynamics 365 Sales & Customer Service data, Finance & Operations (F&O) data, or both, independently of the Microsoft 365 content pack. At least one of the three packs must be selected. When run interactively, it prompts for the relevant environment URLs and can create a new Dataverse environment, saving its ID and URL to the selected configuration file. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). See [Environment preparation](#environment-preparation) for the existing-environment requirements and interactive creation options.
-
-In interactive mode, the F&O content question is always shown, even if you decline Sales & Customer Service content; its default is **No**. To install only F&O content, answer **No** to Microsoft 365, **No** to Sales & Customer Service, and **Yes** to F&O. This path asks for the F&O environment URL but skips the Sales & Customer Service environment URL, Dataverse environment creation, and Sales & Customer Service provisioning.
+The installer lets you select Dynamics 365 Sales & Customer Service data independently of the Microsoft 365 content pack. Finance & Operations (F&O) has a separate [preparation guide](#finance-and-operations). At least one of the three packs must be selected. When run interactively, it prompts for the relevant environment URLs and can create a new Dataverse environment, saving its ID and URL to the selected configuration file. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](#unattended-install)). See [Environment preparation](#environment-preparation) for the existing-environment requirements and interactive creation options.
 
 Dynamics-only labs still require Microsoft 365 and Microsoft 365 Copilot licenses, plus Copilot credits or pay-as-you-go billing. They run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations; see [Licenses](#licenses) and [Pre-requisite checks](#pre-requisite-checks) for the shared requirements and the separate Dynamics license requirements.
 
@@ -271,7 +255,6 @@ Depending on the selected packs, it will:
 - Create or resolve the selected users for all packs; synchronize them into Dataverse when Sales & Customer Service is selected.
 - Install the Caldova Field Engagement managed solution from [Content/DataverseSolutions](./Content/DataverseSolutions) when Sales & Customer Service is selected.
 - Create the Sales & Customer Service data in [Content/contentDynamics.json](./Content/contentDynamics.json): leads, accounts, contacts, price lists, products, opportunities, quotes, orders, invoices, cases, emails, and field engagements.
-- Optionally create the F&O customers, products, and sales orders.
 - Optionally deploy SharePoint documents connected to the Sales & Customer Service records.
 
 All installation operations are recorded in `Logs/InstallLog-YYYYMMDDXX.md`, where `XX` is the run number for that day. Each run writes a new file, so earlier logs are kept.
@@ -289,26 +272,6 @@ Alternatively, run the installer interactively and choose to create a new Datave
 **Enable Business Applications in Work IQ**
 
 For the Dataverse environment, follow Microsoft's [Work IQ pilot setup (preview)](https://learn.microsoft.com/en-us/power-platform/admin/business-applications-work-iq/quickstart): confirm the demo users are included in the Microsoft 365 admin center's Business Applications in Work IQ availability setting, and turn on Work IQ under **Settings > Product > Features** in the Power Platform admin center. Review [Dataverse search indexing for AI and agent experiences](https://learn.microsoft.com/en-us/power-platform/admin/configure-relevance-search-organization#turn-on-search-indexing-to-support-dataverse-intelligence-work-iq-in-ai-and-agent-experiences) for Dataverse-backed AI experiences. These administrative settings are separate from installing the demo data and are not enabled by the starter pack.
-
-**Finance & Operations**
-
-Prepare an existing F&O environment before installing the demo data. The installer does not create the environment, legal entity, ledger, or reference setup below.
-
-> **Prerequisite: fully configured legal entity**
->
-> Use a legal entity that is already fully configured for customer creation, product release, and sales-order entry. This includes the ledger and accounting currency, customer and tax setup, product and inventory settings, sites, warehouses, warehouse locations and applicable defaults, and number sequences.
->
-> Additional setup depends on the enabled features, warehouse processes, localization, and customizations. The checklist below highlights prerequisites relevant to the starter pack; it is not a complete guide to implementing a new legal entity. An F&O administrator or functional consultant should complete and validate the required operational setup before provisioning demo data.
-
-1. **Confirm environment access.** Set `DynamicsFOEnvironmentUrl` to the environment's HTTPS root URL. The administrator signing in must have access to the selected company and F&O permissions to read its setup and create customers, products, and sales orders through OData. Review [Licenses](#licenses), [Permissions](#permissions), and Microsoft's [data entity security guidance](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/security-data-entities).
-2. **Use a fully configured legal entity.** In F&O, go to **Organization administration > Organizations > Legal entities** and choose a company whose operational setup has been completed and validated. Record its **Company** code as `DynamicsFOLegalEntityId`. If a new company is needed, Microsoft's [Create a legal entity](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/fin-ops/organization-administration/tasks/create-legal-entity) covers the initial creation step. Have an F&O administrator or functional consultant complete its functional configuration before running the installer; creating the company alone does not configure its ledger, inventory, or sales processes.
-3. **Configure the ledger and accounting currency.** Switch to that company, open **General ledger > Ledger setup > Ledger**, and confirm that the ledger is configured and **Accounting currency** is populated. This currency is required for demo customers and sales orders; entering a value in the JSON file does not configure the ledger. Follow Microsoft's [Configure ledgers — accounting currency](https://learn.microsoft.com/en-us/dynamics365/finance/general-ledger/configure-ledger#configuring-currencies-for-the-ledger).
-4. **Prepare customer setup.** Ensure a customer group exists in the selected company and use its code for `DynamicsFOCustomerGroupId`. Confirm that delivery terms, delivery modes, sales tax groups, and payment terms needed for your demo are configured. Use the optional fields in [Configuration](#configuration) when explicit customer values are needed; use your environment's codes.
-5. **Prepare a released product as the setup template.** In the same company, choose an existing released item configured for sales. It needs inventory, sales, and purchase units, an item group, and an item model group. Check that its storage/tracking dimension groups, default site and warehouse, and item sales tax group are suitable for the demo products. Record its company and item number in the product template settings in [Configuration](#configuration).
-6. **Validate the shipping site, warehouse, and locations.** Use a shipping warehouse in the same company, linked to a site suitable for the demo orders. Check warehouse locations and any required default locations, and confirm compatibility with the products' inventory dimensions. Follow Microsoft's [Inventory locations](https://learn.microsoft.com/en-us/dynamics365/supply-chain/inventory/inventory-locations) for Inventory management or [Warehouse configuration overview](https://learn.microsoft.com/en-us/dynamics365/supply-chain/warehousing/warehouse-configuration) for WMS-enabled warehouses, as applicable. Complete any additional setup required by the warehouse processes in use. Use the company and warehouse in the shipping settings in [Configuration](#configuration); the site is derived from the warehouse.
-7. **Check order numbering.** Ensure the company can automatically assign sales order numbers and inventory transaction identifiers when orders and lines are created. Microsoft documents the inventory number sequence prerequisite in [Sales order lines V2](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/entity-sales-order-lines-v2-salesorderline#issues-and-considerations).
-
-**Recommended operational check:** Ask your F&O administrator to validate customer creation, product release, and sales-order entry with a line using the intended product setup, site, and warehouse. Resolve setup or validation errors in F&O before running demo provisioning.
 
 ### SharePoint integration for Dataverse
 
@@ -372,6 +335,91 @@ See Microsoft's [instructions for enabling document management on specific table
 4. In **Sales Hub**, open a demo account with supplied documents and select **Related > Documents**. Confirm its documents are listed and can be opened. Use **Open Location** to verify the corresponding SharePoint folder, and repeat the access check as a demo user.
 
 If documents cannot be deployed or opened, check the environment URL, the active default site, Account document management, the Account root, and the affected user's SharePoint permissions. After correcting deployment errors, rerun the installer with the same configuration. To remove the uploaded demo account folders later, select **Dynamics SharePoint cleanup** (see [Cleanup](#cleanup)).
+
+## Finance and Operations
+
+The main installer creates F&O demo customers, products, and sales orders from [Content/contentDynamics.json](./Content/contentDynamics.json). Prepare an existing F&O environment and the reference records below. This pack does not require Dataverse or its SharePoint document integration.
+
+Complete the shared [Requirements](#requirements), [Licenses](#licenses), and [Permissions](#permissions). Use an F&O account permitted to read company setup and create customers, products, and orders through OData, and an app registration with Dynamics ERP `Odata.FullAccess`. F&O licenses must be assigned separately.
+
+> Use a legal entity ready for customer, product, and sales-order entry. Your F&O administrator must complete any additional setup required by enabled features or customizations before provisioning.
+
+### F&O environment preparation
+
+The screenshots show the demo company `ITCO — Contoso Italy`. All codes and currency values are examples; use the values configured in your environment.
+
+#### 1. Select the legal entity
+
+Open **Organization administration > Organizations > Legal entities**, choose the company, and select the same company in the F&O company picker. Record its **Company** code. If a new company is needed, follow [Create a legal entity](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/fin-ops/organization-administration/tasks/create-legal-entity) and complete its functional setup before provisioning.
+
+![Legal entities page with the company name and Company code highlighted in red](./assets/fo-legal-entity.png)
+
+#### 2. Configure the ledger accounting currency
+
+In that company, open **General ledger > Ledger setup > Ledger** and populate **Accounting currency**. See [Configure ledgers — accounting currency](https://learn.microsoft.com/en-us/dynamics365/finance/general-ledger/configure-ledger#configuring-currencies-for-the-ledger). The installer uses this currency for customers and orders; setting it in JSON does not replace ledger configuration.
+
+![Ledger page with the company description and Accounting currency highlighted in red](./assets/fo-ledger-accounting-currency.png)
+
+#### 3. Prepare a customer group
+
+Open **Accounts receivable > Setup > Customer groups**. Create or select a group in the company and record its **Customer group** code. See [Configure Accounts receivable](https://learn.microsoft.com/en-us/dynamics365/finance/accounts-receivable/accounts-receivables-set-up-overview) for applicable defaults.
+
+![Customer groups page with the group code and description highlighted in red](./assets/fo-customer-groups.png)
+
+#### 4. Prepare a released product as the setup template
+
+If demo products need releasing, choose an existing sales-ready item in **Product information management > Products > Released products** in the same company. Confirm these fields are populated:
+
+- **General > Item model group**.
+- **Manage costs > Item group**.
+- **Unit** in each of **Purchase**, **Sell**, and **Manage inventory**.
+
+Record its company and **Item number**, which can differ from the Product number. Its storage and tracking dimensions must be compatible with the shipping site and warehouse. The installer creates the demo products.
+
+![Released product with Item number, Item model group, Item group and the purchase, sales and inventory unit summaries highlighted in red](./assets/fo-released-product-setup.png)
+
+#### 5. Prepare the shipping warehouse and site
+
+Open **Inventory management > Setup > Inventory breakdown > Warehouses**. Select a warehouse in the same company with **Site** assigned. Record its company and **Warehouse** code; the site is derived automatically. Ensure any required location or warehouse-process setup is compatible with the chosen product.
+
+![Warehouses page with the warehouse code, name and associated Site highlighted in red](./assets/fo-warehouse-site.png)
+
+#### 6. Check automatic numbering
+
+In **Accounts receivable > Setup > Accounts receivable parameters > Number sequences**, ensure the **Sales order** reference has a sequence configured for automatic numbering.
+
+![Accounts receivable parameters with Number sequences and the Sales order reference highlighted in red](./assets/fo-sales-order-number-sequences.png)
+
+In **Inventory management > Setup > Inventory and warehouse management parameters > Number sequences**, check the **Lot ID** reference for inventory transactions in the same way.
+
+![Inventory and warehouse management parameters with Number sequences and the Lot ID reference highlighted in red](./assets/fo-inventory-transaction-number-sequences.png)
+
+Configure missing associations using [Number sequences overview](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/fin-ops/organization-administration/number-sequence-overview). The inventory-numbering prerequisite is documented in [Sales order lines V2](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/entity-sales-order-lines-v2-salesorderline#issues-and-considerations).
+
+### F&O configuration
+
+Set these values under `Settings` in your [configuration file](#configuration). Interactive selections are saved for reuse with `-Config`. When multiple records are available, `-Config` needs valid saved selections; a single available record is selected automatically.
+
+| Setting | Description |
+|---|---|
+| `DynamicsFOEnvironmentUrl` | HTTPS root URL, for example `https://org.operations.dynamics.com`, without an application path, query string, or fragment. |
+| `DynamicsFOLegalEntityId` | Company code of the prepared legal entity. |
+| `DynamicsFOCustomerGroupId` | Existing customer group code in that company. |
+| `DynamicsFOLanguageId` | Language for new customers; defaults to `en-us` when empty. |
+| `DynamicsFOProductTemplateCompany`, `DynamicsFOProductTemplateItemNumber` | Company and Item number of the released setup item. The company must match `DynamicsFOLegalEntityId`. |
+| `DynamicsFOShippingCompany`, `DynamicsFOShippingWarehouseId` | Company and shipping warehouse code. The company must match `DynamicsFOLegalEntityId`. |
+| `DynamicsFODeliveryTerms` | Optional terms-of-delivery code for new customers. |
+| `DynamicsFODeliveryMode` | Optional mode-of-delivery code for new customers. |
+| `DynamicsFOSalesTaxGroup` | Optional sales tax group code for new customers. |
+| `DynamicsFOPaymentTerms` | Optional payment terms code for new customers. |
+| `DynamicsFOSalesCurrencyCode` | Populated automatically from the ledger accounting currency; no manual value is required. |
+| `DynamicsFOShippingSiteId` | Populated automatically from the selected warehouse; no manual value is required. |
+
+Add the four optional delivery, tax, and payment settings manually when your environment requires them or you want explicit defaults; they are not prompted. Leave them empty only if F&O supplies suitable defaults or permits blanks. They apply to new customers; existing customers are not updated.
+
+Before provisioning, confirm that the shared prerequisites are met, the customer group, setup item and warehouse belong to the chosen company, and numbering and saved configuration are ready.
+
+Set `InstallDynamicsFOContent` to `true`, or answer **No** to Microsoft 365, **No** to Sales & Customer Service, and **Yes** to F&O for an interactive F&O-only installation. Continue with the shared [Instructions](#instructions).
 
 ## Generated files and logs
 For the default `Configuration/config.json`, these locations are unchanged and git-ignored:
