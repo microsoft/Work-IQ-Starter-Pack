@@ -452,6 +452,10 @@ Set `InstallDynamicsFOContent` to `true`, or answer **No** to Microsoft 365, **N
 
 Review the installation log, then open a demo customer and sales order in the selected company. Check the customer address, order currency and applicable delivery, payment, and tax defaults, released items, sales units, shipping site and warehouse, and order lines.
 
+**Order numbers:** F&O generates its own sales order number. The demo reference (`CAL-ORD-…`) is stored in `CustomerRequisitionNumber`; the installation log shows the correspondence.
+
+**Reruns:** The installer adds missing order lines and skips existing lines with matching item, quantity, and price. Conflicting lines are reported as errors and are not updated automatically.
+
 Check that the order and its lines have a usable delivery address. The installer relies on F&O to default this from the customer; it does not supply an explicit delivery-address location. Microsoft's [Sales order lines V2](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/entity-sales-order-lines-v2-salesorderline#fields) documents the delivery-address requirement. Check existing customers' delivery addresses before reusing their codes.
 
 If provisioning fails, correct the reference data or existing record setup identified in the log before rerunning with the same configuration. Selecting a different customer default or product template does not update demo customers or released products that already exist.
