@@ -340,13 +340,15 @@ If documents cannot be deployed or opened, check the environment URL, the active
 
 The main installer creates F&O demo customers, products, and sales orders from [Content/contentDynamics.json](./Content/contentDynamics.json). Prepare an existing F&O environment and the reference records below. This pack does not require Dataverse or its SharePoint document integration.
 
-Complete the shared [Requirements](#requirements), [Licenses](#licenses), and [Permissions](#permissions). Use an F&O account permitted to read company setup and create customers, products, and orders through OData, and an app registration with Dynamics ERP `Odata.FullAccess`. F&O licenses must be assigned separately.
+Complete the shared [Requirements](#requirements), [Licenses](#licenses), and [Permissions](#permissions). The browser sign-in account used by the installer must also have F&O access to the selected company, with permission to read company setup and create customers, products, and orders through OData. Use an app registration with Dynamics ERP `Odata.FullAccess`. F&O licenses must be assigned separately.
+
+Provisioning creates sales-order headers and lines. It does not confirm, ship, invoice, or post the orders, or apply the source order statuses. Complete the additional fiscal, posting, and warehouse execution setup before performing those operations manually.
 
 > Use a legal entity ready for customer, product, and sales-order entry. Your F&O administrator must complete any additional setup required by enabled features or customizations before provisioning.
 
 ### F&O environment preparation
 
-The screenshots show the demo company `ITCO — Contoso Italy`. All codes and currency values are examples; use the values configured in your environment.
+The screenshots show the demo company `ITCO — Contoso Italy`. Company-specific codes and currency values are examples; use the values configured in your environment. The USA address codes below match the supplied demo customers.
 
 #### 1. Select the legal entity
 
@@ -360,13 +362,36 @@ In that company, open **General ledger > Ledger setup > Ledger** and populate **
 
 ![Ledger page with the company description and Accounting currency highlighted in red](./assets/fo-ledger-accounting-currency.png)
 
-#### 3. Prepare a customer group
+#### 3. Prepare USA address reference data
+
+Open **Organization administration > Global address book > Addresses > Address setup**. On **Country/region**, confirm that country code **USA** exists and has an **Address format** assigned. On **State/province**, select **USA** in the **Country/region** filter and select **Apply filter**. Verify these exact state codes, creating any missing entries with **New**:
+
+| State code | State name | Demo customer city |
+|---|---|---|
+| `MA` | Massachusetts | Boston |
+| `IL` | Illinois | Chicago |
+| `WA` | Washington | Seattle |
+| `CO` | Colorado | Denver |
+| `CA` | California | San Diego |
+| `OR` | Oregon | Portland |
+
+These are the supplied customers' address codes even when the selected legal entity is outside the United States, such as `ITCO`. The installer uses `USA` for these addresses and does not create country, state, or city reference records. See [Address setup](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/organization-administration/global-address-book-address-setup) for country and state configuration.
+
+![Address setup State/province tab with Country/region USA and the six required state codes highlighted in red](./assets/fo-address-usa-states.png)
+
+On **Parameters**, review **Validate on creating addresses**. If **City** validation is enabled, configure the six cities above under `USA`, associated with their respective states. Review any other enabled address checks and their required reference data. The installer sends blank street, ZIP/postal code, and county values; verify that your environment's address rules accept those blanks before provisioning. See [Define address parameters](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/organization-administration/global-address-book-address-setup#define-address-parameters).
+
+![Address setup Parameters tab with the address validation options highlighted in red](./assets/fo-address-validation-parameters.png)
+
+The validation settings shown are examples from the demo environment. Review the options required by your environment. An installation error such as `The value 'MA' in field 'State' is not found in the related table 'States'` means that F&O could not resolve the submitted state code for the address; check its association with `USA` before rerunning.
+
+#### 4. Prepare a customer group
 
 Open **Accounts receivable > Setup > Customer groups**. Create or select a group in the company and record its **Customer group** code. See [Configure Accounts receivable](https://learn.microsoft.com/en-us/dynamics365/finance/accounts-receivable/accounts-receivables-set-up-overview) for applicable defaults.
 
 ![Customer groups page with the group code and description highlighted in red](./assets/fo-customer-groups.png)
 
-#### 4. Prepare a released product as the setup template
+#### 5. Prepare a released product as the setup template
 
 If demo products need releasing, choose an existing sales-ready item in **Product information management > Products > Released products** in the same company. Confirm these fields are populated:
 
@@ -376,15 +401,17 @@ If demo products need releasing, choose an existing sales-ready item in **Produc
 
 Record its company and **Item number**, which can differ from the Product number. Its storage and tracking dimensions must be compatible with the shipping site and warehouse. The installer creates the demo products.
 
+For a simple demo setup, choose a template with the same inventory, sales, and purchase unit. If the units differ, ensure that the required conversions are available for each new demo product. The installer copies unit symbols but does not copy the template's product-specific conversion records. Review standard and product-specific conversions under **Organization administration > Setup > Units > Units > Unit conversions**; see [Manage units of measure](https://learn.microsoft.com/en-us/dynamics365/supply-chain/pim/tasks/manage-unit-measure#define-unit-conversion-rules).
+
 ![Released product with Item number, Item model group, Item group and the purchase, sales and inventory unit summaries highlighted in red](./assets/fo-released-product-setup.png)
 
-#### 5. Prepare the shipping warehouse and site
+#### 6. Prepare the shipping warehouse and site
 
 Open **Inventory management > Setup > Inventory breakdown > Warehouses**. Select a warehouse in the same company with **Site** assigned. Record its company and **Warehouse** code; the site is derived automatically. Ensure any required location or warehouse-process setup is compatible with the chosen product.
 
 ![Warehouses page with the warehouse code, name and associated Site highlighted in red](./assets/fo-warehouse-site.png)
 
-#### 6. Check automatic numbering
+#### 7. Check automatic numbering
 
 In **Accounts receivable > Setup > Accounts receivable parameters > Number sequences**, ensure the **Sales order** reference has a sequence configured for automatic numbering.
 
@@ -415,11 +442,19 @@ Set these values under `Settings` in your [configuration file](#configuration). 
 | `DynamicsFOSalesCurrencyCode` | Populated automatically from the ledger accounting currency; no manual value is required. |
 | `DynamicsFOShippingSiteId` | Populated automatically from the selected warehouse; no manual value is required. |
 
-Add the four optional delivery, tax, and payment settings manually when your environment requires them or you want explicit defaults; they are not prompted. Leave them empty only if F&O supplies suitable defaults or permits blanks. They apply to new customers; existing customers are not updated.
+Add the four optional delivery, tax, and payment settings manually when your environment requires them or you want explicit defaults; they are not prompted. Verify that any configured codes exist in the selected company. Leave them empty only if F&O supplies suitable defaults or permits blanks. They apply to new customers; existing customers are not updated. See the reference setup described in [Sales order headers V2](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/entity-sales-order-headers-v2-salesorderheaderv2#fields).
 
-Before provisioning, confirm that the shared prerequisites are met, the customer group, setup item and warehouse belong to the chosen company, and numbering and saved configuration are ready.
+Before provisioning, confirm that the shared prerequisites and USA address reference data are ready, the customer group, setup item and warehouse belong to the chosen company, and units, numbering and saved configuration are valid. If demo customer or released-product codes already exist, review their setup first: the installer reuses those records without updating their addresses, defaults, units, or inventory dimensions.
 
 Set `InstallDynamicsFOContent` to `true`, or answer **No** to Microsoft 365, **No** to Sales & Customer Service, and **Yes** to F&O for an interactive F&O-only installation. Continue with the shared [Instructions](#instructions).
+
+### Verify F&O provisioning
+
+Review the installation log, then open a demo customer and sales order in the selected company. Check the customer address, order currency and applicable delivery, payment, and tax defaults, released items, sales units, shipping site and warehouse, and order lines.
+
+Check that the order and its lines have a usable delivery address. The installer relies on F&O to default this from the customer; it does not supply an explicit delivery-address location. Microsoft's [Sales order lines V2](https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/entity-sales-order-lines-v2-salesorderline#fields) documents the delivery-address requirement. Check existing customers' delivery addresses before reusing their codes.
+
+If provisioning fails, correct the reference data or existing record setup identified in the log before rerunning with the same configuration. Selecting a different customer default or product template does not update demo customers or released products that already exist.
 
 ## Generated files and logs
 For the default `Configuration/config.json`, these locations are unchanged and git-ignored:
