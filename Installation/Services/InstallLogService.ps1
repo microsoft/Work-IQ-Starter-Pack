@@ -55,6 +55,7 @@ function Initialize-InstallLog {
     $script:installLogInputs = [System.Collections.Generic.List[object]]::new()
     $script:installLogActions = [System.Collections.Generic.List[object]]::new()
     $script:installLogPasswords = [System.Collections.Generic.List[object]]::new()
+    $script:installLogTaps = [System.Collections.Generic.List[object]]::new()
 }
 
 function Write-InstallLogInput {
@@ -102,6 +103,21 @@ function Write-InstallLogPassword {
     )
 
     $script:installLogPasswords.Add([PSCustomObject]@{ Email = $Email; Password = $Password })
+}
+
+function Write-InstallLogTap {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Email,
+        [Parameter(Mandatory = $true)]
+        [string]$TemporaryAccessPass,
+        [Parameter(Mandatory = $true)]
+        [datetime]$ExpiresAt,
+        [Parameter(Mandatory = $true)]
+        [bool]$IsUsableOnce
+    )
+
+    $script:installLogTaps.Add([PSCustomObject]@{ Email = $Email; Tap = $TemporaryAccessPass; ExpiresAt = $ExpiresAt; IsUsableOnce = $IsUsableOnce })
 }
 
 function Save-InstallLog {
@@ -172,6 +188,20 @@ function Save-InstallLog {
             $lines.Add("_No new users were created in this run._")
         }
         $lines.Add("")
+
+        if ($script:installLogTaps.Count -gt 0) {
+            $lines.Add("## Temporary Access Passes")
+            $lines.Add("")
+            $lines.Add("**Store this information securely and delete this file once the codes have been distributed.** Each code can only be shown once.")
+            $lines.Add("")
+            $lines.Add("| Email | Temporary Access Pass | Expires (UTC) | Use |")
+            $lines.Add("|---|---|---|---|")
+            foreach ($entry in $script:installLogTaps) {
+                $use = if ($entry.IsUsableOnce) { 'Single use' } else { 'Multi use' }
+                $lines.Add("| $($entry.Email) | $($entry.Tap) | $($entry.ExpiresAt.ToString('yyyy-MM-dd HH:mm')) | $use |")
+            }
+            $lines.Add("")
+        }
     }
 
     Set-Content -LiteralPath $script:installLogPath -Value ($lines -join "`n")

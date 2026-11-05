@@ -84,6 +84,171 @@ function Add-Users {
     }
 }
 
+# Reads the tenant's Temporary Access Pass policy and returns the policy plus the IDs of the
+# given users it applies to. Returns $null (after logging why) when TAP can't be used, so the
+# caller can skip. The policy is never changed.
+function Get-TapEligibility {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$UserIds
+    )
+
+    try {
+        $policy = Invoke-GraphRestMethod -Uri "$graphBaseUrl/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/temporaryAccessPass" -Headers $headers -Method Get
+    }
+    catch {
+        Write-InstallLogAction -Message "Skipping Temporary Access Pass: could not read the tenant policy ($($_.Exception.Message)). Check that the Policy.Read.All permission is consented." -Level Warning
+        return $null
+    }
+
+    if ($policy.state -ne 'enabled') {
+        Write-InstallLogAction -Message "Skipping Temporary Access Pass: the method is not enabled in the tenant's Authentication methods policy." -Level Warning
+        return $null
+    }
+
+    $includeTargets = @($policy.includeTargets)
+    $excludeTargets = @($policy.excludeTargets)
+    $allUsersIncluded = [bool]($includeTargets | Where-Object { $_.id -eq 'all_users' })
+    $groupIds = @(($includeTargets + $excludeTargets) | Where-Object { $_.targetType -eq 'group' -and $_.id -ne 'all_users' } | ForEach-Object { $_.id } | Select-Object -Unique)
+
+    $eligible = @()
+    foreach ($userId in $UserIds) {
+        $memberOf = @()
+        if ($groupIds.Count -gt 0) {
+            $memberOf = @((Invoke-GraphRestMethod -Uri "$graphBaseUrl/users/$userId/checkMemberGroups" -Headers $headers -Method Post -ContentType 'application/json' -Body (@{ groupIds = $groupIds } | ConvertTo-Json)).value)
+        }
+        $included = $allUsersIncluded -or [bool]($includeTargets | Where-Object { $_.id -in $memberOf })
+        $excluded = [bool]($excludeTargets | Where-Object { $_.id -in $memberOf })
+        if ($included -and -not $excluded) { $eligible += $userId }
+    }
+
+    if ($eligible.Count -eq 0) {
+        Write-InstallLogAction -Message "Skipping Temporary Access Pass: the tenant policy does not apply to the demo users." -Level Warning
+        return $null
+    }
+
+    return [PSCustomObject]@{ Policy = $policy; UserIds = $eligible }
+}
+
+# Creates a Temporary Access Pass for one user and returns it. A user can only have one, so an
+# existing one is replaced with -Renew, otherwise left alone (and nothing is returned) because
+# Graph only reveals the code at creation. The user's password is never touched.
+function New-UserTap {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$UserId,
+        [Parameter(Mandatory = $true)]
+        [string]$Email,
+        [int]$LifetimeInMinutes = 480,
+        [bool]$IsUsableOnce = $false,
+        [switch]$Renew
+    )
+
+    $tapUri = "$graphBaseUrl/users/$UserId/authentication/temporaryAccessPassMethods"
+    $existing = @((Invoke-GraphRestMethod -Uri $tapUri -Headers $headers -Method Get).value)
+    if ($existing.Count -gt 0) {
+        if (-not $Renew) {
+            if (-not [Environment]::UserInteractive -or -not (Get-Command Read-YesNo -ErrorAction SilentlyContinue) -or $UseConfig) {
+                Write-InstallLogAction -Message "$Email already has a Temporary Access Pass, skipping. Use -RenewTap to replace it."
+                return $null
+            }
+
+            $current = $existing | Select-Object -First 1
+            $state = 'expired'
+            if ($current.startDateTime -and $current.lifetimeInMinutes) {
+                $expires = ([datetime]$current.startDateTime).ToUniversalTime().AddMinutes([int]$current.lifetimeInMinutes)
+                if ($current.isUsable -ne $false -and $expires -gt [datetime]::UtcNow) {
+                    $state = "still valid, expires $($expires.ToString('yyyy-MM-dd HH:mm')) UTC"
+                }
+            }
+            elseif ($current.isUsable -eq $true) {
+                $state = 'still valid'
+            }
+
+            if (-not (Read-YesNo "$Email already has a Temporary Access Pass ($state). Replace it with a new one?" -Default $false)) {
+                Write-InstallLogAction -Message "Keeping the existing Temporary Access Pass for $Email."
+                return $null
+            }
+        }
+        foreach ($method in $existing) {
+            Invoke-GraphRestMethod -Uri "$tapUri/$($method.id)" -Headers $headers -Method Delete | Out-Null
+        }
+    }
+
+    $created = Invoke-GraphRestMethod -Uri $tapUri -Headers $headers -Method Post -ContentType 'application/json' -Body (@{ lifetimeInMinutes = $LifetimeInMinutes; isUsableOnce = $IsUsableOnce } | ConvertTo-Json)
+    $start = if ($created.startDateTime) { ([datetime]$created.startDateTime).ToUniversalTime() } else { ([datetime]$created.createdDateTime).ToUniversalTime() }
+    return [PSCustomObject]@{
+        Email        = $Email
+        Tap          = $created.temporaryAccessPass
+        ExpiresAt    = $start.AddMinutes([int]$created.lifetimeInMinutes)
+        IsUsableOnce = [bool]$created.isUsableOnce
+    }
+}
+
+# Issues Temporary Access Passes so demo users can sign in without setting up an authenticator
+# app. Demo users only, and skipped when the tenant's TAP policy doesn't allow it.
+function Add-UserTaps {
+    param(
+        [Parameter(Mandatory = $true)]
+        $Settings,
+        [Parameter(Mandatory = $true)]
+        [bool]$InstallDemoUsers,
+        [int]$LifetimeInMinutes = 480,
+        [bool]$IsUsableOnce = $false,
+        [switch]$Renew
+    )
+
+    if (-not $InstallDemoUsers) {
+        Write-InstallLogAction -Message "Skipping Temporary Access Pass: only available for the built-in demo users." -Level Warning
+        return
+    }
+
+    $users = @{}
+    foreach ($user in $Settings.Users) {
+        try {
+            $found = (Invoke-GraphRestMethod -Uri "$graphBaseUrl/users?`$filter=userPrincipalName eq '$($user.Email)'&`$select=id,userPrincipalName" -Headers $headers -Method Get).value | Select-Object -First 1
+            if ($found) { $users[$found.id] = $user.Email }
+            else { Write-InstallLogAction -Message "Skipping Temporary Access Pass for $($user.Email): user not found." -Level Warning }
+        }
+        catch {
+            Write-InstallLogAction -Message "Failed to look up $($user.Email): $($_.Exception.Message)" -Level Error
+        }
+    }
+    if ($users.Count -eq 0) { return }
+
+    $eligibility = Get-TapEligibility -UserIds @($users.Keys)
+    if (-not $eligibility) { return }
+
+    foreach ($userId in @($users.Keys | Where-Object { $_ -notin $eligibility.UserIds })) {
+        Write-InstallLogAction -Message "Skipping Temporary Access Pass for $($users[$userId]): the tenant policy does not apply to this user." -Level Warning
+    }
+
+    # Stay inside what the tenant policy allows, otherwise Graph rejects the request.
+    $policy = $eligibility.Policy
+    if ($policy.isUsableOnce -eq $true -and -not $IsUsableOnce) {
+        Write-InstallLogAction -Message "The tenant policy requires one-time Temporary Access Passes; issuing single-use codes." -Level Warning
+        $IsUsableOnce = $true
+    }
+    if ($policy.minimumLifetimeInMinutes -and $LifetimeInMinutes -lt [int]$policy.minimumLifetimeInMinutes) { $LifetimeInMinutes = [int]$policy.minimumLifetimeInMinutes }
+    if ($policy.maximumLifetimeInMinutes -and $LifetimeInMinutes -gt [int]$policy.maximumLifetimeInMinutes) { $LifetimeInMinutes = [int]$policy.maximumLifetimeInMinutes }
+
+    foreach ($userId in $eligibility.UserIds) {
+        $email = $users[$userId]
+        try {
+            $tap = New-UserTap -UserId $userId -Email $email -LifetimeInMinutes $LifetimeInMinutes -IsUsableOnce $IsUsableOnce -Renew:$Renew
+            if ($tap) {
+                $use = if ($tap.IsUsableOnce) { 'single use' } else { 'multi use' }
+                Write-InstallLogAction -Message "Issued a Temporary Access Pass for $email (expires $($tap.ExpiresAt.ToString('yyyy-MM-dd HH:mm')) UTC, $use)."
+                Write-Host "  $email : $($tap.Tap)" -ForegroundColor Cyan
+                Write-InstallLogTap -Email $email -TemporaryAccessPass $tap.Tap -ExpiresAt $tap.ExpiresAt -IsUsableOnce $tap.IsUsableOnce
+            }
+        }
+        catch {
+            Write-InstallLogAction -Message "Failed to issue a Temporary Access Pass for ${email}: $($_.Exception.Message)" -Level Error
+        }
+    }
+}
+
 function Add-Groups {
     param(
         [Parameter(Mandatory = $true)]
