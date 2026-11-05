@@ -148,8 +148,27 @@ function New-UserTap {
     $existing = @((Invoke-GraphRestMethod -Uri $tapUri -Headers $headers -Method Get).value)
     if ($existing.Count -gt 0) {
         if (-not $Renew) {
-            Write-InstallLogAction -Message "$Email already has a Temporary Access Pass, skipping. Use -RenewTap to replace it."
-            return $null
+            if (-not [Environment]::UserInteractive -or -not (Get-Command Read-YesNo -ErrorAction SilentlyContinue) -or $UseConfig) {
+                Write-InstallLogAction -Message "$Email already has a Temporary Access Pass, skipping. Use -RenewTap to replace it."
+                return $null
+            }
+
+            $current = $existing | Select-Object -First 1
+            $state = 'expired'
+            if ($current.startDateTime -and $current.lifetimeInMinutes) {
+                $expires = ([datetime]$current.startDateTime).ToUniversalTime().AddMinutes([int]$current.lifetimeInMinutes)
+                if ($current.isUsable -ne $false -and $expires -gt [datetime]::UtcNow) {
+                    $state = "still valid, expires $($expires.ToString('yyyy-MM-dd HH:mm')) UTC"
+                }
+            }
+            elseif ($current.isUsable -eq $true) {
+                $state = 'still valid'
+            }
+
+            if (-not (Read-YesNo "$Email already has a Temporary Access Pass ($state). Replace it with a new one?" -Default $false)) {
+                Write-InstallLogAction -Message "Keeping the existing Temporary Access Pass for $Email."
+                return $null
+            }
         }
         foreach ($method in $existing) {
             Invoke-GraphRestMethod -Uri "$tapUri/$($method.id)" -Headers $headers -Method Delete | Out-Null
