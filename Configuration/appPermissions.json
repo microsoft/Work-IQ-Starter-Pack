@@ -131,5 +131,19 @@
         "PermissionId":  "39d65650-9d3e-4223-80db-a335590d027e",
         "PermissionName":  "TeamSettings.ReadWrite.All",
         "PermissionType":  "Scope"
+    },
+    {
+        "ResourceId":  "00000003-0000-0000-c000-000000000000",
+        "ResourceName":  "Microsoft Graph",
+        "PermissionId":  "50483e42-d915-4231-9639-7fdb7fd190e5",
+        "PermissionName":  "UserAuthenticationMethod.ReadWrite.All",
+        "PermissionType":  "Scope"
+    },
+    {
+        "ResourceId":  "00000003-0000-0000-c000-000000000000",
+        "ResourceName":  "Microsoft Graph",
+        "PermissionId":  "572fea84-0151-49b2-9301-11cb16974376",
+        "PermissionName":  "Policy.Read.All",
+        "PermissionType":  "Scope"
     }
 ]
