@@ -51,7 +51,6 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
     "InstallDynamicsFOContent": false,
     "DeployDynamicsDocuments": false,
     "ProvisionUserEmails": true,
-    "IssueTemporaryAccessPass": false,
     "TapLifetimeInMinutes": 480,
     "TapIsUsableOnce": false,
     "AppRegistrationName": "WorkIQStarterPack",
@@ -92,9 +91,8 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 | `InstallDynamicsFOContent` | Install the Dynamics 365 Finance & Operations data. Can be selected independently of the other packs. See [Finance and Operations](#finance-and-operations) for environment preparation. |
 | `DeployDynamicsDocuments` | Deploy SharePoint documents connected to Sales & Customer Service records. Used when `InstallDynamicsContent` is `true`; prompted interactively or read from the selected file with `-Config`. Requires [SharePoint integration for Dataverse](#sharepoint-integration-for-dataverse). |
 | `ProvisionUserEmails` | Import the demo email threads into the users' inboxes. Always on when demo users are used. |
-| `IssueTemporaryAccessPass` | Demo users only. Issue a Temporary Access Pass for each demo user so they can sign in without an authenticator app (see [Temporary Access Pass](#temporary-access-pass)). Default `false`. |
-| `TapLifetimeInMinutes` | Lifetime of each Temporary Access Pass in minutes (default `480`). Limited to the range the tenant policy allows. |
-| `TapIsUsableOnce` | `true` makes each Temporary Access Pass single use (default `false`, multi use). Forced to `true` if the tenant policy requires it. |
+| `TapLifetimeInMinutes` | Used by `IssueTemporaryAccessPass.ps1`. Lifetime of each Temporary Access Pass in minutes (default `480`). Limited to the range the tenant policy allows. |
+| `TapIsUsableOnce` | Used by `IssueTemporaryAccessPass.ps1`. `true` makes each Temporary Access Pass single use (default `false`, multi use). Forced to `true` if the tenant policy requires it. |
 | `AppRegistrationName` | Optional, used with `-Config` only. Name for a new app registration (default `WorkIQStarterPack`). |
 | `RealUserUpns` | Used with `-Config` and `InstallDemoUsers: false` only. A list of 5 UPNs (see [Users](#users)). |
 
@@ -150,13 +148,19 @@ New users get a temporary password and must change it at first sign-in. The pass
 To use your own users instead, answer "no" when the installer asks about demo users and enter 5 UPNs, or set `InstallDemoUsers: false` and `RealUserUpns` in the config file. Enter them in the order Marketing, Finance, Security/Governance, Finance 2, Sales. The installer looks them up in Entra ID and replaces the demo names and emails in the content with theirs. Demo user photos are only applied to demo users.
 
 ### Temporary Access Pass
-By default each demo user has to set up Microsoft Authenticator (or another MFA method) at first sign-in. To avoid that, the installer can issue a [Temporary Access Pass](https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass) (TAP) for each demo user. This is opt-in and only applies to the built-in demo users (`InstallDemoUsers: true`); set `IssueTemporaryAccessPass: true` or answer "yes" when prompted.
+By default each demo user has to set up Microsoft Authenticator (or another MFA method) at first sign-in. To avoid that, run the separate `IssueTemporaryAccessPass.ps1` script after the installer to issue a [Temporary Access Pass](https://learn.microsoft.com/entra/identity/authentication/howto-authentication-temporary-access-pass) (TAP). It is not part of the installation.
 
-- The installer only reads the tenant's TAP policy; it never changes it. If the Temporary Access Pass method is not enabled for the demo users in **Entra ID > Authentication methods > Policies**, the step is skipped with a warning and the rest of the installation continues. Ask a tenant administrator (Authentication Policy Administrator or Global Administrator) to enable it for the demo users if you want to use it.
-- The code, its expiry, and whether it is single or multi use are printed once and written to the `Temporary Access Passes` section of the installation log (see [Generated files and logs](#generated-files-and-logs)). Graph does not reveal the code again, so keep the log secure and delete it once the codes are distributed.
-- A user can only have one Temporary Access Pass. Running the installer again leaves existing codes alone. To generate replacements without reinstalling anything, run `./InstallWorkIQStarterPack.ps1 -Config <path> -RenewTap`. This deletes each demo user's existing code and creates a new one. Account passwords are not changed.
+```powershell
+./IssueTemporaryAccessPass.ps1              # uses Configuration/config.json
+./IssueTemporaryAccessPass.ps1 -Config <path>
+```
+
+- The script reads `InstallDemoUsers` from the config. If it is `true`, it lists the built-in demo users and asks you to confirm enabling TAP for all of them (default yes). If it is `false`, it asks which accounts (UPNs) to enable TAP on, defaulting to `RealUserUpns`, and confirms the list. Answering "no" ends the script without changing anything.
+- The script only reads the tenant's TAP policy; it never changes it. If the Temporary Access Pass method is not enabled for the selected users in **Entra ID > Authentication methods > Policies**, the script skips them with a warning. Ask a tenant administrator (Authentication Policy Administrator or Global Administrator) to enable it if you want to use it.
+- The code, its expiry, and whether it is single or multi use are printed once and written to its own log, `Logs/TapLog-YYYYMMDDXX.md` (see [Generated files and logs](#generated-files-and-logs)). Graph does not reveal the code again, so keep the log secure and delete it once the codes are distributed.
+- A user can only have one Temporary Access Pass. If a selected user already has one (the prompt shows whether it is still valid or expired), the script asks whether to replace it. Yes deletes the old code and creates a new one; no keeps it, and its code is not shown again. Account passwords are not changed.
 - The signed-in user needs a role that can manage authentication methods, for example Privileged Authentication Administrator (Global Administrator, already required, also works).
-- Existing app registrations pick up the `UserAuthenticationMethod.ReadWrite.All` and `Policy.Read.All` permissions the next time the installer runs and grants admin consent.
+- Existing app registrations pick up the `UserAuthenticationMethod.ReadWrite.All` and `Policy.Read.All` permissions the next time the installer runs and grants admin consent. Run the installer once before the TAP script so the app registration exists.
 
 ### Licenses
 For every content pack, each user needs Office apps and Microsoft 365 Copilot. These requirements can be met by separate licenses or a single Microsoft 365 E7 license. Dynamics license assignment also runs when Sales & Customer Service content is selected. The installer uses the supported SKUs from this list in [settings.json](./Configuration/settings.json):
@@ -193,8 +197,8 @@ The app registration needs the permissions below. They are defined in [Configura
 - AppCatalog.Read.All
 - CopilotCostManagement.Read.All (Copilot credit check)
 - CopilotCostManagement-Policy.Read.All (reading Copilot spending policies; optional, the check still works without it)
-- UserAuthenticationMethod.ReadWrite.All (Temporary Access Pass for demo users; optional)
-- Policy.Read.All (checking whether Temporary Access Pass is enabled; optional)
+- UserAuthenticationMethod.ReadWrite.All (Temporary Access Pass via `IssueTemporaryAccessPass.ps1`; optional)
+- Policy.Read.All (checking whether Temporary Access Pass is enabled, via `IssueTemporaryAccessPass.ps1`; optional)
 
 #### Graph Application Permissions
 - Teamwork.Migrate.All (chat import)
@@ -443,6 +447,7 @@ For the default `Configuration/config.json`, these locations are unchanged and g
 - `Content/content.custom.json`: the content with your tenant prefix and users applied. It also records the imported email message IDs.
 - `Configuration/users.custom.json`: your resolved users (real users only).
 - `Installation/.certs/`: the certificate.
+- `Logs/TapLog-YYYYMMDDXX.md` (one file per run of `IssueTemporaryAccessPass.ps1`): the inputs, actions, and the Temporary Access Pass codes in plain text, so store or delete it securely.
 - `Logs/InstallLog-YYYYMMDDXX.md` and `Logs/CleanUpLog-YYYYMMDDXX.md` (one file per run): a run summary, your inputs, and the actions taken for all selected Microsoft 365 and Dynamics operations. The install log also lists the demo user passwords in plain text, so store or delete it securely.
 - `Installation/.state/imported-posts.json`: the record of meeting posts already imported into each channel.
 - `Logs/InstallLog.md` and `Logs/CleanUpLog.md`: a run summary, your inputs, and the actions taken for all selected Microsoft 365 and Dynamics operations. The install log also lists the demo user passwords in plain text, so store or delete it securely.
