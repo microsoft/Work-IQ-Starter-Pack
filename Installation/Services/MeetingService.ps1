@@ -78,7 +78,7 @@ function Add-TeamMeetings {
     $messages = @()
 
     try {
-        $team = Get-PnPTeamsTeam -Identity $Site.URL -ErrorAction SilentlyContinue
+        $team = Get-TeamByMailNickName -MailNickName $Site.URL
         if (-not $team) {
             throw "No Teams team found for site '$($Site.URL)'. Run Add-TeamSite first."
         }

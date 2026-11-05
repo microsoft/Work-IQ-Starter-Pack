@@ -1,3 +1,20 @@
+# Returns exactly one team for a mail nickname (or $null). Get-PnPTeamsTeam -Identity matches by display
+# name too, so it can return several teams (e.g. leftovers from earlier runs); a team array would later
+# make $team.GroupId an Object[] that PnP rejects for -Team. Always match the nickname and take the first.
+function Get-TeamByMailNickName {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$MailNickName
+    )
+
+    $team = @(Get-PnPTeamsTeam -Identity $MailNickName -ErrorAction SilentlyContinue) |
+        Where-Object { $_.MailNickName -eq $MailNickName } | Select-Object -First 1
+    if (-not $team) {
+        $team = Get-PnPTeamsTeam -ErrorAction SilentlyContinue | Where-Object { $_.MailNickName -eq $MailNickName } | Select-Object -First 1
+    }
+    return $team
+}
+
 function Add-TeamSite {
     param(
         [Parameter(Mandatory = $true)]
@@ -10,10 +27,7 @@ function Add-TeamSite {
     try {
         $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($Site.URL)"
         
-        $existingTeam = Get-PnPTeamsTeam -Identity $Site.URL -ErrorAction SilentlyContinue
-        if (-not $existingTeam) {
-            $existingTeam = Get-PnPTeamsTeam -ErrorAction SilentlyContinue | Where-Object { $_.MailNickName -eq $Site.URL } | Select-Object -First 1
-        }
+        $existingTeam = Get-TeamByMailNickName -MailNickName $Site.URL
 
         if (-not $existingTeam) {
             $visibility = if ($Site.IsPublic) { "Public" } else { "Private" }
@@ -201,10 +215,7 @@ function Remove-Teams {
         $siteUrl = "https://$($Config.Settings.TenantPrefix).sharepoint.com/sites/$($site.URL)"
         try {
 
-            $existingTeam = Get-PnPTeamsTeam -Identity $site.URL -ErrorAction SilentlyContinue
-            if (-not $existingTeam) {
-                $existingTeam = Get-PnPTeamsTeam -ErrorAction SilentlyContinue | Where-Object { $_.MailNickName -eq $site.URL } | Select-Object -First 1
-            }
+            $existingTeam = Get-TeamByMailNickName -MailNickName $site.URL
 
             # Deleted items take time to show up in the bins, so only poll after a team was removed.
             $waitForBins = $false
@@ -296,10 +307,7 @@ function Wait-ForTeamProvisioned {
     $groupId = $null
 
     do {
-        $team = Get-PnPTeamsTeam -Identity $MailNickName -ErrorAction SilentlyContinue
-        if (-not $team) {
-            $team = Get-PnPTeamsTeam -ErrorAction SilentlyContinue | Where-Object { $_.MailNickName -eq $MailNickName } | Select-Object -First 1
-        }
+        $team = Get-TeamByMailNickName -MailNickName $MailNickName
         $groupId = $team.GroupId
 
         if (-not $groupId) {

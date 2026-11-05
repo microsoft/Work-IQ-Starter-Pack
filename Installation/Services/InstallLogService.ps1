@@ -31,11 +31,13 @@ function Initialize-InstallLog {
         [string]$Title = "WorkIQ Starter Pack Installation Log",
         [string]$FileName = "InstallLog.md",
         [bool]$IncludePasswords = $true,
+        [bool]$IncludeTaps = $false,
         [string]$LogDirectory = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../Logs'))
     )
 
     $script:installLogTitle = $Title
     $script:installLogIncludePasswords = $IncludePasswords
+    $script:installLogIncludeTaps = $IncludeTaps
     $script:installLogStartTime = Get-Date
 
     # Each run gets its own file (e.g. InstallLog-2026102701.md) so earlier logs, and the passwords in them, are kept
@@ -188,10 +190,12 @@ function Save-InstallLog {
             $lines.Add("_No new users were created in this run._")
         }
         $lines.Add("")
+    }
 
+    if ($script:installLogIncludeTaps) {
+        $lines.Add("## Temporary Access Passes")
+        $lines.Add("")
         if ($script:installLogTaps.Count -gt 0) {
-            $lines.Add("## Temporary Access Passes")
-            $lines.Add("")
             $lines.Add("**Store this information securely and delete this file once the codes have been distributed.** Each code can only be shown once.")
             $lines.Add("")
             $lines.Add("| Email | Temporary Access Pass | Expires (UTC) | Use |")
@@ -200,8 +204,11 @@ function Save-InstallLog {
                 $use = if ($entry.IsUsableOnce) { 'Single use' } else { 'Multi use' }
                 $lines.Add("| $($entry.Email) | $($entry.Tap) | $($entry.ExpiresAt.ToString('yyyy-MM-dd HH:mm')) | $use |")
             }
-            $lines.Add("")
         }
+        else {
+            $lines.Add("_No Temporary Access Passes were issued in this run._")
+        }
+        $lines.Add("")
     }
 
     Set-Content -LiteralPath $script:installLogPath -Value ($lines -join "`n")

@@ -2,15 +2,10 @@ param(
     # Read install choices from the selected file; browser sign-in is still required.
     [Alias('Config')]
     [ValidateNotNullOrEmpty()]
-    [string]$ConfigPath = (Join-Path $PSScriptRoot 'Configuration/config.json'),
-    # Replace the demo users' Temporary Access Passes and exit, without reinstalling anything. Requires -Config.
-    [switch]$RenewTap
+    [string]$ConfigPath = (Join-Path $PSScriptRoot 'Configuration/config.json')
 )
 
 $UseConfig = $PSBoundParameters.ContainsKey('ConfigPath')
-if ($RenewTap -and -not $UseConfig) {
-    throw '-RenewTap requires -Config.'
-}
 . (Join-Path $PSScriptRoot 'Installation/Services/ConfigurationService.ps1')
 $configurationPaths = Get-WorkIQConfigurationPaths -ConfigPath $ConfigPath -RepositoryRoot $PSScriptRoot
 $configPath = $configurationPaths.ConfigPath
@@ -113,21 +108,6 @@ try {
     $config.Settings.InstallDemoUsers = $provisionDemoUsers
     $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
     Write-InstallLogInput -Prompt "Provision the built-in demo users?" -Response $(if ($provisionDemoUsers) { "Yes" } else { "No" })
-
-    # Temporary Access Pass lets demo users sign in without setting up an authenticator app.
-    # Only offered for the built-in demo users; skipped later if the tenant policy doesn't allow it.
-    $issueTap = $false
-    if ($provisionDemoUsers) {
-        $issueTap = if ($UseConfig) { [bool]$config.Settings.IssueTemporaryAccessPass } else { Read-YesNo "Do you want to issue Temporary Access Passes so the demo users can sign in without an authenticator app?" -Default $false }
-        if ($RenewTap) { $issueTap = $true }
-        Write-InstallLogInput -Prompt "Issue Temporary Access Passes?" -Response $(if ($issueTap) { "Yes" } else { "No" })
-    }
-    $tapLifetimeInMinutes = if ($config.Settings.TapLifetimeInMinutes) { [int]$config.Settings.TapLifetimeInMinutes } else { 480 }
-    $tapIsUsableOnce = [bool]$config.Settings.TapIsUsableOnce
-    $config.Settings | Add-Member -NotePropertyName IssueTemporaryAccessPass -NotePropertyValue $issueTap -Force
-    $config.Settings | Add-Member -NotePropertyName TapLifetimeInMinutes -NotePropertyValue $tapLifetimeInMinutes -Force
-    $config.Settings | Add-Member -NotePropertyName TapIsUsableOnce -NotePropertyValue $tapIsUsableOnce -Force
-    $config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $configPath
 
     # Persisted so the email import step can be gated on it later. Demo users always get emails.
     $provisionEmails = $true
@@ -355,16 +335,6 @@ try {
         throw "No application registration client ID was found in config.json."
     }
 
-    # -RenewTap only replaces the demo users' Temporary Access Passes; nothing else is installed.
-    if ($RenewTap) {
-        . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
-        Invoke-InstallStep -Description 'Renewing Temporary Access Passes' -Action {
-            Add-UserTaps -Settings $settings -InstallDemoUsers ([bool]$config.Settings.InstallDemoUsers) -LifetimeInMinutes $tapLifetimeInMinutes -IsUsableOnce $tapIsUsableOnce -Renew
-        }
-        $installSucceeded = $true
-        return
-    }
-
     # If the installer opted out of the demo users, look up each supplied UPN's real profile in
     # Entra ID. Resolved users go into Configuration/users.custom.json and the persona-swapped content into
     # Content/content.custom.json - settings.json's
@@ -415,12 +385,6 @@ try {
     . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/UserService.ps1")
     Invoke-InstallStep -Description 'Provisioning Users and Licenses' -Action {
         Add-Users -Settings $provisioningSettings
-    }
-
-    if ($issueTap) {
-        Invoke-InstallStep -Description 'Issuing Temporary Access Passes' -Action {
-            Add-UserTaps -Settings $provisioningSettings -InstallDemoUsers ([bool]$config.Settings.InstallDemoUsers) -LifetimeInMinutes $tapLifetimeInMinutes -IsUsableOnce $tapIsUsableOnce
-        }
     }
 
     # M365 provisioning runs only when its content pack was selected.
