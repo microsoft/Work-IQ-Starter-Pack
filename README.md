@@ -405,10 +405,18 @@ If the installer cannot find a usable template, complete the product configurati
 3. Under **General**, select an **Item model group** configured in this company. This is separate from the **Item group**; having an item group and all three units populated does not replace the item model group.
 4. Under **Manage costs**, select an **Item group** configured in this company.
 5. Set **Unit** in each of **Purchase**, **Sell**, and **Manage inventory**, using units configured in your environment.
-6. Open **Dimension groups** and assign both **Storage dimension group** and **Tracking dimension group**. Choose groups appropriate for your inventory processes, and ensure the storage dimensions support the shipping site and warehouse used for the demo orders.
+6. Open the item's details page. On the top **Action Pane**, select the **Product** tab, then **Dimension groups**. In the dialog, select both **Storage dimension group** and **Tracking dimension group**, then select **OK**. These assignments are made through this action, rather than by editing unit fields. Choose groups appropriate for your inventory processes and shipping site/warehouse.
 7. Save the item and rerun the installer. A single valid template is selected automatically; if several are available, select the intended item when prompted.
 
 Setting a template item number in `config.json` selects an existing item; its required configuration must be completed in F&O first.
+
+If either dimension-group lookup is empty, create the groups before assigning them to the template:
+
+- Open **Product information management > Setup > Dimension and variant groups > Storage dimension groups**. Create or select a group whose active dimensions support the intended site and warehouse. Its warehouse-management settings must match your warehouse processes.
+- Open **Product information management > Setup > Dimension and variant groups > Tracking dimension groups**. For demo items that do not require batch or serial tracking, create or select a group with no tracking dimensions active. A group named **None** is still a real group that must be selected; leaving the assignment blank is different.
+- Return to the template item (for example, **ITEM**) and assign the groups through **Product > Dimension groups**, then select **OK** and save. You only need to complete the template; the installer fills missing assignments on the demo items.
+
+These pages belong to Dynamics 365 Supply Chain Management within the finance and operations application. If **Product information management** or the actions are unavailable, ask your environment administrator to check your access to these pages. See Microsoft's [released product setup instructions](https://learn.microsoft.com/en-us/dynamics365/supply-chain/pim/tasks/complete-basic-setup-released-product-master) and [dimension-group creation walkthrough](https://microsoftlearning.github.io/MB-330-Microsoft-Dynamics-365-Supply-Chain-Management/Instructions/Labs/Case%20Study%204A%20WMS%20EX%201%20to%2014.html).
 
 The installer copies the template's dimension groups to new demo products. On reruns, it also fills missing storage or tracking dimension groups on existing demo products in the selected company, including products created by an earlier installation. Existing assignments are preserved. Configure the template once in F&O, then rerun the installer to repair incomplete demo items before sales order lines are created. The installer reports the selected template, its dimension groups, and each repaired item.
 

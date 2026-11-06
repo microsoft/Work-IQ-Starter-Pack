@@ -1,4 +1,4 @@
-﻿param([scriptblock]$AccessTokenProvider)
+param([scriptblock]$AccessTokenProvider)
 
 function Get-DynamicsFORecords {
     param([string]$Url, [string]$EnvironmentUrl, [hashtable]$Headers)
@@ -380,6 +380,16 @@ function Add-DynamicsFOReleasedProducts {
     })
     if (-not $missing.Count -and -not $needsDimensions.Count) { return }
     Write-InstallLogAction -Message "Demo products inherit storage and tracking dimension groups from the setup template. Missing assignments on $($needsDimensions.Count) existing demo item(s) will be filled; existing assignments will be preserved."
+    Write-Host "F&O setup template preparation (company '$CompanyId'):" -ForegroundColor Yellow
+    Write-Host '  1. Open Product information management > Products > Released products and open your template item (for example, ITEM).'
+    Write-Host '  2. On the top Action Pane, select Product > Dimension groups.'
+    Write-Host '  3. Select both Storage dimension group and Tracking dimension group, then select OK and save.'
+    Write-Host '  If the lookups are empty, create groups under Product information management > Setup > Dimension and variant groups:'
+    Write-Host '    - Storage dimension groups: choose active dimensions and warehouse settings compatible with your shipping site and warehouse.'
+    Write-Host '    - Tracking dimension groups: for items without batch/serial tracking, use a group with no tracking dimensions active. Select that group explicitly; do not leave the assignment blank.'
+    Write-Host '  Return to the template and assign the groups. These are Supply Chain Management pages in F&O; ask your administrator to check access if they are unavailable.'
+    Write-Host '  Only the template needs manual setup. On rerun, the installer fills missing groups on existing demo items and preserves existing assignments.'
+    Write-Host '  Microsoft instructions: https://learn.microsoft.com/en-us/dynamics365/supply-chain/pim/tasks/complete-basic-setup-released-product-master'
     # Take valid company-specific setup from an explicitly selected existing item.
     $templates=@($released | Where-Object { @(Get-DynamicsFOTemplateMissingFields -Item $_).Count -eq 0 } | Sort-Object ItemNumber)
     if (-not $templates.Count) {
@@ -387,7 +397,7 @@ function Add-DynamicsFOReleasedProducts {
             "Item '$($_.ItemNumber)' (Product '$($_.ProductNumber)'): missing $(@(Get-DynamicsFOTemplateMissingFields -Item $_) -join ', ')"
         }) -join '; '
         if (-not $released.Count) { $details = 'No released items were returned.' }
-        throw "No usable released product setup template in company '$CompanyId'. $details. In F&O, switch to '$CompanyId' and open Product information management > Products > Released products. Create or complete an item with General > Item model group, Manage costs > Item group, and Unit under Purchase, Sell, and Manage inventory. Use the Dimension groups button to assign both Storage dimension group and Tracking dimension group, compatible with your shipping site and warehouse. Save and rerun the installer; it will copy these groups to new demo products and fill missing groups on existing demo items. Changing the template item number in config.json does not populate missing setup."
+        throw "No usable released product setup template in company '$CompanyId'. $details. In F&O, switch to '$CompanyId' and open Product information management > Products > Released products. Create or complete an item with General > Item model group, Manage costs > Item group, and Unit under Purchase, Sell, and Manage inventory. Open the template item details, then select Product > Dimension groups on the top Action Pane. Select Storage dimension group and Tracking dimension group and click OK. If the lookups are empty, create groups under Product information management > Setup > Dimension and variant groups > Storage dimension groups / Tracking dimension groups, then return to the template to assign them. A no-tracking group must be selected explicitly; a blank assignment is not a no-tracking group. These Supply Chain Management pages require appropriate access; ask your environment administrator if they are unavailable. Save and rerun the installer; it will copy these groups to new demo products and fill missing groups on existing demo items. Changing the template item number in config.json does not populate missing setup."
     }
     Write-Host 'Select an existing item whose Units, inventory groups, and default site/warehouse will be used for the demo Products.'
     $saved=if ($Config.Settings.DynamicsFOProductTemplateCompany -eq $CompanyId) { $Config.Settings.DynamicsFOProductTemplateItemNumber } else { '' }
