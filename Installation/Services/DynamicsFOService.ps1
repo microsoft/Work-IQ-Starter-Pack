@@ -358,7 +358,7 @@ function Remove-DynamicsFOSalesOrders {
 
 function Get-DynamicsFOTemplateMissingFields {
     param([Parameter(Mandatory = $true)]$Item)
-    foreach ($field in @('InventoryUnitSymbol','SalesUnitSymbol','ProductGroupId','ItemModelGroupId')) {
+    foreach ($field in @('InventoryUnitSymbol','SalesUnitSymbol','ProductGroupId','ItemModelGroupId','StorageDimensionGroupName','TrackingDimensionGroupName')) {
         if ([string]::IsNullOrWhiteSpace([string]$Item.$field)) { $field }
     }
     if ([string]::IsNullOrWhiteSpace([string]$Item.PurchaseUnitSymbol) -and
@@ -373,7 +373,13 @@ function Add-DynamicsFOReleasedProducts {
     $filter=[Uri]::EscapeDataString("dataAreaId eq '$($CompanyId.Replace("'","''"))'")
     $released=@(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/ReleasedProductsV2?cross-company=true&`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
     $missing=@($Content.Products | Where-Object { $number=$_.ProductNumber; -not @($released | Where-Object ProductNumber -eq $number).Count })
-    if (-not $missing.Count) { return }
+    $demoNumbers = @($Content.Products | ForEach-Object { $_.ProductNumber })
+    $needsDimensions = @($released | Where-Object {
+        $_.ProductNumber -in $demoNumbers -and
+        ([string]::IsNullOrWhiteSpace($_.StorageDimensionGroupName) -or [string]::IsNullOrWhiteSpace($_.TrackingDimensionGroupName))
+    })
+    if (-not $missing.Count -and -not $needsDimensions.Count) { return }
+    Write-InstallLogAction -Message "Demo products inherit storage and tracking dimension groups from the setup template. Missing assignments on $($needsDimensions.Count) existing demo item(s) will be filled; existing assignments will be preserved."
     # Take valid company-specific setup from an explicitly selected existing item.
     $templates=@($released | Where-Object { @(Get-DynamicsFOTemplateMissingFields -Item $_).Count -eq 0 } | Sort-Object ItemNumber)
     if (-not $templates.Count) {
@@ -381,7 +387,7 @@ function Add-DynamicsFOReleasedProducts {
             "Item '$($_.ItemNumber)' (Product '$($_.ProductNumber)'): missing $(@(Get-DynamicsFOTemplateMissingFields -Item $_) -join ', ')"
         }) -join '; '
         if (-not $released.Count) { $details = 'No released items were returned.' }
-        throw "No usable released product setup template in company '$CompanyId'. $details. In F&O, switch to '$CompanyId' and open Product information management > Products > Released products. Create or complete an item with General > Item model group, Manage costs > Item group, and Unit under Purchase, Sell, and Manage inventory. Save and rerun the installer. If these fields are already populated, inspect the ReleasedProductsV2 response for missing properties. Changing the template item number in config.json does not populate missing setup."
+        throw "No usable released product setup template in company '$CompanyId'. $details. In F&O, switch to '$CompanyId' and open Product information management > Products > Released products. Create or complete an item with General > Item model group, Manage costs > Item group, and Unit under Purchase, Sell, and Manage inventory. Use the Dimension groups button to assign both Storage dimension group and Tracking dimension group, compatible with your shipping site and warehouse. Save and rerun the installer; it will copy these groups to new demo products and fill missing groups on existing demo items. Changing the template item number in config.json does not populate missing setup."
     }
     Write-Host 'Select an existing item whose Units, inventory groups, and default site/warehouse will be used for the demo Products.'
     $saved=if ($Config.Settings.DynamicsFOProductTemplateCompany -eq $CompanyId) { $Config.Settings.DynamicsFOProductTemplateItemNumber } else { '' }
@@ -389,6 +395,22 @@ function Add-DynamicsFOReleasedProducts {
     $Config.Settings | Add-Member -NotePropertyName DynamicsFOProductTemplateCompany -NotePropertyValue $CompanyId -Force
     $Config.Settings | Add-Member -NotePropertyName DynamicsFOProductTemplateItemNumber -NotePropertyValue $template.ItemNumber -Force
     $Config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ConfigPath -Encoding UTF8
+    Write-InstallLogAction -Message "Using template '$($template.ItemNumber)': storage dimension group '$($template.StorageDimensionGroupName)', tracking dimension group '$($template.TrackingDimensionGroupName)'."
+    foreach ($item in $needsDimensions) {
+        $body = @{}
+        foreach ($field in @('StorageDimensionGroupName','TrackingDimensionGroupName')) {
+            if ([string]::IsNullOrWhiteSpace($item.$field)) { $body[$field] = $template.$field }
+        }
+        # Use the returned company and item keys, which may differ from ProductNumber.
+        $companyKey = [Uri]::EscapeDataString(([string]$item.dataAreaId).Replace("'", "''"))
+        $itemKey = [Uri]::EscapeDataString(([string]$item.ItemNumber).Replace("'", "''"))
+        $json = $body | ConvertTo-Json
+        try {
+            Invoke-RestMethod -Uri "$EnvironmentUrl/data/ReleasedProductsV2(dataAreaId='$companyKey',ItemNumber='$itemKey')" -Headers $Headers -Method Patch -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
+            Write-InstallLogAction -Message "Completed missing dimension groups for demo item '$($item.ItemNumber)' in '$CompanyId' from template '$($template.ItemNumber)': $($body.Keys -join ', ')." -Level Success
+        }
+        catch { throw "Failed to complete dimension groups for demo item '$($item.ItemNumber)' in '$CompanyId': $($_.Exception.Message) $($_.ErrorDetails.Message)" }
+    }
     foreach ($product in $missing) {
         $collision=@($released | Where-Object ItemNumber -eq $product.ProductNumber)
         if ($collision.Count) { throw "Item number '$($product.ProductNumber)' already belongs to another shared Product in '$CompanyId'." }

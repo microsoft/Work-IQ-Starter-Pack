@@ -389,11 +389,12 @@ Open **Accounts receivable > Setup > Customer groups**. Create or select a group
 
 #### 4. Prepare a released product as the setup template
 
-If demo products need releasing, choose an existing sales-ready item in **Product information management > Products > Released products** in the same company. Confirm these fields are populated:
+If demo products need releasing or have missing dimension groups, choose an existing sales-ready item in **Product information management > Products > Released products** in the same company. Confirm these fields are populated:
 
 - **General > Item model group**.
 - **Manage costs > Item group**.
 - **Unit** in each of **Purchase**, **Sell**, and **Manage inventory**.
+- **Storage dimension group** and **Tracking dimension group**, assigned through the **Dimension groups** button.
 
 Record its company and **Item number**, which can differ from the Product number. Its storage and tracking dimensions must be compatible with the shipping site and warehouse. The installer creates the demo products.
 
@@ -401,12 +402,15 @@ If the installer cannot find a usable template, complete the product configurati
 
 1. Switch to the same company selected for the installation (for example, **CLD**).
 2. Open **Product information management > Products > Released products** and select the item to use as the template. If no item exists, create and release a product to this company first.
-3. Under **General**, select an **Item model group** configured in this company.
+3. Under **General**, select an **Item model group** configured in this company. This is separate from the **Item group**; having an item group and all three units populated does not replace the item model group.
 4. Under **Manage costs**, select an **Item group** configured in this company.
 5. Set **Unit** in each of **Purchase**, **Sell**, and **Manage inventory**, using units configured in your environment.
-6. Save the item and rerun the installer. A single valid template is selected automatically; if several are available, select the intended item when prompted.
+6. Open **Dimension groups** and assign both **Storage dimension group** and **Tracking dimension group**. Choose groups appropriate for your inventory processes, and ensure the storage dimensions support the shipping site and warehouse used for the demo orders.
+7. Save the item and rerun the installer. A single valid template is selected automatically; if several are available, select the intended item when prompted.
 
 Setting a template item number in `config.json` selects an existing item; its required configuration must be completed in F&O first.
+
+The installer copies the template's dimension groups to new demo products. On reruns, it also fills missing storage or tracking dimension groups on existing demo products in the selected company, including products created by an earlier installation. Existing assignments are preserved. Configure the template once in F&O, then rerun the installer to repair incomplete demo items before sales order lines are created. The installer reports the selected template, its dimension groups, and each repaired item.
 
 ![Released product with Item number, Item model group, Item group and the purchase, sales and inventory unit summaries highlighted in red](./assets/fo-released-product-setup.png)
 
