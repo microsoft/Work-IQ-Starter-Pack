@@ -356,6 +356,17 @@ function Remove-DynamicsFOSalesOrders {
     }
 }
 
+function Get-DynamicsFOTemplateMissingFields {
+    param([Parameter(Mandatory = $true)]$Item)
+    foreach ($field in @('InventoryUnitSymbol','SalesUnitSymbol','ProductGroupId','ItemModelGroupId')) {
+        if ([string]::IsNullOrWhiteSpace([string]$Item.$field)) { $field }
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$Item.PurchaseUnitSymbol) -and
+        [string]::IsNullOrWhiteSpace([string]$Item.PurchUnitSymbol)) {
+        'PurchaseUnitSymbol/PurchUnitSymbol'
+    }
+}
+
 function Add-DynamicsFOReleasedProducts {
     param($Config, $Content, [string]$EnvironmentUrl, [hashtable]$Headers, [string]$CompanyId, [string]$ConfigPath, [switch]$UseConfig)
     Write-Host "Checking Released Products in '$CompanyId'..."
@@ -364,12 +375,14 @@ function Add-DynamicsFOReleasedProducts {
     $missing=@($Content.Products | Where-Object { $number=$_.ProductNumber; -not @($released | Where-Object ProductNumber -eq $number).Count })
     if (-not $missing.Count) { return }
     # Take valid company-specific setup from an explicitly selected existing item.
-    $templates=@($released | Where-Object { $_.InventoryUnitSymbol -and $_.SalesUnitSymbol -and $_.PurchaseUnitSymbol -and $_.ItemModelGroupId -and $_.ProductGroupId } | Sort-Object ItemNumber)
-    # Some F&O versions expose the purchase unit as PurchUnitSymbol.
+    $templates=@($released | Where-Object { @(Get-DynamicsFOTemplateMissingFields -Item $_).Count -eq 0 } | Sort-Object ItemNumber)
     if (-not $templates.Count) {
-        $templates=@($released | Where-Object { $_.InventoryUnitSymbol -and $_.SalesUnitSymbol -and $_.PurchUnitSymbol -and $_.ItemModelGroupId -and $_.ProductGroupId } | Sort-Object ItemNumber)
+        $details = @($released | ForEach-Object {
+            "Item '$($_.ItemNumber)' (Product '$($_.ProductNumber)'): missing $(@(Get-DynamicsFOTemplateMissingFields -Item $_) -join ', ')"
+        }) -join '; '
+        if (-not $released.Count) { $details = 'No released items were returned.' }
+        throw "No usable released product setup template in company '$CompanyId'. $details. In F&O, switch to '$CompanyId' and open Product information management > Products > Released products. Create or complete an item with General > Item model group, Manage costs > Item group, and Unit under Purchase, Sell, and Manage inventory. Save and rerun the installer. If these fields are already populated, inspect the ReleasedProductsV2 response for missing properties. Changing the template item number in config.json does not populate missing setup."
     }
-    if (-not $templates.Count) { throw "Retrieved $($released.Count) released items in '$CompanyId', but none has InventoryUnitSymbol, SalesUnitSymbol, PurchaseUnitSymbol/PurchUnitSymbol, ProductGroupId, and ItemModelGroupId populated. These fields are required for a setup template." }
     Write-Host 'Select an existing item whose Units, inventory groups, and default site/warehouse will be used for the demo Products.'
     $saved=if ($Config.Settings.DynamicsFOProductTemplateCompany -eq $CompanyId) { $Config.Settings.DynamicsFOProductTemplateItemNumber } else { '' }
     $template=Select-DynamicsFORecord -Records $templates -CodeField ItemNumber -NameField SearchName -Prompt 'Select the Product setup template number' -SavedCode $saved -UseConfig:$UseConfig

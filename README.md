@@ -397,6 +397,17 @@ If demo products need releasing, choose an existing sales-ready item in **Produc
 
 Record its company and **Item number**, which can differ from the Product number. Its storage and tracking dimensions must be compatible with the shipping site and warehouse. The installer creates the demo products.
 
+If the installer cannot find a usable template, complete the product configuration in F&O:
+
+1. Switch to the same company selected for the installation (for example, **CLD**).
+2. Open **Product information management > Products > Released products** and select the item to use as the template. If no item exists, create and release a product to this company first.
+3. Under **General**, select an **Item model group** configured in this company.
+4. Under **Manage costs**, select an **Item group** configured in this company.
+5. Set **Unit** in each of **Purchase**, **Sell**, and **Manage inventory**, using units configured in your environment.
+6. Save the item and rerun the installer. A single valid template is selected automatically; if several are available, select the intended item when prompted.
+
+Setting a template item number in `config.json` selects an existing item; its required configuration must be completed in F&O first.
+
 ![Released product with Item number, Item model group, Item group and the purchase, sales and inventory unit summaries highlighted in red](./assets/fo-released-product-setup.png)
 
 #### 5. Prepare the shipping warehouse and site
