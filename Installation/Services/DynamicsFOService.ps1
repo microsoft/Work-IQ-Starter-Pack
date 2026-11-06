@@ -34,6 +34,84 @@ function Select-DynamicsFORecord {
     return $Records[$number-1]
 }
 
+function Initialize-DynamicsFOFinanceUsers {
+    param($Config, $Settings, [string]$EnvironmentUrl, [hashtable]$Headers, [string]$CompanyId)
+
+    # These are persona slots, not departments (Finance 2 is in Procurement).
+    $financeUsers = @(foreach ($index in @(1, 3)) {
+        if ($Settings.Users.Count -le $index) { throw 'Both Finance user slots are required for F&O provisioning.' }
+        $user = $Settings.Users[$index]
+        $upn = ([string]$user.Email).Replace('<TENANTPREFIX>', $Config.Settings.TenantPrefix).Trim()
+        if ($upn -notmatch '^[^@\s]+@[^@\s]+$') { throw "Invalid Finance user UPN '$upn'." }
+        $name = ("$($user.FirstName) $($user.LastName)").Trim()
+        if ([string]::IsNullOrWhiteSpace($name)) { $name = ([string]$user.DisplayName).Trim() }
+        # Entra users can have neither givenName nor surname populated.
+        if ([string]::IsNullOrWhiteSpace($name)) { $name = $upn }
+        @{ Upn = $upn; Name = $name }
+    })
+    $roles = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SecurityRoles" -EnvironmentUrl $EnvironmentUrl -Headers $Headers |
+        Where-Object { ($_.SecurityRoleName -replace '\s', '') -eq 'SalesClerk' })
+    if ($roles.Count -ne 1 -or [string]::IsNullOrWhiteSpace($roles[0].SecurityRoleIdentifier)) {
+        throw 'Could not resolve exactly one Sales Clerk security role in F&O. Check the SecurityRoles entity and role configuration.'
+    }
+    $role = $roles[0]
+    foreach ($user in $financeUsers) {
+        $upn = $user.Upn
+        try {
+            $filter = [Uri]::EscapeDataString("Alias eq '$($upn.Replace("'", "''"))'")
+            $existing = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            if ($existing.Count -gt 1) { throw 'Multiple F&O users have this sign-in alias.' }
+            if (-not $existing.Count) {
+                $userId = ($upn -split '@')[0]
+                $idFilter = [Uri]::EscapeDataString("UserID eq '$($userId.Replace("'", "''"))'")
+                $collision = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$idFilter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+                if ($collision.Count) { throw "F&O user ID '$userId' already belongs to another sign-in alias. Resolve the ID conflict in F&O." }
+                $languageId = if ([string]::IsNullOrWhiteSpace($Config.Settings.DynamicsFOLanguageId)) { 'en-us' } else { $Config.Settings.DynamicsFOLanguageId }
+                $body = @{
+                    UserID = $userId; UserName = $user.Name; Email = $upn; Alias = $upn
+                    NetworkDomain = 'https://sts.windows.net/'; AccountType = 'ClaimsUser'
+                    Enabled = $true; Company = $CompanyId
+                    UserInfo_language = $languageId; Helplanguage = $languageId
+                } | ConvertTo-Json
+                Invoke-RestMethod -Uri "$EnvironmentUrl/data/SystemUsers" -Headers $Headers -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) -ErrorAction Stop | Out-Null
+                Write-InstallLogAction -Message "Created D365 F&O Finance user '$upn'." -Level Success
+                $existing = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            }
+            if ($existing.Count -ne 1 -or [string]::IsNullOrWhiteSpace($existing[0].UserID)) { throw 'Could not verify the F&O user.' }
+            $userId = [string]$existing[0].UserID
+            $encodedId = [Uri]::EscapeDataString($userId.Replace("'", "''"))
+            if ($existing[0].Enabled -ne $true) {
+                Invoke-RestMethod -Uri "$EnvironmentUrl/data/SystemUsers(UserID='$encodedId')" -Headers $Headers -Method Patch -ContentType 'application/json' -Body '{"Enabled":true}' -ErrorAction Stop | Out-Null
+            }
+            $roleFilter = [Uri]::EscapeDataString("UserId eq '$($userId.Replace("'", "''"))' and SecurityRoleIdentifier eq '$(([string]$role.SecurityRoleIdentifier).Replace("'", "''"))'")
+            $roleUrl = "$EnvironmentUrl/data/SecurityUserRoleAssociations?`$filter=$roleFilter"
+            $assignments = @(Get-DynamicsFORecords -Url $roleUrl -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            if ($assignments.Count -gt 1) { throw 'Multiple Sales Clerk role assignments found.' }
+            if (-not $assignments.Count -or $assignments[0].AssignmentStatus -ne 'Enabled') {
+                $body = @{
+                    UserId = $userId; SecurityRoleIdentifier = $role.SecurityRoleIdentifier
+                    SecurityRoleName = $role.SecurityRoleName; AssignmentStatus = 'Enabled'; AssignmentMode = 'Manual'
+                } | ConvertTo-Json
+                $uri = "$EnvironmentUrl/data/SecurityUserRoleAssociations"
+                $method = 'Post'
+                if ($assignments.Count) {
+                    $encodedRole = [Uri]::EscapeDataString(([string]$role.SecurityRoleIdentifier).Replace("'", "''"))
+                    $uri += "(UserId='$encodedId',SecurityRoleIdentifier='$encodedRole')"
+                    $method = 'Patch'
+                }
+                Invoke-RestMethod -Uri $uri -Headers $Headers -Method $method -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) -ErrorAction Stop | Out-Null
+            }
+            $verifiedUser = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            $verifiedRoles = @(Get-DynamicsFORecords -Url $roleUrl -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            if ($verifiedUser.Count -ne 1 -or $verifiedUser[0].Enabled -ne $true -or $verifiedRoles.Count -ne 1 -or $verifiedRoles[0].AssignmentStatus -ne 'Enabled') {
+                throw 'Could not verify an enabled F&O user and Sales Clerk assignment.'
+            }
+            Write-InstallLogAction -Message "Verified D365 F&O Finance user '$upn' with the Sales Clerk security role." -Level Success
+        }
+        catch { throw "Failed to provision D365 F&O Finance user '$upn': $($_.Exception.Message) $($_.ErrorDetails.Message)" }
+    }
+}
+
 function Add-DynamicsFOContent {
     param(
         [Parameter(Mandatory = $true)]$Config,
@@ -59,6 +137,8 @@ function Add-DynamicsFOContent {
     $Config.Settings | Add-Member -NotePropertyName DynamicsFOLegalEntityId -NotePropertyValue $companyId -Force
     $Config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ConfigPath -Encoding UTF8
     Write-InstallLogAction -Message "Selected D365 F&O Company '$companyId': $($company.Name)"
+    Write-InstallLogAction -Message 'Checking D365 F&O Finance users and Sales Clerk security assignments...'
+    Initialize-DynamicsFOFinanceUsers -Config $Config -Settings $Settings -EnvironmentUrl $environmentUrl -Headers $headers -CompanyId $companyId
 
     Write-Host "Retrieving the default accounting currency for $companyId..."
     $ledgers = @(Get-DynamicsFORecords -Url "$environmentUrl/data/Ledgers?cross-company=true" -EnvironmentUrl $environmentUrl -Headers $headers |

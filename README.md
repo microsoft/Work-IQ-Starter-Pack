@@ -361,6 +361,8 @@ If documents cannot be deployed or opened, check the environment URL, the active
 
 The main installer creates F&O demo customers, products, and sales orders from [Content/contentDynamics.json](./Content/contentDynamics.json). Prepare an existing F&O environment and the reference records below. This pack does not require Dataverse or its SharePoint document integration.
 
+Before creating demo data, the installer checks the two Finance persona users (Finance and Finance 2, including their selected real-user replacements) in F&O. It creates missing users with the selected company as their default, enables disabled users, and assigns or re-enables the **Sales Clerk** security role. Existing enabled users and assignments are reused. The signed-in administrator needs permission to maintain system users and security role assignments. Provisioning stops if these checks or changes fail. F&O cleanup retains these users and role assignments.
+
 Complete the shared [Requirements](#requirements), [Licenses](#licenses), and [Permissions](#permissions). Use an F&O account permitted to read company setup and create customers, products, and orders through OData, and an app registration with Dynamics ERP `Odata.FullAccess`. F&O licenses must be assigned separately.
 
 > Use a legal entity ready for customer, product, and sales-order entry. Your F&O administrator must complete any additional setup required by enabled features or customizations before provisioning.
@@ -496,7 +498,7 @@ Run `./CleanUp.ps1` to selectively remove what the installer created, including 
 It asks which operations to perform:
 - **Microsoft 365 cleanup:** remove imported emails, delete the Teams in `content.json` with their M365 groups and sites and purge them from the recycle bins, delete and purge the built-in demo users, and delete the generated custom files. This includes the Sales Team site. Real users are not deleted, and the Entra security groups described in [Overview](#overview) are retained.
 - **Sales & Customer Service cleanup:** delete the demo records identified in `Content/contentDynamics.json`, including field engagements, emails, cases, invoices, orders, quotes, opportunities, product catalog records, leads, and accounts. You can also choose to uninstall the Caldova Field Engagement managed solution, which removes its custom table, app, and any remaining field engagement records.
-- **Finance & Operations cleanup:** delete the demo sales orders and their lines, customers in the configured legal entity, and shared products. Shared products apply across companies.
+- **Finance & Operations cleanup:** delete the demo sales orders and their lines, customers in the configured legal entity, and shared products. Shared products apply across companies. F&O users and their **Sales Clerk** role assignments are retained.
 - **Dynamics SharePoint cleanup:** remove the uploaded account folders and their contents from the Sales & Customer Service SharePoint integration.
 - **Optional local and app cleanup:** delete installation logs and/or remove the app registration, its service principal, and the local Teams chat migration certificate. Only delete the app registration if the installer created it, not if you supplied a pre-existing one.
 
