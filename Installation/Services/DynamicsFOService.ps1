@@ -1,4 +1,4 @@
-﻿param([scriptblock]$AccessTokenProvider)
+param([scriptblock]$AccessTokenProvider)
 
 function Get-DynamicsFORecords {
     param([string]$Url, [string]$EnvironmentUrl, [hashtable]$Headers)
@@ -34,6 +34,84 @@ function Select-DynamicsFORecord {
     return $Records[$number-1]
 }
 
+function Initialize-DynamicsFOFinanceUsers {
+    param($Config, $Settings, [string]$EnvironmentUrl, [hashtable]$Headers, [string]$CompanyId)
+
+    # These are persona slots, not departments (Finance 2 is in Procurement).
+    $financeUsers = @(foreach ($index in @(1, 3)) {
+        if ($Settings.Users.Count -le $index) { throw 'Both Finance user slots are required for F&O provisioning.' }
+        $user = $Settings.Users[$index]
+        $upn = ([string]$user.Email).Replace('<TENANTPREFIX>', $Config.Settings.TenantPrefix).Trim()
+        if ($upn -notmatch '^[^@\s]+@[^@\s]+$') { throw "Invalid Finance user UPN '$upn'." }
+        $name = ("$($user.FirstName) $($user.LastName)").Trim()
+        if ([string]::IsNullOrWhiteSpace($name)) { $name = ([string]$user.DisplayName).Trim() }
+        # Entra users can have neither givenName nor surname populated.
+        if ([string]::IsNullOrWhiteSpace($name)) { $name = $upn }
+        @{ Upn = $upn; Name = $name }
+    })
+    $roles = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SecurityRoles" -EnvironmentUrl $EnvironmentUrl -Headers $Headers |
+        Where-Object { ($_.SecurityRoleName -replace '\s', '') -eq 'SalesClerk' })
+    if ($roles.Count -ne 1 -or [string]::IsNullOrWhiteSpace($roles[0].SecurityRoleIdentifier)) {
+        throw 'Could not resolve exactly one Sales Clerk security role in F&O. Check the SecurityRoles entity and role configuration.'
+    }
+    $role = $roles[0]
+    foreach ($user in $financeUsers) {
+        $upn = $user.Upn
+        try {
+            $filter = [Uri]::EscapeDataString("Alias eq '$($upn.Replace("'", "''"))'")
+            $existing = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            if ($existing.Count -gt 1) { throw 'Multiple F&O users have this sign-in alias.' }
+            if (-not $existing.Count) {
+                $userId = ($upn -split '@')[0]
+                $idFilter = [Uri]::EscapeDataString("UserID eq '$($userId.Replace("'", "''"))'")
+                $collision = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$idFilter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+                if ($collision.Count) { throw "F&O user ID '$userId' already belongs to another sign-in alias. Resolve the ID conflict in F&O." }
+                $languageId = if ([string]::IsNullOrWhiteSpace($Config.Settings.DynamicsFOLanguageId)) { 'en-us' } else { $Config.Settings.DynamicsFOLanguageId }
+                $body = @{
+                    UserID = $userId; UserName = $user.Name; Email = $upn; Alias = $upn
+                    NetworkDomain = 'https://sts.windows.net/'; AccountType = 'ClaimsUser'
+                    Enabled = $true; Company = $CompanyId
+                    UserInfo_language = $languageId; Helplanguage = $languageId
+                } | ConvertTo-Json
+                Invoke-RestMethod -Uri "$EnvironmentUrl/data/SystemUsers" -Headers $Headers -Method Post -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) -ErrorAction Stop | Out-Null
+                Write-InstallLogAction -Message "Created D365 F&O Finance user '$upn'." -Level Success
+                $existing = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            }
+            if ($existing.Count -ne 1 -or [string]::IsNullOrWhiteSpace($existing[0].UserID)) { throw 'Could not verify the F&O user.' }
+            $userId = [string]$existing[0].UserID
+            $encodedId = [Uri]::EscapeDataString($userId.Replace("'", "''"))
+            if ($existing[0].Enabled -ne $true) {
+                Invoke-RestMethod -Uri "$EnvironmentUrl/data/SystemUsers(UserID='$encodedId')" -Headers $Headers -Method Patch -ContentType 'application/json' -Body '{"Enabled":true}' -ErrorAction Stop | Out-Null
+            }
+            $roleFilter = [Uri]::EscapeDataString("UserId eq '$($userId.Replace("'", "''"))' and SecurityRoleIdentifier eq '$(([string]$role.SecurityRoleIdentifier).Replace("'", "''"))'")
+            $roleUrl = "$EnvironmentUrl/data/SecurityUserRoleAssociations?`$filter=$roleFilter"
+            $assignments = @(Get-DynamicsFORecords -Url $roleUrl -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            if ($assignments.Count -gt 1) { throw 'Multiple Sales Clerk role assignments found.' }
+            if (-not $assignments.Count -or $assignments[0].AssignmentStatus -ne 'Enabled') {
+                $body = @{
+                    UserId = $userId; SecurityRoleIdentifier = $role.SecurityRoleIdentifier
+                    SecurityRoleName = $role.SecurityRoleName; AssignmentStatus = 'Enabled'; AssignmentMode = 'Manual'
+                } | ConvertTo-Json
+                $uri = "$EnvironmentUrl/data/SecurityUserRoleAssociations"
+                $method = 'Post'
+                if ($assignments.Count) {
+                    $encodedRole = [Uri]::EscapeDataString(([string]$role.SecurityRoleIdentifier).Replace("'", "''"))
+                    $uri += "(UserId='$encodedId',SecurityRoleIdentifier='$encodedRole')"
+                    $method = 'Patch'
+                }
+                Invoke-RestMethod -Uri $uri -Headers $Headers -Method $method -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) -ErrorAction Stop | Out-Null
+            }
+            $verifiedUser = @(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/SystemUsers?`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            $verifiedRoles = @(Get-DynamicsFORecords -Url $roleUrl -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
+            if ($verifiedUser.Count -ne 1 -or $verifiedUser[0].Enabled -ne $true -or $verifiedRoles.Count -ne 1 -or $verifiedRoles[0].AssignmentStatus -ne 'Enabled') {
+                throw 'Could not verify an enabled F&O user and Sales Clerk assignment.'
+            }
+            Write-InstallLogAction -Message "Verified D365 F&O Finance user '$upn' with the Sales Clerk security role." -Level Success
+        }
+        catch { throw "Failed to provision D365 F&O Finance user '$upn': $($_.Exception.Message) $($_.ErrorDetails.Message)" }
+    }
+}
+
 function Add-DynamicsFOContent {
     param(
         [Parameter(Mandatory = $true)]$Config,
@@ -59,6 +137,8 @@ function Add-DynamicsFOContent {
     $Config.Settings | Add-Member -NotePropertyName DynamicsFOLegalEntityId -NotePropertyValue $companyId -Force
     $Config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ConfigPath -Encoding UTF8
     Write-InstallLogAction -Message "Selected D365 F&O Company '$companyId': $($company.Name)"
+    Write-InstallLogAction -Message 'Checking D365 F&O Finance users and Sales Clerk security assignments...'
+    Initialize-DynamicsFOFinanceUsers -Config $Config -Settings $Settings -EnvironmentUrl $environmentUrl -Headers $headers -CompanyId $companyId
 
     Write-Host "Retrieving the default accounting currency for $companyId..."
     $ledgers = @(Get-DynamicsFORecords -Url "$environmentUrl/data/Ledgers?cross-company=true" -EnvironmentUrl $environmentUrl -Headers $headers |
@@ -356,26 +436,71 @@ function Remove-DynamicsFOSalesOrders {
     }
 }
 
+function Get-DynamicsFOTemplateMissingFields {
+    param([Parameter(Mandatory = $true)]$Item)
+    foreach ($field in @('InventoryUnitSymbol','SalesUnitSymbol','ProductGroupId','ItemModelGroupId','StorageDimensionGroupName','TrackingDimensionGroupName')) {
+        if ([string]::IsNullOrWhiteSpace([string]$Item.$field)) { $field }
+    }
+    if ([string]::IsNullOrWhiteSpace([string]$Item.PurchaseUnitSymbol) -and
+        [string]::IsNullOrWhiteSpace([string]$Item.PurchUnitSymbol)) {
+        'PurchaseUnitSymbol/PurchUnitSymbol'
+    }
+}
+
 function Add-DynamicsFOReleasedProducts {
     param($Config, $Content, [string]$EnvironmentUrl, [hashtable]$Headers, [string]$CompanyId, [string]$ConfigPath, [switch]$UseConfig)
     Write-Host "Checking Released Products in '$CompanyId'..."
     $filter=[Uri]::EscapeDataString("dataAreaId eq '$($CompanyId.Replace("'","''"))'")
     $released=@(Get-DynamicsFORecords -Url "$EnvironmentUrl/data/ReleasedProductsV2?cross-company=true&`$filter=$filter" -EnvironmentUrl $EnvironmentUrl -Headers $Headers)
     $missing=@($Content.Products | Where-Object { $number=$_.ProductNumber; -not @($released | Where-Object ProductNumber -eq $number).Count })
-    if (-not $missing.Count) { return }
+    $demoNumbers = @($Content.Products | ForEach-Object { $_.ProductNumber })
+    $needsDimensions = @($released | Where-Object {
+        $_.ProductNumber -in $demoNumbers -and
+        ([string]::IsNullOrWhiteSpace($_.StorageDimensionGroupName) -or [string]::IsNullOrWhiteSpace($_.TrackingDimensionGroupName))
+    })
+    if (-not $missing.Count -and -not $needsDimensions.Count) { return }
+    Write-InstallLogAction -Message "Demo products inherit storage and tracking dimension groups from the setup template. Missing assignments on $($needsDimensions.Count) existing demo item(s) will be filled; existing assignments will be preserved."
+    Write-Host "F&O setup template preparation (company '$CompanyId'):" -ForegroundColor Yellow
+    Write-Host '  1. Open Product information management > Products > Released products and open your template item (for example, ITEM).'
+    Write-Host '  2. On the top Action Pane, select Product > Dimension groups.'
+    Write-Host '  3. Select both Storage dimension group and Tracking dimension group, then select OK and save.'
+    Write-Host '  If the lookups are empty, create groups under Product information management > Setup > Dimension and variant groups:'
+    Write-Host '    - Storage dimension groups: choose active dimensions and warehouse settings compatible with your shipping site and warehouse.'
+    Write-Host '    - Tracking dimension groups: for items without batch/serial tracking, use a group with no tracking dimensions active. Select that group explicitly; do not leave the assignment blank.'
+    Write-Host '  Return to the template and assign the groups. These are Supply Chain Management pages in F&O; ask your administrator to check access if they are unavailable.'
+    Write-Host '  Only the template needs manual setup. On rerun, the installer fills missing groups on existing demo items and preserves existing assignments.'
+    Write-Host '  Microsoft instructions: https://learn.microsoft.com/en-us/dynamics365/supply-chain/pim/tasks/complete-basic-setup-released-product-master'
     # Take valid company-specific setup from an explicitly selected existing item.
-    $templates=@($released | Where-Object { $_.InventoryUnitSymbol -and $_.SalesUnitSymbol -and $_.PurchaseUnitSymbol -and $_.ItemModelGroupId -and $_.ProductGroupId } | Sort-Object ItemNumber)
-    # Some F&O versions expose the purchase unit as PurchUnitSymbol.
+    $templates=@($released | Where-Object { @(Get-DynamicsFOTemplateMissingFields -Item $_).Count -eq 0 } | Sort-Object ItemNumber)
     if (-not $templates.Count) {
-        $templates=@($released | Where-Object { $_.InventoryUnitSymbol -and $_.SalesUnitSymbol -and $_.PurchUnitSymbol -and $_.ItemModelGroupId -and $_.ProductGroupId } | Sort-Object ItemNumber)
+        $details = @($released | ForEach-Object {
+            "Item '$($_.ItemNumber)' (Product '$($_.ProductNumber)'): missing $(@(Get-DynamicsFOTemplateMissingFields -Item $_) -join ', ')"
+        }) -join '; '
+        if (-not $released.Count) { $details = 'No released items were returned.' }
+        throw "No usable released product setup template in company '$CompanyId'. $details. In F&O, switch to '$CompanyId' and open Product information management > Products > Released products. Create or complete an item with General > Item model group, Manage costs > Item group, and Unit under Purchase, Sell, and Manage inventory. Open the template item details, then select Product > Dimension groups on the top Action Pane. Select Storage dimension group and Tracking dimension group and click OK. If the lookups are empty, create groups under Product information management > Setup > Dimension and variant groups > Storage dimension groups / Tracking dimension groups, then return to the template to assign them. A no-tracking group must be selected explicitly; a blank assignment is not a no-tracking group. These Supply Chain Management pages require appropriate access; ask your environment administrator if they are unavailable. Save and rerun the installer; it will copy these groups to new demo products and fill missing groups on existing demo items. Changing the template item number in config.json does not populate missing setup."
     }
-    if (-not $templates.Count) { throw "Retrieved $($released.Count) released items in '$CompanyId', but none has InventoryUnitSymbol, SalesUnitSymbol, PurchaseUnitSymbol/PurchUnitSymbol, ProductGroupId, and ItemModelGroupId populated. These fields are required for a setup template." }
     Write-Host 'Select an existing item whose Units, inventory groups, and default site/warehouse will be used for the demo Products.'
     $saved=if ($Config.Settings.DynamicsFOProductTemplateCompany -eq $CompanyId) { $Config.Settings.DynamicsFOProductTemplateItemNumber } else { '' }
     $template=Select-DynamicsFORecord -Records $templates -CodeField ItemNumber -NameField SearchName -Prompt 'Select the Product setup template number' -SavedCode $saved -UseConfig:$UseConfig
     $Config.Settings | Add-Member -NotePropertyName DynamicsFOProductTemplateCompany -NotePropertyValue $CompanyId -Force
     $Config.Settings | Add-Member -NotePropertyName DynamicsFOProductTemplateItemNumber -NotePropertyValue $template.ItemNumber -Force
     $Config | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $ConfigPath -Encoding UTF8
+    Write-InstallLogAction -Message "Using template '$($template.ItemNumber)': storage dimension group '$($template.StorageDimensionGroupName)', tracking dimension group '$($template.TrackingDimensionGroupName)'."
+    foreach ($item in $needsDimensions) {
+        $body = @{}
+        foreach ($field in @('StorageDimensionGroupName','TrackingDimensionGroupName')) {
+            if ([string]::IsNullOrWhiteSpace($item.$field)) { $body[$field] = $template.$field }
+        }
+        # Use the returned company and item keys, which may differ from ProductNumber.
+        $companyKey = [Uri]::EscapeDataString(([string]$item.dataAreaId).Replace("'", "''"))
+        $itemKey = [Uri]::EscapeDataString(([string]$item.ItemNumber).Replace("'", "''"))
+        $json = $body | ConvertTo-Json
+        try {
+            Invoke-RestMethod -Uri "$EnvironmentUrl/data/ReleasedProductsV2(dataAreaId='$companyKey',ItemNumber='$itemKey')?cross-company=true" -Headers $Headers -Method Patch -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
+            Write-InstallLogAction -Message "Completed missing dimension groups for demo item '$($item.ItemNumber)' in '$CompanyId' from template '$($template.ItemNumber)': $($body.Keys -join ', ')." -Level Success
+        }
+        catch { throw "Failed to complete dimension groups for demo item '$($item.ItemNumber)' in '$CompanyId': $($_.Exception.Message) $($_.ErrorDetails.Message)" }
+    }
     foreach ($product in $missing) {
         $collision=@($released | Where-Object ItemNumber -eq $product.ProductNumber)
         if ($collision.Count) { throw "Item number '$($product.ProductNumber)' already belongs to another shared Product in '$CompanyId'." }
