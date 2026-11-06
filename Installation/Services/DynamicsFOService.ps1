@@ -416,7 +416,7 @@ function Add-DynamicsFOReleasedProducts {
         $itemKey = [Uri]::EscapeDataString(([string]$item.ItemNumber).Replace("'", "''"))
         $json = $body | ConvertTo-Json
         try {
-            Invoke-RestMethod -Uri "$EnvironmentUrl/data/ReleasedProductsV2(dataAreaId='$companyKey',ItemNumber='$itemKey')" -Headers $Headers -Method Patch -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
+            Invoke-RestMethod -Uri "$EnvironmentUrl/data/ReleasedProductsV2(dataAreaId='$companyKey',ItemNumber='$itemKey')?cross-company=true" -Headers $Headers -Method Patch -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($json)) -ErrorAction Stop | Out-Null
             Write-InstallLogAction -Message "Completed missing dimension groups for demo item '$($item.ItemNumber)' in '$CompanyId' from template '$($template.ItemNumber)': $($body.Keys -join ', ')." -Level Success
         }
         catch { throw "Failed to complete dimension groups for demo item '$($item.ItemNumber)' in '$CompanyId': $($_.Exception.Message) $($_.ErrorDetails.Message)" }
