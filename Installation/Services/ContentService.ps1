@@ -96,19 +96,25 @@ function Get-EligibleSites {
         [Parameter(Mandatory = $true)]
         $ContentConfig,
         [Parameter(Mandatory = $true)]
-        $Config
+        $Config,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('M365', 'Dynamics')]
+        [string]$InstallType
     )
 
     # Dynamics sites belong to the Dynamics content pack, every other site to the M365 pack.
     foreach ($site in $ContentConfig.Sites) {
-        $isDynamicsSite = [bool]$site.DynamicsContent
-        $packSelected = if ($isDynamicsSite) { $Config.Settings.InstallDynamicsContent -eq $true } else { $Config.Settings.InstallM365Content -eq $true }
-
+        if ($InstallType -eq 'M365' -and $Config.Settings.InstallM365Content -eq $true) {
+            $packSelected = -not [bool]$site.DynamicsContent
+        }
+        if ($InstallType -eq 'Dynamics' -and $Config.Settings.InstallDynamicsContent -eq $true) {
+            $packSelected = [bool]$site.DynamicsContent
+        }
         if ($packSelected) {
             $site
         }
         else {
-            $packName = if ($isDynamicsSite) { "Dynamics" } else { "M365" }
+            $packName = if ($InstallType -eq 'Dynamics') { "Dynamics" } else { "M365" }
             Write-InstallLogAction -Message "Skipping site '$($site.Title)': the $packName content pack was not selected."
         }
     }
