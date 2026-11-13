@@ -106,7 +106,7 @@ try {
     $config.Settings | Add-Member -NotePropertyName TenantPrefix -NotePropertyValue $tenant -Force
     Write-InstallLogInput -Prompt 'Tenant prefix' -Response $tenant
 
-    $hasAppRegistration = Read-MiniCleanupChoice 'Do you have an existing Application Registration? Please review the README.md file for the level of permissions required.' -Default $true
+    $hasAppRegistration = Read-MiniCleanupChoice 'Do you have an existing Application Registration? Please review the USER-MANUAL.md file for the level of permissions required.' -Default $true
     if ($hasAppRegistration) {
         $storedClientID = $config.Settings.ClientId
         do {
@@ -137,7 +137,7 @@ try {
         $removeSolution = Read-MiniCleanupChoice 'Do you also want to remove the Caldova Field Engagement solution?'
     }
     Write-Host "D365 F&O cleanup deletes $(@($content.Orders).Count) demo Sales Orders and their lines, $(@($content.Accounts).Count) demo customers by Account code in company '$($config.Settings.DynamicsFOLegalEntityId)' and $(@($content.Products).Count) shared Products by Product number. Shared Products apply across companies."
-    $deleteFO = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Finance & Operations (D365 F&O) demo data?'
+    $deleteFO = Read-MiniCleanupChoice 'Do you want to delete the Dynamics 365 Finance and Operations (D365 F&O) demo data?'
     if ($deleteFO) {
         $foEnvironmentUrl = Read-MiniCleanupEnvironmentUrl -Label 'D365 F&O' -Example 'https://contoso.operations.dynamics.com' -Default $config.Settings.DynamicsFOEnvironmentUrl -SettingName 'DynamicsFOEnvironmentUrl'
         $config.Settings | Add-Member -NotePropertyName DynamicsFOEnvironmentUrl -NotePropertyValue $foEnvironmentUrl -Force
