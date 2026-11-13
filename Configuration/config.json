@@ -1,8 +1,8 @@
 {
   "Settings": {
     "InstallM365Content": false,
-    "InstallDynamicsContent": false,
-    "InstallDemoUsers": true,
+    "InstallDynamicsContent": true,
+    "InstallDemoUsers": false,
     "DynamicsFOProductTemplateCompany": "",
     "DynamicsFOProductTemplateItemNumber": "",
     "AppRegistrationName": "",
@@ -14,11 +14,17 @@
     "DynamicsFOShippingCompany": "",
     "DynamicsFOShippingWarehouseId": "",
     "DynamicsFOShippingSiteId": "",
-    "RealUserUpns": [],
-    "DynamicsEnvironmentUrl": "",
-    "ClientId": "",
-    "ProvisionUserEmails": true,
-    "InstallDynamicsFOContent": false,
-    "TenantPrefix": ""
+    "ClientId": "32cb40a1-798a-4767-89f3-03f8f3ac0900",
+    "TenantPrefix": "nov2026trial",
+    "RealUserUpns": [
+      "guido.preite@nov2026trial.onmicrosoft.com",
+      "guido.preite@nov2026trial.onmicrosoft.com",
+      "guido.preite@nov2026trial.onmicrosoft.com",
+      "guido.preite@nov2026trial.onmicrosoft.com",
+      "guido.preite@nov2026trial.onmicrosoft.com"
+    ],
+    "ProvisionUserEmails": false,
+    "DynamicsEnvironmentUrl": "https://fsnov2026trial.crm17.dynamics.com",
+    "InstallDynamicsFOContent": false
   }
 }
