@@ -53,7 +53,7 @@ Hands-on labs are available in the [Labs directory](./Labs/README.md) to help yo
 
 | Version | Release date | Description |
 |---|---|---|
-| 1.0.0 | 2026-11-10 | Initial release |
+| 1.0.0 | 2026-11-16 | Initial release |
 
 ## Author(s)
 - [Derek Cash-Peterson](https://www.linkedin.com/in/dcashpeterson/), MVP (Sympraxis Consulting)
