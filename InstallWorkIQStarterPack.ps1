@@ -210,7 +210,7 @@ try {
         Write-InstallLogInput -Prompt "D365 Sales & CS environment URL" -Response $environmentUrl
         }
     }
-    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 Finance & Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
+    $installDynamicsFOContent = if ($UseConfig) { [bool]$config.Settings.InstallDynamicsFOContent } else { Read-YesNo "Do you want to install the Dynamics 365 Finance and Operations (D365 F&O) WorkIQ Starter Pack Content?" -Default $false }
     Write-InstallLogInput -Prompt "Install the D365 F&O WorkIQ Starter Pack Content?" -Response $(if ($installDynamicsFOContent) { "Yes" } else { "No" })
     if ($installDynamicsFOContent) {
         $foEnvironmentUrl = $config.Settings.DynamicsFOEnvironmentUrl
@@ -255,7 +255,7 @@ try {
     }
     # Check if the user needs the app registration created
     # With -Config, a ClientId in the selected file means use that app registration; otherwise one is created.
-    $hasAppRegistration = if ($UseConfig) { -not [string]::IsNullOrWhiteSpace($config.Settings.ClientId) } else { Read-YesNo "Do you have an existing Application Registration? Please review the README.md file for the level of permissions required." -Default $false }
+    $hasAppRegistration = if ($UseConfig) { -not [string]::IsNullOrWhiteSpace($config.Settings.ClientId) } else { Read-YesNo "Do you have an existing Application Registration? Please review the USER-MANUAL.md file for the level of permissions required." -Default $false }
     Write-InstallLogInput -Prompt "Do you have an existing Application Registration?" -Response $(if ($hasAppRegistration) { "Yes" } else { "No" })
 
     # If they have an app reg then ask for the client ID.

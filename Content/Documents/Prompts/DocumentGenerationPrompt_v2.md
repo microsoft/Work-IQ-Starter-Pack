@@ -4,7 +4,7 @@
 Use this prompt to produce three coordinated deliverables:
 1. Demo documents, meeting transcripts, Email threads, and Teams chats under `Content/Documents/<DemoName>/`.
 2. `Content/content.json`, containing the matching `Sites` configuration for those artifacts.
-3. `Content/contentDynamics.json`, containing the connected Dynamics 365 Sales and Customer Service (D365 Sales & CS) demo records, together with the existing data consumed by Dynamics 365 Finance & Operations (D365 F&O).
+3. `Content/contentDynamics.json`, containing the connected Dynamics 365 Sales and Customer Service (D365 Sales & CS) demo records, together with the existing data consumed by Dynamics 365 Finance and Operations (D365 F&O).
 
 All paths in these instructions are relative to the repository root. Read the current `Content/contentDynamics.json` before generating anything. It is both the concrete schema reference and the authoritative demo-data baseline. Do not generate a second unrelated set of Dynamics records, overwrite the baseline with an empty template, or change existing IDs simply to regenerate content. Do not write tenant-specific selections into either source JSON file; `Content/content.custom.json` is installer-generated output.
 

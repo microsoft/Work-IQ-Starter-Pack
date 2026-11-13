@@ -1,12 +1,12 @@
 # Dynamics 365 content
 
-[Back to README](../README.md)
+[Back to user manual](../USER-MANUAL.md)
 
 `InstallWorkIQStarterPack.ps1` installs all selected Dynamics 365 demo data as part of the main installation. No separate installer or second run is needed. It reuses the shared users and app registration; the Dynamics and Power Platform permissions required by the selected operations must be consented.
 
-The installer lets you select Dynamics 365 Sales & Customer Service data independently of the Microsoft 365 content pack. Finance & Operations (F&O) has a separate [preparation guide](./finance-and-operations.md). At least one of the three packs must be selected. When run interactively, it prompts for the relevant environment URLs and can create a new Dataverse environment, saving its ID and URL to the selected configuration file. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](../README.md#unattended-install)). See [Environment preparation](#environment-preparation) for the existing-environment requirements and interactive creation options.
+The installer lets you select Dynamics 365 Sales & Customer Service data independently of the Microsoft 365 content pack. Finance and Operations (F&O) has a separate [preparation guide](./finance-and-operations.md). At least one of the three packs must be selected. When run interactively, it prompts for the relevant environment URLs and can create a new Dataverse environment, saving its ID and URL to the selected configuration file. Use `./InstallWorkIQStarterPack.ps1 -Config <path>` to read the configuration instead, including the optional SharePoint document deployment choice (see [Unattended install](../USER-MANUAL.md#unattended-install)). See [Environment preparation](#environment-preparation) for the existing-environment requirements and interactive creation options.
 
-Dynamics-only labs still require Microsoft 365 and Microsoft 365 Copilot licenses, plus Copilot credits or pay-as-you-go billing. They run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations; see [Licenses](../README.md#licenses) and [Pre-requisite checks](../README.md#pre-requisite-checks) for the shared requirements and the separate Dynamics license requirements.
+Dynamics-only labs still require Microsoft 365 and Microsoft 365 Copilot licenses, plus Copilot credits or pay-as-you-go billing. They run the same prerequisite checks and Office and Copilot license assignment as Microsoft 365 installations; see [Licenses](../USER-MANUAL.md#licenses) and [Pre-requisite checks](../USER-MANUAL.md#pre-requisite-checks) for the shared requirements and the separate Dynamics license requirements.
 
 Depending on the selected packs, it will:
 - Create or resolve the selected users for all packs; synchronize them into Dataverse when Sales & Customer Service is selected.
@@ -20,7 +20,7 @@ All installation operations are recorded in `Logs/InstallLog-YYYYMMDDXX.md`, whe
 
 **Sales & Customer Service (Dataverse)**
 
-1. Create a Sandbox environment with a Dataverse database, or use an existing demo environment. Confirm the required Dynamics licenses and available Dataverse capacity using Microsoft's [environment creation instructions](https://learn.microsoft.com/en-us/power-platform/admin/create-environment). The shared lab licenses and installer permissions are covered in [Licenses](../README.md#licenses) and [Permissions](../README.md#permissions).
+1. Create a Sandbox environment with a Dataverse database, or use an existing demo environment. Confirm the required Dynamics licenses and available Dataverse capacity using Microsoft's [environment creation instructions](https://learn.microsoft.com/en-us/power-platform/admin/create-environment). The shared lab licenses and installer permissions are covered in [Licenses](../USER-MANUAL.md#licenses) and [Permissions](../USER-MANUAL.md#permissions).
 2. Select **Enable Dynamics 365 apps** when creating the database and ensure Sales and Customer Service are installed and ready. Microsoft does not allow this option to be enabled later on a database created without it. Use English (United States, LCID `1033`) to match the English security-role names used by the installer, and select the base currency for your demo.
 3. For an existing environment, set `DynamicsEnvironmentUrl` to its HTTPS root URL, for example `https://org.crm.dynamics.com`. Ensure the administrator running the installer can access the environment, import solutions, and assign security roles. If an environment security group is configured, the installer adds the selected users to it.
 
@@ -39,7 +39,7 @@ The starter pack checks the integration and deploys the account documents, but *
 ### Prerequisites
 
 - A ready Dataverse environment with Sales & Customer Service installed (see [Environment preparation](#environment-preparation)).
-- The **System Administrator** security role or equivalent permissions in that environment, in addition to the installer's [administrator requirements](../README.md#permissions).
+- The **System Administrator** security role or equivalent permissions in that environment, in addition to the installer's [administrator requirements](../USER-MANUAL.md#permissions).
 - An existing SharePoint Online site in the **same Microsoft 365 tenant**, for example `https://contoso.sharepoint.com/sites/DataverseDemo`. Its hostname must match the configured `TenantPrefix`. Use the site URL, not a document library, folder, or sharing link. The installer can use this site even when `InstallM365Content` is `false`.
 - Appropriate SharePoint permissions for the administrator to manage libraries and upload documents, and for the demo users to access those documents. Dataverse security roles do **not** automatically grant SharePoint access; assign users or groups permissions on the target site separately.
 
@@ -91,4 +91,4 @@ See Microsoft's [instructions for enabling document management on specific table
 3. Review the installation log for the selected default SharePoint site, the existing Account root, and successful document deployment. The configuration check is not a live SharePoint connectivity test; upload errors still need to be resolved.
 4. In **Sales Hub**, open a demo account with supplied documents and select **Related > Documents**. Confirm its documents are listed and can be opened. Use **Open Location** to verify the corresponding SharePoint folder, and repeat the access check as a demo user.
 
-If documents cannot be deployed or opened, check the environment URL, the active default site, Account document management, the Account root, and the affected user's SharePoint permissions. After correcting deployment errors, rerun the installer with the same configuration. To remove the uploaded demo account folders later, select **Dynamics SharePoint cleanup** (see [Cleanup](../README.md#cleanup)).
+If documents cannot be deployed or opened, check the environment URL, the active default site, Account document management, the Account root, and the affected user's SharePoint permissions. After correcting deployment errors, rerun the installer with the same configuration. To remove the uploaded demo account folders later, select **Dynamics SharePoint cleanup** (see [Cleanup](../USER-MANUAL.md#cleanup)).

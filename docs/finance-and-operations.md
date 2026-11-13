@@ -1,12 +1,12 @@
 # Finance and Operations
 
-[Back to README](../README.md)
+[Back to user manual](../USER-MANUAL.md)
 
 The main installer creates F&O demo customers, products, and sales orders from [Content/contentDynamics.json](../Content/contentDynamics.json). Prepare an existing F&O environment and the reference records below. This pack does not require Dataverse or its SharePoint document integration.
 
 Before creating demo data, the installer checks the two Finance persona users (Finance and Finance 2, including their selected real-user replacements) in F&O. It creates missing users with the selected company as their default, enables disabled users, and assigns or re-enables the **Sales Clerk** security role. Existing enabled users and assignments are reused. The signed-in administrator needs permission to maintain system users and security role assignments. Provisioning stops if these checks or changes fail. F&O cleanup retains these users and role assignments.
 
-Complete the shared [Requirements](../README.md#requirements), [Licenses](../README.md#licenses), and [Permissions](../README.md#permissions). The browser sign-in account used by the installer must also have F&O access to the selected company, with permission to read company setup and create customers, products, and orders through OData. Use an app registration with Dynamics ERP `Odata.FullAccess`. F&O licenses must be assigned separately.
+Complete the shared [Requirements](../USER-MANUAL.md#requirements), [Licenses](../USER-MANUAL.md#licenses), and [Permissions](../USER-MANUAL.md#permissions). The browser sign-in account used by the installer must also have F&O access to the selected company, with permission to read company setup and create customers, products, and orders through OData. Use an app registration with Dynamics ERP `Odata.FullAccess`. F&O licenses must be assigned separately.
 
 Provisioning creates sales-order headers and lines. It does not confirm, ship, invoice, or post the orders, or apply the source order statuses. Complete the additional fiscal, posting, and warehouse execution setup before performing those operations manually.
 
@@ -114,7 +114,7 @@ Configure missing associations using [Number sequences overview](https://learn.m
 
 ## F&O configuration
 
-Set these values under `Settings` in your [configuration file](../README.md#configuration). Interactive selections are saved for reuse with `-Config`. When multiple records are available, `-Config` needs valid saved selections; a single available record is selected automatically.
+Set these values under `Settings` in your [configuration file](../USER-MANUAL.md#configuration). Interactive selections are saved for reuse with `-Config`. When multiple records are available, `-Config` needs valid saved selections; a single available record is selected automatically.
 
 | Setting | Description |
 |---|---|
@@ -135,7 +135,7 @@ Add the four optional delivery, tax, and payment settings manually when your env
 
 Before provisioning, confirm that the shared prerequisites and USA address reference data are ready, the customer group, setup item and warehouse belong to the chosen company, and units, numbering and saved configuration are valid. If demo customer or released-product codes already exist, review their setup first: the installer reuses existing customers without updating their addresses or defaults and existing released products without changing their units or assigned dimension groups. It fills missing storage or tracking dimension groups on existing demo products from the selected template.
 
-Set `InstallDynamicsFOContent` to `true`, or answer **No** to Microsoft 365, **No** to Sales & Customer Service, and **Yes** to F&O for an interactive F&O-only installation. Continue with the shared [Instructions](../README.md#instructions).
+Set `InstallDynamicsFOContent` to `true`, or answer **No** to Microsoft 365, **No** to Sales & Customer Service, and **Yes** to F&O for an interactive F&O-only installation. Continue with the shared [Instructions](../USER-MANUAL.md#instructions).
 
 ## Verify F&O provisioning
 
