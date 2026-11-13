@@ -110,12 +110,11 @@ function Get-EligibleSites {
         if ($InstallType -eq 'Dynamics' -and $Config.Settings.InstallDynamicsContent -eq $true) {
             $packSelected = [bool]$site.DynamicsContent
         }
-        
         if ($packSelected) {
             $site
         }
         else {
-            $packName = if ($isDynamicsSite) { "Dynamics" } else { "M365" }
+            $packName = if ($InstallType -eq 'Dynamics') { "Dynamics" } else { "M365" }
             Write-InstallLogAction -Message "Skipping site '$($site.Title)': the $packName content pack was not selected."
         }
     }

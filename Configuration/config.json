@@ -16,9 +16,9 @@
     "DynamicsFOShippingSiteId": "",
     "RealUserUpns": [],
     "DynamicsEnvironmentUrl": "",
-    "ClientId": "adce873e-c151-4a42-9419-6e32baa2d01f",
+    "ClientId": "",
     "ProvisionUserEmails": true,
     "InstallDynamicsFOContent": false,
-    "TenantPrefix": "sympdcp"
+    "TenantPrefix": ""
   }
 }
