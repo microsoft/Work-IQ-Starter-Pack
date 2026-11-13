@@ -55,6 +55,10 @@ Hands-on labs are available in the [Labs directory](./Labs/README.md) to help yo
 |---|---|---|
 | 1.0.0 | 2026-11-16 | Initial release |
 
+## Feedback
+
+We welcome your feedback on the WorkIQ Starter Pack! Share suggestions, report bugs, or raise issues through the [Issues list](https://github.com/microsoft/Work-IQ-Starter-Pack/issues). For security vulnerabilities, follow the reporting guidance in the [Security section](#security) instead.
+
 ## Author(s)
 - [Derek Cash-Peterson](https://www.linkedin.com/in/dcashpeterson/), MVP (Sympraxis Consulting)
 - [Fabio Franzini](https://www.linkedin.com/in/fabiofranzini/), MVP (Apvee Solutions Srl)
