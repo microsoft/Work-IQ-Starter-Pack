@@ -427,34 +427,41 @@ try {
         }
     }
 
-    # F&O also provisions Finance Team; selecting both packs provisions it only once.
+    # Run site provisioning separately for each selected package.
     if ($installM365Content -or $installDynamicsFOContent) {
         #Confirm that the licenses are available
         $licensesAvailable = Test-License-PreRequisites -Settings $provisioningSettings
 
         $powerPlatformPermissionsMet = $true
         if ($isGlobalAdmin -eq $true -and $licensesAvailable -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
-            Write-Host "All pre-requisites are met. Proceeding with M365/F&O Demo site provisioning."
+            $sitePackages = @(
+                if ($installM365Content) { @{ Type = 'M365'; Name = 'M365' } }
+                if ($installDynamicsFOContent) { @{ Type = 'FO'; Name = 'F&O' } }
+            )
+            foreach ($package in $sitePackages) {
+                Write-Host "All pre-requisites are met. Proceeding with $($package.Name) Demo site provisioning."
 
-            foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config -InstallType 'M365')) {
-                Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
-                Add-Groups -Site $site -Settings $provisioningSettings
+                foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config -InstallType $package.Type)) {
+                    Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
+                    Add-Groups -Site $site -Settings $provisioningSettings
 
-                if (-not (Add-TeamSite -Site $site -Config $config)) {
-                    Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
-                    continue
-                }
+                    if (-not (Add-TeamSite -Site $site -Config $config)) {
+                        Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
+                        continue
+                    }
 
-                Import-SiteDocuments -Site $site -Config $config
-                Add-SiteListsAndLibraries -Site $site -Config $config
-                # The meeting posts are imported with the chats: a channel can only be migrated once.
-                $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
-                Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
-                if ($config.Settings.ProvisionUserEmails) {
-                    Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
+                    Import-SiteDocuments -Site $site -Config $config
+                    Add-SiteListsAndLibraries -Site $site -Config $config
+                    # The meeting posts are imported with the chats: a channel can only be migrated once.
+                    $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
+                    Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
+                    if ($config.Settings.ProvisionUserEmails) {
+                        Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
+                    }
                 }
             }
         }
+
     }
 
     if ($installDynamicsContent) {

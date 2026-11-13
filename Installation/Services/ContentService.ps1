@@ -98,30 +98,31 @@ function Get-EligibleSites {
         [Parameter(Mandatory = $true)]
         $Config,
         [Parameter(Mandatory = $true)]
-        [ValidateSet('M365', 'Dynamics')]
+        [ValidateSet('M365', 'Dynamics', 'FO')]
         [string]$InstallType
     )
 
-    # Sales sites run in the Dynamics phase; other sites run in the M365/F&O phase.
+    # Select sites for one package at a time. Shared sites are provisioned only once.
     foreach ($site in $ContentConfig.Sites) {
         $isDynamicsSite = [bool]$site.DynamicsContent
         if (($InstallType -eq 'Dynamics') -ne $isDynamicsSite) {
+            continue
+        }
+        if ($InstallType -eq 'FO' -and (-not $site.FinanceOperationsContent -or $Config.Settings.InstallM365Content -eq $true)) {
             continue
         }
 
         $packSelected = if ($isDynamicsSite) {
             $Config.Settings.InstallDynamicsContent -eq $true
         }
-        else {
-            ($Config.Settings.InstallM365Content -eq $true) -or
-                ([bool]$site.FinanceOperationsContent -and $Config.Settings.InstallDynamicsFOContent -eq $true)
-        }
+        elseif ($InstallType -eq 'FO') { $Config.Settings.InstallDynamicsFOContent -eq $true }
+        else { $Config.Settings.InstallM365Content -eq $true }
 
         if ($packSelected) {
             $site
         }
         else {
-            $packName = if ($isDynamicsSite) { "Dynamics Sales & CS" } elseif ($site.FinanceOperationsContent) { "M365 or F&O" } else { "M365" }
+            $packName = switch ($InstallType) { 'Dynamics' { 'Dynamics Sales & CS' } 'FO' { 'F&O' } 'M365' { 'M365' } }
             Write-InstallLogAction -Message "Skipping site '$($site.Title)': requires the $packName content pack."
         }
     }
