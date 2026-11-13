@@ -387,8 +387,8 @@ try {
         Add-Users -Settings $provisioningSettings
     }
 
-    # M365 provisioning runs only when its content pack was selected.
-    if ($installM365Content) {
+    # All content packs provision Teams and SharePoint content, so share their setup.
+    if ($installM365Content -or $installDynamicsContent -or $installDynamicsFOContent) {
         Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
         Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -CertificateDirectory $configurationPaths.CertificateDirectory
 
@@ -425,13 +425,16 @@ try {
         if (-not $config.Settings.ProvisionUserEmails) {
             Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
         }
+    }
 
+    # F&O also provisions Finance Team; selecting both packs provisions it only once.
+    if ($installM365Content -or $installDynamicsFOContent) {
         #Confirm that the licenses are available
         $licensesAvailable = Test-License-PreRequisites -Settings $provisioningSettings
 
         $powerPlatformPermissionsMet = $true
         if ($isGlobalAdmin -eq $true -and $licensesAvailable -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
-            Write-Host "All pre-requisites are met. Proceeding with M365 Demo site provisioning."
+            Write-Host "All pre-requisites are met. Proceeding with M365/F&O Demo site provisioning."
 
             foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config -InstallType 'M365')) {
                 Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
@@ -454,7 +457,7 @@ try {
         }
     }
 
-    if ($installDynamicsContent -or $installDynamicsFOContent) {
+    if ($installDynamicsContent) {
         Write-Host "All pre-requisites are met. Proceeding with Dynamics Demo site provisioning."
         foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config -InstallType 'Dynamics')) {
                 Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
@@ -476,6 +479,9 @@ try {
             }
         
 
+    }
+
+    if ($installDynamicsContent -or $installDynamicsFOContent) {
         # Dynamics provisioning reuses the shared identities and app registration.
         . (Join-Path -Path $PSScriptRoot -ChildPath "Installation/Services/PowerPlatformService.ps1") -AccessTokenProvider $installerTokenProvider
 

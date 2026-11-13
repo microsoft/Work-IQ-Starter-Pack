@@ -102,20 +102,27 @@ function Get-EligibleSites {
         [string]$InstallType
     )
 
-    # Dynamics sites belong to the Dynamics content pack, every other site to the M365 pack.
+    # Sales sites run in the Dynamics phase; other sites run in the M365/F&O phase.
     foreach ($site in $ContentConfig.Sites) {
-        if ($InstallType -eq 'M365' -and $Config.Settings.InstallM365Content -eq $true) {
-            $packSelected = -not [bool]$site.DynamicsContent
+        $isDynamicsSite = [bool]$site.DynamicsContent
+        if (($InstallType -eq 'Dynamics') -ne $isDynamicsSite) {
+            continue
         }
-        if ($InstallType -eq 'Dynamics' -and $Config.Settings.InstallDynamicsContent -eq $true) {
-            $packSelected = [bool]$site.DynamicsContent
+
+        $packSelected = if ($isDynamicsSite) {
+            $Config.Settings.InstallDynamicsContent -eq $true
         }
+        else {
+            ($Config.Settings.InstallM365Content -eq $true) -or
+                ([bool]$site.FinanceOperationsContent -and $Config.Settings.InstallDynamicsFOContent -eq $true)
+        }
+
         if ($packSelected) {
             $site
         }
         else {
-            $packName = if ($InstallType -eq 'Dynamics') { "Dynamics" } else { "M365" }
-            Write-InstallLogAction -Message "Skipping site '$($site.Title)': the $packName content pack was not selected."
+            $packName = if ($isDynamicsSite) { "Dynamics Sales & CS" } elseif ($site.FinanceOperationsContent) { "M365 or F&O" } else { "M365" }
+            Write-InstallLogAction -Message "Skipping site '$($site.Title)': requires the $packName content pack."
         }
     }
 }
