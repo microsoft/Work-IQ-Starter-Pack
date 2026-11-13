@@ -8,6 +8,8 @@ Only run it against a demo or developer tenant.
 
 ## Overview
 
+[![Watch the WorkIQ Starter Pack video on YouTube](https://img.youtube.com/vi/HdAQtYuHz7Q/hqdefault.jpg)](https://youtu.be/HdAQtYuHz7Q)
+
 The Work IQ Starter Pack is a collection of PowerShell scripts that automate the provisioning of demo users, content, and business data onto a target demo or developer tenant. It provides a consolidated knowledge base for exploring and experimenting with Work IQ, as well as for delivering consistent demos. The whole content is based on the fictitious Caldova Pharmaceuticals company used by Microsft as demo company.
 
 Here you can see a sample of a fictitious email thread in Outlook.

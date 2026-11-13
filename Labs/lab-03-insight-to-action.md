@@ -89,7 +89,7 @@ The Starter Pack does not create an additional sourcing-manager persona. Charlot
 
    ```text
    Propose a 30-minute internal review titled:
-   "[Caldova-Lab-03-<YOUR_INITIALS>] ALLER supplier capacity review".
+   "[Caldova-Lab-03] ALLER supplier capacity review".
    Date: <YYYY-MM-DD>.
    Time zone: <EXPLICIT_TIME_ZONE>.
    Working-hours window: <START_TIME> to <END_TIME>.
