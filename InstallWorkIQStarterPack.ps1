@@ -387,8 +387,8 @@ try {
         Add-Users -Settings $provisioningSettings
     }
 
-    # M365 provisioning runs only when its content pack was selected.
-    if ($installM365Content) {
+    # All content packs provision Teams and SharePoint content, so share their setup.
+    if ($installM365Content -or $installDynamicsContent -or $installDynamicsFOContent) {
         Connect-WorkIQGraph -SharePointUrl "https://$($config.Settings.TenantPrefix).sharepoint.com" -ClientId $config.Settings.ClientId
         Initialize-TeamsChatMigrationCertificate -ClientId $config.Settings.ClientId -CertificateDirectory $configurationPaths.CertificateDirectory
 
@@ -425,15 +425,48 @@ try {
         if (-not $config.Settings.ProvisionUserEmails) {
             Write-InstallLogAction -Message "Skipping email provisioning (not confirmed by the user)."
         }
+    }
 
+    # Run site provisioning separately for each selected package.
+    if ($installM365Content -or $installDynamicsFOContent) {
         #Confirm that the licenses are available
         $licensesAvailable = Test-License-PreRequisites -Settings $provisioningSettings
 
         $powerPlatformPermissionsMet = $true
         if ($isGlobalAdmin -eq $true -and $licensesAvailable -eq $true -and $powerPlatformPermissionsMet -eq $true -and $copilotCreditsAvailable -eq $true -and $workIQEnabled -eq $true) {
-            Write-Host "All pre-requisites are met. Proceeding with user provisioning."
+            $sitePackages = @(
+                if ($installM365Content) { @{ Type = 'M365'; Name = 'M365' } }
+                if ($installDynamicsFOContent) { @{ Type = 'FO'; Name = 'F&O' } }
+            )
+            foreach ($package in $sitePackages) {
+                Write-Host "All pre-requisites are met. Proceeding with $($package.Name) Demo site provisioning."
 
-            foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config)) {
+                foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config -InstallType $package.Type)) {
+                    Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
+                    Add-Groups -Site $site -Settings $provisioningSettings
+
+                    if (-not (Add-TeamSite -Site $site -Config $config)) {
+                        Write-InstallLogAction -Message "Skipping the remaining content for site '$($site.Title)' because its team could not be created." -Level Warning
+                        continue
+                    }
+
+                    Import-SiteDocuments -Site $site -Config $config
+                    Add-SiteListsAndLibraries -Site $site -Config $config
+                    # The meeting posts are imported with the chats: a channel can only be migrated once.
+                    $meetingMessages = Add-TeamMeetings -Site $site -Config $config -Settings $provisioningSettings -DemoUsers $settings.Users
+                    Add-TeamsChatMessages -Site $site -Settings $provisioningSettings -MigrationHeaders $migrationHeaders -RunJitter $runJitter -ExtraMessages $meetingMessages
+                    if ($config.Settings.ProvisionUserEmails) {
+                        Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
+                    }
+                }
+            }
+        }
+
+    }
+
+    if ($installDynamicsContent) {
+        Write-Host "All pre-requisites are met. Proceeding with Dynamics Demo site provisioning."
+        foreach ($site in @(Get-EligibleSites -ContentConfig $contentConfig -Config $config -InstallType 'Dynamics')) {
                 Write-InstallLogAction -Message "Provisioning site '$($site.Title)'..."
                 Add-Groups -Site $site -Settings $provisioningSettings
 
@@ -451,7 +484,8 @@ try {
                     Import-UserEmails -Site $site -ContentConfig $contentConfig -ContentPath $activeContentPath -Settings $provisioningSettings -DemoUsers $settings.Users -MailHeaders $migrationHeaders
                 }
             }
-        }
+        
+
     }
 
     if ($installDynamicsContent -or $installDynamicsFOContent) {
