@@ -98,24 +98,32 @@ function Get-EligibleSites {
         [Parameter(Mandatory = $true)]
         $Config,
         [Parameter(Mandatory = $true)]
-        [ValidateSet('M365', 'Dynamics')]
+        [ValidateSet('M365', 'Dynamics', 'FO')]
         [string]$InstallType
     )
 
-    # Dynamics sites belong to the Dynamics content pack, every other site to the M365 pack.
+    # Select sites for one package at a time. Shared sites are provisioned only once.
     foreach ($site in $ContentConfig.Sites) {
-        if ($InstallType -eq 'M365' -and $Config.Settings.InstallM365Content -eq $true) {
-            $packSelected = -not [bool]$site.DynamicsContent
+        $isDynamicsSite = [bool]$site.DynamicsContent
+        if (($InstallType -eq 'Dynamics') -ne $isDynamicsSite) {
+            continue
         }
-        if ($InstallType -eq 'Dynamics' -and $Config.Settings.InstallDynamicsContent -eq $true) {
-            $packSelected = [bool]$site.DynamicsContent
+        if ($InstallType -eq 'FO' -and (-not $site.FinanceOperationsContent -or $Config.Settings.InstallM365Content -eq $true)) {
+            continue
         }
+
+        $packSelected = if ($isDynamicsSite) {
+            $Config.Settings.InstallDynamicsContent -eq $true
+        }
+        elseif ($InstallType -eq 'FO') { $Config.Settings.InstallDynamicsFOContent -eq $true }
+        else { $Config.Settings.InstallM365Content -eq $true }
+
         if ($packSelected) {
             $site
         }
         else {
-            $packName = if ($InstallType -eq 'Dynamics') { "Dynamics" } else { "M365" }
-            Write-InstallLogAction -Message "Skipping site '$($site.Title)': the $packName content pack was not selected."
+            $packName = switch ($InstallType) { 'Dynamics' { 'Dynamics Sales & CS' } 'FO' { 'F&O' } 'M365' { 'M365' } }
+            Write-InstallLogAction -Message "Skipping site '$($site.Title)': requires the $packName content pack."
         }
     }
 }
