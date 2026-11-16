@@ -484,6 +484,7 @@
         },
         {
             "Title": "Finance Team",
+            "FinanceOperationsContent": true,
             "URL": "Finance-Team",
             "Description": "Intelligent Investigation - Caldova supplier invoice investigation site",
             "EnableMicrosoftTeams": true,
