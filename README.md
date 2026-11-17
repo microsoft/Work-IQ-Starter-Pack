@@ -1,4 +1,4 @@
-# Work IQ Starter Pack
+# Starter Pack for Work IQ
 
 Demo sites, users, and content used to explore Work IQ on a demo or developer tenant.
 
@@ -10,7 +10,7 @@ Only run it against a demo or developer tenant.
 
 [![Watch the WorkIQ Starter Pack video on YouTube](https://img.youtube.com/vi/HdAQtYuHz7Q/hqdefault.jpg)](https://youtu.be/HdAQtYuHz7Q)
 
-The Work IQ Starter Pack is a collection of PowerShell scripts that automate the provisioning of demo users, content, and business data onto a target demo or developer tenant. It provides a consolidated knowledge base for exploring and experimenting with Work IQ, as well as for delivering consistent demos. The whole content is based on the fictitious Caldova Pharmaceuticals company used by Microsft as demo company.
+The Starter Pack for Work IQ is a collection of PowerShell scripts that automate the provisioning of demo users, content, and business data onto a target demo or developer tenant. It provides a consolidated knowledge base for exploring and experimenting with Work IQ, as well as for delivering consistent demos. The whole content is based on the fictitious Caldova Pharmaceuticals company used by Microsft as demo company.
 
 Here you can see a sample of a fictitious email thread in Outlook.
 
@@ -47,7 +47,7 @@ Read the [user manual](./USER-MANUAL.md) for detailed instructions on running th
 
 ## Labs
 
-Hands-on labs are available in the [Labs directory](./Labs/README.md) to help you explore Work IQ using the demo data provided by the Work IQ Starter Pack. The labs leverage Copilot Chat, Copilot Cowork, Copilot Studio, and more, giving you opportunities to experiment across different Copilot experiences and tools. Use the labs as a starting point to ask questions, discover connections across emails, Teams conversations, documents, and business data, and see how Work IQ brings this information together. We invite you to try your own prompts, explore different scenarios, and build on the exercises to create demos tailored to your interests. Keep your experiments in a demo or developer tenant, and use the fictitious Caldova Pharmaceuticals data to learn and discover what is possible.
+Hands-on labs are available in the [Labs directory](./Labs/README.md) to help you explore Work IQ using the demo data provided by the Starter Pack for Work IQ. The labs leverage Copilot Chat, Copilot Cowork, Copilot Studio, and more, giving you opportunities to experiment across different Copilot experiences and tools. Use the labs as a starting point to ask questions, discover connections across emails, Teams conversations, documents, and business data, and see how Work IQ brings this information together. We invite you to try your own prompts, explore different scenarios, and build on the exercises to create demos tailored to your interests. Keep your experiments in a demo or developer tenant, and use the fictitious Caldova Pharmaceuticals data to learn and discover what is possible.
 
 ## Releases
 

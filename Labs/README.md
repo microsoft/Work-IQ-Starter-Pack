@@ -1,8 +1,8 @@
-# Work IQ Starter Pack labs
+# Starter Pack for Work IQ labs
 
 [Back to the Starter Pack](../README.md)
 
-Explore how Work IQ connects organizational knowledge, agent collaboration, enterprise actions, and business data. These four hands-on labs use the fictitious Caldova Pharmaceuticals company and the data deployed by the Work IQ Starter Pack.
+Explore how Work IQ connects organizational knowledge, agent collaboration, enterprise actions, and business data. These four hands-on labs use the fictitious Caldova Pharmaceuticals company and the data deployed by the Starter Pack for Work IQ.
 
 Use Copilot Chat directly in Lab 1, create and test agents in Labs 2 and 4, and customize Copilot Cowork with a reusable skill in Lab 3. Each lab includes a scenario, prerequisites, guided exercises, and evidence checks. Responses can vary; judge them by their evidence and behavior rather than by exact wording.
 

@@ -8,7 +8,7 @@ Only run it against a demo or developer tenant.
 
 ## Overview
 
-The Work IQ Starter Pack is a collection of PowerShell scripts that automate the provisioning of demo users, content, and business data onto a target demo or developer tenant. It provides a consolidated knowledge base for exploring and experimenting with Work IQ, as well as for delivering consistent demos. The whole content is based on the fictitious Caldova Pharmaceuticals company used by Microsft as demo company.
+The Starter Pack for Work IQ is a collection of PowerShell scripts that automate the provisioning of demo users, content, and business data onto a target demo or developer tenant. It provides a consolidated knowledge base for exploring and experimenting with Work IQ, as well as for delivering consistent demos. The whole content is based on the fictitious Caldova Pharmaceuticals company used by Microsft as demo company.
 
 The pack has one installer and one cleanup script. Both handle Microsoft 365 and Dynamics 365 content; no separate Dynamics scripts are needed.
 
@@ -40,7 +40,7 @@ The pack has one installer and one cleanup script. Both handle Microsoft 365 and
 ## Configuration
 
 ### Config file
-[Configuration/config.json](./Configuration/config.json) contains the default user-editable settings. The installer prompts for most of them and writes the answers back to this file. Pass `-Config <path>` to read the install choices from another JSON file and save updates to that file instead. Relative paths are resolved from your current working directory; absolute paths and files outside the repository are also supported. This is useful when you provision the Work IQ Starter Pack on multiple dev/test tenants and you want to keep dedicated configuration files for each tenant.
+[Configuration/config.json](./Configuration/config.json) contains the default user-editable settings. The installer prompts for most of them and writes the answers back to this file. Pass `-Config <path>` to read the install choices from another JSON file and save updates to that file instead. Relative paths are resolved from your current working directory; absolute paths and files outside the repository are also supported. This is useful when you provision the Starter Pack for Work IQ on multiple dev/test tenants and you want to keep dedicated configuration files for each tenant.
 
 ```json
 {
